@@ -9,17 +9,17 @@ import { CategoryListPage } from '../features/category/pages/CategoryListPage';
 import { CategoryDetailPage } from '../features/category/pages/CategoryDetailPage';
 
 
-import { CartPage } from '../features/cart/pages/CartPage';
-import { LoginPage } from '../features/auth/pages/LoginPage';
-import { RegisterPage } from '../features/auth/pages/RegisterPage';
-import { CheckoutPage } from '../features/checkout/pages/CheckoutPage';
-import { ProfilePage } from '../features/profile/pages/ProfilePage';
-import { PaymentPage } from '../features/payment/pages/PaymentPage';
-import { MockG3Page } from '../features/payment/pages/MockG3Page';
-import { OrderHistoryPage } from '../features/order/pages/OrderHistoryPage';
-import { OrderDetailPage } from '../features/order/pages/OrderDetailPage';
-import { ReceiptPage } from '../features/order/pages/ReceiptPage';
-import { RefundHistoryPage } from '../features/refund/pages/RefundHistoryPage';
+// import { CartPage } from '../features/cart/pages/CartPage';
+ import { LoginPage } from '../features/auth/pages/LoginPage';
+  import { RegisterPage } from '../features/auth/pages/RegisterPage';
+// import { CheckoutPage } from '../features/checkout/pages/CheckoutPage';
+// import { ProfilePage } from '../features/profile/pages/ProfilePage';
+// import { PaymentPage } from '../features/payment/pages/PaymentPage';
+// import { MockG3Page } from '../features/payment/pages/MockG3Page';
+// import { OrderHistoryPage } from '../features/order/pages/OrderHistoryPage';
+// import { OrderDetailPage } from '../features/order/pages/OrderDetailPage';
+// import { ReceiptPage } from '../features/order/pages/ReceiptPage';
+// import { RefundHistoryPage } from '../features/refund/pages/RefundHistoryPage';
 
 export const router = createBrowserRouter([
   {

@@ -8,6 +8,7 @@ import {
   fetchAuthenticatedCart,
 } from "../../cart/store/cartSlice";
 
+
 export const RegisterPage: React.FC = () => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
