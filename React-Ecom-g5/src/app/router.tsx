@@ -16,10 +16,10 @@ import { CheckoutPage } from '../features/checkout/pages/CheckoutPage';
 import { ProfilePage } from '../features/profile/pages/ProfilePage';
 import { PaymentPage } from '../features/payment/pages/PaymentPage';
 import { MockG3Page } from '../features/payment/pages/MockG3Page';
-// import { OrderHistoryPage } from '../features/order/pages/OrderHistoryPage';
-// import { OrderDetailPage } from '../features/order/pages/OrderDetailPage';
-// import { ReceiptPage } from '../features/order/pages/ReceiptPage';
-// import { RefundHistoryPage } from '../features/refund/pages/RefundHistoryPage';
+import { OrderHistoryPage } from '../features/order/pages/OrderHistoryPage';
+import { OrderDetailPage } from '../features/order/pages/OrderDetailPage';
+import { ReceiptPage } from '../features/order/pages/ReceiptPage';
+import { RefundHistoryPage } from '../features/refund/pages/RefundHistoryPage';
 
 export const router = createBrowserRouter([
   {
@@ -70,22 +70,22 @@ export const router = createBrowserRouter([
         path: 'payment/:orderId',
         element: <PaymentPage />,
       },
-      // {
-      //   path: 'orders',
-      //   element: <OrderHistoryPage />,
-      // },
-      // {
-      //   path: 'orders/:orderId',
-      //   element: <OrderDetailPage />,
-      // },
-      // {
-      //   path: 'orders/:orderId/receipt',
-      //   element: <ReceiptPage />,
-      // },
-      // {
-      //   path: 'refunds',
-      //   element: <RefundHistoryPage />,
-      // },
+      {
+        path: 'orders',
+        element: <OrderHistoryPage />,
+      },
+      {
+        path: 'orders/:orderId',
+        element: <OrderDetailPage />,
+      },
+      {
+        path: 'orders/:orderId/receipt',
+        element: <ReceiptPage />,
+      },
+      {
+        path: 'refunds',
+        element: <RefundHistoryPage />,
+      },
       {
         path: 'login',
         element: <LoginPage />,
