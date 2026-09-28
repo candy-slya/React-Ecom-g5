@@ -4,7 +4,7 @@ import { productApi } from '../api/productApi';
 import { ProductCard } from '../../../components/product/ProductCard';
 import type { BrandResponse } from '../api/productApi';
 import type { CategoryNodeResponse, ProductListResponse } from '../types';
-import heroImg from '../../../assets/images/hero.png';
+import heroImg from '../../../assets/hero.png';
 
 
 const CategoryIcon = ({ name }: { name: string }) => {

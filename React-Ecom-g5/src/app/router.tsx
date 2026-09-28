@@ -9,9 +9,9 @@ import { CategoryListPage } from '../features/category/pages/CategoryListPage';
 import { CategoryDetailPage } from '../features/category/pages/CategoryDetailPage';
 
 
-// import { CartPage } from '../features/cart/pages/CartPage';
- import { LoginPage } from '../features/auth/pages/LoginPage';
-  import { RegisterPage } from '../features/auth/pages/RegisterPage';
+import { CartPage } from '../features/cart/pages/CartPage';
+import { LoginPage } from '../features/auth/pages/LoginPage';
+import { RegisterPage } from '../features/auth/pages/RegisterPage';
 // import { CheckoutPage } from '../features/checkout/pages/CheckoutPage';
 // import { ProfilePage } from '../features/profile/pages/ProfilePage';
 // import { PaymentPage } from '../features/payment/pages/PaymentPage';
@@ -58,34 +58,34 @@ export const router = createBrowserRouter([
         path: 'cart',
         element: <CartPage />,
       },
-      {
-        path: 'profile',
-        element: <ProfilePage />,
-      },
-      {
-        path: 'checkout',
-        element: <CheckoutPage />,
-      },
-      {
-        path: 'payment/:orderId',
-        element: <PaymentPage />,
-      },
-      {
-        path: 'orders',
-        element: <OrderHistoryPage />,
-      },
-      {
-        path: 'orders/:orderId',
-        element: <OrderDetailPage />,
-      },
-      {
-        path: 'orders/:orderId/receipt',
-        element: <ReceiptPage />,
-      },
-      {
-        path: 'refunds',
-        element: <RefundHistoryPage />,
-      },
+      // {
+      //   path: 'profile',
+      //   element: <ProfilePage />,
+      // },
+      // {
+      //   path: 'checkout',
+      //   element: <CheckoutPage />,
+      // },
+      // {
+      //   path: 'payment/:orderId',
+      //   element: <PaymentPage />,
+      // },
+      // {
+      //   path: 'orders',
+      //   element: <OrderHistoryPage />,
+      // },
+      // {
+      //   path: 'orders/:orderId',
+      //   element: <OrderDetailPage />,
+      // },
+      // {
+      //   path: 'orders/:orderId/receipt',
+      //   element: <ReceiptPage />,
+      // },
+      // {
+      //   path: 'refunds',
+      //   element: <RefundHistoryPage />,
+      // },
       {
         path: 'login',
         element: <LoginPage />,
@@ -96,8 +96,8 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  {
-    path: '/mock-g3/:transactionRef',
-    element: <MockG3Page />,
-  },
+  // {
+  //   path: '/mock-g3/:transactionRef',
+  //   element: <MockG3Page />,
+  // },
 ]);
