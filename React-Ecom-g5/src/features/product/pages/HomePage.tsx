@@ -4,6 +4,7 @@ import { productApi } from '../api/productApi';
 import { ProductCard } from '../../../components/product/ProductCard';
 import type { BrandResponse } from '../api/productApi';
 import type { CategoryNodeResponse, ProductListResponse } from '../types';
+import heroImg from '../../../assets/hero.png';
 
 
 const CategoryIcon = ({ name }: { name: string }) => {
@@ -46,7 +47,7 @@ export const HomePage: React.FC = () => {
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Hero Section */}
       <div className="relative rounded-md overflow-hidden h-80 mb-10 flex items-center bg-gradient-to-r from-primary to-secondary group">
-        <img src={} className="absolute inset-0 w-full h-full object-cover opacity-60" />
+        <img src={heroImg} className="absolute inset-0 w-full h-full object-cover opacity-60" />
         <div className="relative z-10 px-12 text-white max-w-2xl">
           <div className="text-accent font-bold tracking-wider text-xs mb-3">6SYNC COLLECTION</div>
           <h1 className="text-4xl sm:text-5xl font-bold leading-tight mb-4">Discover Products<br/>Made for Your Day.</h1>
