@@ -14,8 +14,8 @@ import { LoginPage } from '../features/auth/pages/LoginPage';
 import { RegisterPage } from '../features/auth/pages/RegisterPage';
 import { CheckoutPage } from '../features/checkout/pages/CheckoutPage';
 import { ProfilePage } from '../features/profile/pages/ProfilePage';
-// import { PaymentPage } from '../features/payment/pages/PaymentPage';
-// import { MockG3Page } from '../features/payment/pages/MockG3Page';
+import { PaymentPage } from '../features/payment/pages/PaymentPage';
+import { MockG3Page } from '../features/payment/pages/MockG3Page';
 // import { OrderHistoryPage } from '../features/order/pages/OrderHistoryPage';
 // import { OrderDetailPage } from '../features/order/pages/OrderDetailPage';
 // import { ReceiptPage } from '../features/order/pages/ReceiptPage';
@@ -66,10 +66,10 @@ export const router = createBrowserRouter([
         path: 'checkout',
         element: <CheckoutPage />,
       },
-      // {
-      //   path: 'payment/:orderId',
-      //   element: <PaymentPage />,
-      // },
+      {
+        path: 'payment/:orderId',
+        element: <PaymentPage />,
+      },
       // {
       //   path: 'orders',
       //   element: <OrderHistoryPage />,
@@ -96,8 +96,8 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  // {
-  //   path: '/mock-g3/:transactionRef',
-  //   element: <MockG3Page />,
-  // },
+  {
+    path: '/mock-g3/:transactionRef',
+    element: <MockG3Page />,
+  },
 ]);
