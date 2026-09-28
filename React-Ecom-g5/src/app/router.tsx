@@ -12,8 +12,8 @@ import { CategoryDetailPage } from '../features/category/pages/CategoryDetailPag
 import { CartPage } from '../features/cart/pages/CartPage';
 import { LoginPage } from '../features/auth/pages/LoginPage';
 import { RegisterPage } from '../features/auth/pages/RegisterPage';
-// import { CheckoutPage } from '../features/checkout/pages/CheckoutPage';
-// import { ProfilePage } from '../features/profile/pages/ProfilePage';
+import { CheckoutPage } from '../features/checkout/pages/CheckoutPage';
+import { ProfilePage } from '../features/profile/pages/ProfilePage';
 // import { PaymentPage } from '../features/payment/pages/PaymentPage';
 // import { MockG3Page } from '../features/payment/pages/MockG3Page';
 // import { OrderHistoryPage } from '../features/order/pages/OrderHistoryPage';
@@ -58,14 +58,14 @@ export const router = createBrowserRouter([
         path: 'cart',
         element: <CartPage />,
       },
-      // {
-      //   path: 'profile',
-      //   element: <ProfilePage />,
-      // },
-      // {
-      //   path: 'checkout',
-      //   element: <CheckoutPage />,
-      // },
+      {
+        path: 'profile',
+        element: <ProfilePage />,
+      },
+      {
+        path: 'checkout',
+        element: <CheckoutPage />,
+      },
       // {
       //   path: 'payment/:orderId',
       //   element: <PaymentPage />,
