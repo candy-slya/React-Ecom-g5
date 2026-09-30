@@ -106,8 +106,8 @@ export const ProfileDetails: React.FC<ProfileDetailsProps> = ({
         </div>
         
         <div className="pt-4 flex justify-end gap-3 border-t border-border-subtle mt-6 pt-6">
-          <button type="button" onClick={() => setIsEditing(false)} disabled={isSubmitting} className="px-4 py-2 bg-[#F70D1A] text-[#000000] font-bold rounded-md text-sm hover:bg-[#D60B16] transition-colors disabled:opacity-50 shadow-sm">Cancel</button>
-          <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-[#FFFF00] text-[#000000] font-bold rounded-md text-sm hover:bg-[#F0EE00] transition-colors disabled:opacity-50 shadow-sm">
+          <button type="button" onClick={() => setIsEditing(false)} disabled={isSubmitting} className="px-4 py-2 border border-border-subtle bg-surface text-text-main font-semibold rounded-md text-sm hover:bg-slate-50 transition-colors disabled:opacity-50">Cancel</button>
+          <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-primary text-white font-bold rounded-md text-sm hover:bg-primary-hover transition-colors disabled:opacity-50 shadow-sm">
             {isSubmitting ? 'Saving...' : 'Save Changes'}
           </button>
         </div>

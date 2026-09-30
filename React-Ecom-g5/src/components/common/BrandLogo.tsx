@@ -8,7 +8,7 @@ interface BrandLogoProps {
 export const BrandLogo: React.FC<BrandLogoProps> = ({ className = '', theme = 'light' }) => {
   const isDark = theme === 'dark';
   const primaryColor = isDark ? 'text-white' : 'text-primary';
-  const secondaryColor = isDark ? 'text-accent' : 'text-[#111111]';
+  const secondaryColor = isDark ? 'text-accent' : 'text-text-main';
   const numberColor = 'text-white';
   const bagBg = 'text-primary';
 

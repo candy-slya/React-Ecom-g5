@@ -151,7 +151,7 @@ export const OrderHistoryPage: React.FC = () => {
           <p className="mb-6 text-text-main">{error}</p>
           <button
             onClick={() => fetchOrders(currentPage)}
-            className="rounded-md bg-[#FFFF00] text-[#000000] px-6 py-2 font-bold hover:bg-[#F0EE00] transition-colors shadow-sm"
+            className="rounded-md bg-primary text-white px-6 py-2 font-bold hover:bg-primary-hover transition-colors shadow-sm"
           >
             Try Again
           </button>
@@ -167,7 +167,7 @@ export const OrderHistoryPage: React.FC = () => {
           <h1 className="text-3xl font-bold tracking-tight text-text-main print:text-2xl">Customer Order History</h1>
           <button
             onClick={() => window.print()}
-            className="mt-4 sm:mt-0 inline-flex items-center rounded-md bg-[#FFFF00] text-[#000000] px-4 py-2 text-sm font-bold shadow-sm hover:bg-[#F0EE00] transition-colors print:hidden"
+            className="mt-4 sm:mt-0 inline-flex items-center rounded-md bg-accent text-slate-950 px-4 py-2 text-sm font-bold shadow-sm hover:bg-accent-hover transition-colors print:hidden"
           >
             <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -242,7 +242,7 @@ export const OrderHistoryPage: React.FC = () => {
           <div className="mt-4 flex gap-3">
             <button
               onClick={handleApplyFilters}
-              className="rounded-md bg-[#FFFF00] text-[#000000] px-4 py-2 text-sm font-bold hover:bg-[#F0EE00] transition-colors shadow-sm"
+              className="rounded-md bg-primary text-white px-4 py-2 text-sm font-bold hover:bg-primary-hover transition-colors shadow-sm"
             >
               Apply Filters
             </button>

@@ -1,37 +1,72 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #F70D1A;
-  --color-primary-hover: #D60B16;
-  --color-secondary: #111111;
-  --color-secondary-hover: #000000;
-  --color-accent: #FFFF00;
-  --color-accent-hover: #F0EE00;
-  --color-accent-soft: #FFF9E3;
-  --color-page: #FFFEFA;
+  --color-primary: #FF2B6D;
+  --color-primary-hover: #E11D48;
+  --color-secondary: #0F172A;
+  --color-secondary-hover: #1E293B;
+  --color-accent: #FFC700;
+  --color-accent-hover: #F59E0B;
+  --color-accent-soft: #FFFBEB;
+  --color-sky: #0EA5E9;
+  --color-sky-hover: #0284C7;
+  --color-mint: #10B981;
+  --color-page: #F8FAFC;
   --color-surface: #FFFFFF;
-  --color-text-main: #111111;
-  --color-text-muted: #555555;
-  --color-border-subtle: #E8E5DD;
+  --color-text-main: #0F172A;
+  --color-text-muted: #64748B;
+  --color-border-subtle: #E2E8F0;
+}
+
+@utility btn-primary {
+  background-color: #FF2B6D;
+  color: #FFFFFF;
+  font-weight: 700;
+  transition-property: color, background-color, border-color, box-shadow;
+  transition-duration: 150ms;
+
+  &:hover {
+    background-color: #E11D48;
+  }
+}
+
+@utility btn-accent {
+  background-color: #FFC700;
+  color: #0F172A;
+  font-weight: 700;
+  transition-property: color, background-color, border-color, box-shadow;
+  transition-duration: 150ms;
+
+  &:hover {
+    background-color: #F59E0B;
+  }
 }
 
 @utility btn-yellow {
-  background-color: #FFFF00;
-  color: #000000;
+  background-color: #FFC700;
+  color: #0F172A;
   font-weight: 700;
   transition-property: color, background-color, border-color;
   transition-duration: 150ms;
+
+  &:hover {
+    background-color: #F59E0B;
+  }
 }
 
 @utility btn-cancel {
-  background-color: #F70D1A;
-  color: #000000;
+  background-color: #EF4444;
+  color: #FFFFFF;
   font-weight: 700;
   transition-property: color, background-color, border-color;
   transition-duration: 150ms;
+
+  &:hover {
+    background-color: #DC2626;
+  }
 }
 
 body {
-  background-color: #FFFEFA;
-  color: #111111;
+  background-color: #F8FAFC;
+  color: #0F172A;
 }

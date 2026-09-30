@@ -138,14 +138,14 @@ export const RequestRefundModal: React.FC<RequestRefundModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 bg-[#F70D1A] text-[#000000] font-bold rounded-md hover:bg-[#D60B16] transition-colors disabled:opacity-50 shadow-sm"
+              className="px-4 py-2 border border-border-subtle bg-surface text-text-main font-semibold rounded-md hover:bg-slate-50 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-[#FFFF00] text-[#000000] font-bold rounded-md hover:bg-[#F0EE00] transition-colors disabled:opacity-50 shadow-sm"
+              className="px-4 py-2 bg-primary text-white font-bold rounded-md hover:bg-primary-hover transition-colors disabled:opacity-50 shadow-sm"
             >
               {loading ? 'Submitting...' : 'Submit Request'}
             </button>

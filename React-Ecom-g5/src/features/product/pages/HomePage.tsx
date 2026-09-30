@@ -7,8 +7,19 @@ import type { CategoryNodeResponse, ProductListResponse } from '../types';
 import heroImg from '../../../assets/hero.png';
 
 
+const getCategoryStyle = (name: string) => {
+  const n = name.toLowerCase();
+  if (n.includes('fashion') || n.includes('cloth') || n.includes('shirt')) return { bg: 'bg-[#FFE4EC]', text: 'text-[#FF2B6D]' };
+  if (n.includes('electronic') || n.includes('laptop') || n.includes('computer')) return { bg: 'bg-[#E0F2FE]', text: 'text-[#0284C7]' };
+  if (n.includes('skin') || n.includes('beauty')) return { bg: 'bg-[#FFEDD5]', text: 'text-[#EA580C]' };
+  if (n.includes('home') || n.includes('furni')) return { bg: 'bg-[#FEF3C7]', text: 'text-[#D97706]' };
+  if (n.includes('sport') || n.includes('fit')) return { bg: 'bg-[#D1FAE5]', text: 'text-[#059669]' };
+  return { bg: 'bg-[#F3E8FF]', text: 'text-[#7C3AED]' };
+};
+
 const CategoryIcon = ({ name }: { name: string }) => {
   const n = name.toLowerCase();
+  const style = getCategoryStyle(name);
   let path = "M4 6a2 2 0 012-2h2.5l2 2H18a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"; // default folder
   if (n.includes('electronic') || n.includes('laptop') || n.includes('computer')) path = "M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z";
   else if (n.includes('fashion') || n.includes('clothing') || n.includes('shirt')) path = "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z";
@@ -18,8 +29,8 @@ const CategoryIcon = ({ name }: { name: string }) => {
   else if (n.includes('audio') || n.includes('headphone')) path = "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a7 7 0 0114 0v10a2 2 0 01-2 2h-2a2 2 0 01-2-2v-6a2 2 0 012-2h2a2 2 0 012 2v6";
   
   return (
-    <svg className="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={path} />
+    <svg className={`w-8 h-8 ${style.text}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d={path} />
     </svg>
   );
 };
@@ -46,13 +57,13 @@ export const HomePage: React.FC = () => {
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Hero Section */}
-      <div className="relative rounded-md overflow-hidden h-80 mb-10 flex items-center bg-gradient-to-r from-primary via-[#B7000B] to-black group">
-        <img src={heroImg} className="absolute inset-0 w-full h-full object-cover opacity-60" />
+      <div className="relative rounded-xl overflow-hidden h-80 mb-10 flex items-center bg-gradient-to-r from-[#0284C7] via-[#0EA5E9] to-[#38BDF8] shadow-md group">
+        <img src={heroImg} className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay" />
         <div className="relative z-10 px-12 text-white max-w-2xl">
-          <div className="text-[#FFFF00] font-bold tracking-wider text-xs mb-3">6SYNC COLLECTION</div>
-          <h1 className="text-4xl sm:text-5xl font-bold leading-tight mb-4">Discover Products<br/>Made for Your Day.</h1>
-          <p className="text-white mb-6 text-sm sm:text-base">Discover products by category and brand, then compare variants and live available stock.</p>
-          <button onClick={() => routeProducts()} className="bg-[#FFFF00] text-[#000000] px-6 py-2.5 text-sm font-bold rounded shadow hover:bg-[#F0EE00] transition-colors">SHOP NOW</button>
+          <div className="text-accent font-black tracking-wider text-xs mb-3 bg-black/20 inline-block px-3 py-1 rounded-full backdrop-blur-xs">6SYNC COLLECTION</div>
+          <h1 className="text-4xl sm:text-5xl font-black leading-tight mb-4 drop-shadow-sm">Discover Products<br/>Made for Your Day.</h1>
+          <p className="text-white/95 mb-6 text-sm sm:text-base font-medium">Discover products by category and brand, then compare variants and live available stock.</p>
+          <button onClick={() => routeProducts()} className="bg-primary text-white px-7 py-3 text-sm font-bold rounded-lg shadow-lg hover:bg-primary-hover transition-all transform hover:-translate-y-0.5">SHOP NOW</button>
         </div>
         
         {/* Slider Controls */}
@@ -79,12 +90,15 @@ export const HomePage: React.FC = () => {
           <Link to="/categories" className="text-sm text-primary font-bold hover:underline">VIEW ALL CATEGORIES &rarr;</Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {categories.map(c => (
-            <div key={c.categoryId} onClick={() => navigate(`/categories/${c.categoryId}`)} className="bg-white border border-border-subtle p-5 text-center cursor-pointer hover:-translate-y-[3px] hover:border-primary hover:shadow-[0_8px_20px_#0000000d] transition-all">
-              <div className="w-[76px] h-[76px] mx-auto bg-accent-soft rounded-full flex items-center justify-center mb-3"><CategoryIcon name={c.categoryName} /></div>
-              <b className="text-sm block">{c.categoryName}</b>
-            </div>
-          ))}
+          {categories.map(c => {
+            const style = getCategoryStyle(c.categoryName);
+            return (
+              <div key={c.categoryId} onClick={() => navigate(`/categories/${c.categoryId}`)} className="bg-white border border-border-subtle rounded-xl p-5 text-center cursor-pointer hover:-translate-y-1 hover:border-primary hover:shadow-md transition-all">
+                <div className={`w-[76px] h-[76px] mx-auto ${style.bg} rounded-full flex items-center justify-center mb-3 shadow-xs`}><CategoryIcon name={c.categoryName} /></div>
+                <b className="text-sm block text-text-main">{c.categoryName}</b>
+              </div>
+            );
+          })}
         </div>
       </section>
 
@@ -96,11 +110,11 @@ export const HomePage: React.FC = () => {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {brands.map(b => (
-            <div key={b.brandId} onClick={() => navigate(`/brands/${b.brandId}`)} className="bg-white border border-border-subtle p-5 text-center cursor-pointer hover:-translate-y-[3px] hover:border-primary hover:shadow-[0_8px_20px_#0000000d] transition-all">
-              <div className="w-[76px] h-[76px] mx-auto border border-border-subtle bg-accent/20 rounded-full flex items-center justify-center font-black text-xs mb-3 overflow-hidden">
+            <div key={b.brandId} onClick={() => navigate(`/brands/${b.brandId}`)} className="bg-white border border-border-subtle rounded-xl p-5 text-center cursor-pointer hover:-translate-y-1 hover:border-primary hover:shadow-md transition-all">
+              <div className="w-[76px] h-[76px] mx-auto border border-border-subtle bg-accent-soft rounded-full flex items-center justify-center font-black text-xs mb-3 overflow-hidden shadow-xs">
                 {b.brandLogoUrl ? <img src={b.brandLogoUrl} className="w-full h-full object-contain" /> : b.brandName}
               </div>
-              <b className="text-sm block">{b.brandName}</b>
+              <b className="text-sm block text-text-main">{b.brandName}</b>
             </div>
           ))}
         </div>

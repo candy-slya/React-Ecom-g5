@@ -147,7 +147,7 @@ export const ProductListPage: React.FC = () => {
         </div>
         
         <div className="bg-gradient-to-r from-secondary to-primary text-white p-8 rounded shadow-sm mb-8">
-          <div className="text-[#FFFF00] font-bold text-[13px] tracking-wider">6SYNC CATALOG</div>
+          <div className="text-accent font-bold text-[13px] tracking-wider">6SYNC CATALOG</div>
           <h1 className="text-[34px] font-bold my-1.5">
             {activeSearch ? `Search Results for "${activeSearch}"` : activeCategoryId ? 'Category' : activeBrandId ? 'Brand' : 'All Products'}
           </h1>
@@ -194,7 +194,7 @@ export const ProductListPage: React.FC = () => {
                 <input type="number" placeholder="Min" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="w-1/2 p-2 border border-border-subtle text-[12px]" />
                 <input type="number" placeholder="Max" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="w-1/2 p-2 border border-border-subtle text-[12px]" />
               </div>
-              <button onClick={applyPrice} className="w-full mt-2 bg-[#FFFF00] text-[#000000] font-[800] py-[10px] text-[12px] hover:bg-[#F0EE00] transition-colors rounded-sm">APPLY PRICE</button>
+              <button onClick={applyPrice} className="w-full mt-2 bg-primary text-white font-[800] py-[10px] text-[12px] hover:bg-primary-hover transition-colors rounded-sm shadow-xs">APPLY PRICE</button>
             </div>
 
             <div className="border-t border-border-subtle py-[15px]">

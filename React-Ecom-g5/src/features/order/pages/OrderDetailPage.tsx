@@ -145,7 +145,7 @@ export const OrderDetailPage: React.FC = () => {
             </button>
             <button
               onClick={() => window.location.reload()}
-              className="rounded-md bg-[#FFFF00] text-[#000000] px-6 py-2 font-bold hover:bg-[#F0EE00] transition-colors shadow-sm"
+              className="rounded-md bg-primary text-white px-6 py-2 font-bold hover:bg-primary-hover transition-colors shadow-sm"
             >
               Try Again
             </button>
@@ -190,7 +190,7 @@ export const OrderDetailPage: React.FC = () => {
             {(order.paymentStatus === 'SUCCESS' || order.paymentStatus === 'REFUNDED' || order.paymentStatus === 'PARTIALLY_REFUNDED') && (
               <button
                 onClick={() => navigate(`/orders/${order.orderId}/receipt`)}
-                className="mt-2 inline-flex items-center px-4 py-2 bg-[#FFFF00] text-[#000000] text-sm font-bold rounded shadow-sm hover:bg-[#F0EE00] transition-colors"
+                className="mt-2 inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-bold rounded shadow-sm hover:bg-primary-hover transition-colors"
               >
                 <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

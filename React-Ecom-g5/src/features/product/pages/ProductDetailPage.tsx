@@ -123,7 +123,7 @@ export const ProductDetailPage: React.FC = () => {
                 <div className="w-12 flex items-center justify-center border-l border-r">{quantity}</div>
                 <button onClick={() => handleQty(1)} className="w-12 flex items-center justify-center font-bold hover:bg-page">+</button>
               </div>
-              <button disabled={!inStock} onClick={handleAddToCart} className="flex-1 bg-[#FFFF00] text-[#000000] h-12 font-bold rounded shadow hover:bg-[#F0EE00] disabled:opacity-50 transition-colors">
+              <button disabled={!inStock} onClick={handleAddToCart} className="flex-1 bg-primary text-white h-12 font-bold rounded-lg shadow-md hover:bg-primary-hover disabled:opacity-50 transition-colors">
                 {inStock ? 'ADD TO CART' : 'SOLD OUT'}
               </button>
             </div>

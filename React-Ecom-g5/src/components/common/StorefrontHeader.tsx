@@ -67,14 +67,14 @@ export const StorefrontHeader: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-[#000000] text-white shadow-md print:hidden">
+    <header className="sticky top-0 z-50 bg-gradient-to-r from-[#FFC700] via-[#FFD000] to-[#FFBF00] text-text-main shadow-md print:hidden">
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between gap-4 md:gap-8">
           
           <div className="flex-shrink-0">
             <Link to="/" className="block focus:outline-none focus:ring-2 focus:ring-primary rounded" aria-label="6Sync Home">
-              <BrandLogo theme="dark" />
+              <BrandLogo theme="light" />
             </Link>
           </div>
 
@@ -87,12 +87,12 @@ export const StorefrontHeader: React.FC = () => {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Search products or SKU..."
-                className="w-full rounded-md border border-[#FFE89E] bg-[#FFF9E3] py-2 pl-4 pr-10 text-sm text-[#000000] placeholder-gray-500 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full rounded-full border-0 bg-white py-2 pl-4 pr-11 text-sm text-text-main placeholder-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
               <button
                 type="submit"
                 aria-label="Search"
-                className="absolute inset-y-1 right-1 flex items-center justify-center w-8 rounded bg-[#FFFF00] text-[#000000] hover:bg-[#F0EE00] transition-colors focus:outline-none"
+                className="absolute inset-y-1 right-1.5 flex items-center justify-center w-8 h-8 my-auto rounded-full bg-primary text-white hover:bg-primary-hover transition-colors focus:outline-none shadow-xs"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -108,7 +108,7 @@ export const StorefrontHeader: React.FC = () => {
               <div className="relative" ref={accountMenuRef}>
                 <button
                   type="button"
-                  className="flex items-center gap-2 text-white transition-colors hover:text-[#FFFF00] focus:outline-none"
+                  className="flex items-center gap-2 text-text-main transition-colors hover:text-primary focus:outline-none font-medium"
                   aria-label="Account menu"
                   aria-expanded={isAccountMenuOpen}
                   aria-haspopup="true"
@@ -162,7 +162,7 @@ export const StorefrontHeader: React.FC = () => {
             ) : (
               <Link
                 to="/login"
-                className="text-white transition-colors hover:text-[#FFFF00] focus:outline-none"
+                className="text-text-main transition-colors hover:text-primary focus:outline-none"
                 aria-label="Account login"
               >
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -173,7 +173,7 @@ export const StorefrontHeader: React.FC = () => {
 
             <Link
               to="/cart"
-              className="text-white transition-colors hover:text-[#FFFF00] focus:outline-none"
+              className="text-text-main transition-colors hover:text-primary focus:outline-none"
               aria-label="Cart"
             >
               <div className="relative">
@@ -181,7 +181,7 @@ export const StorefrontHeader: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
                 </svg>
                 {cartCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                  <span className="absolute -top-1.5 -right-2 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-xs">
                     {cartCount > 99 ? '99+' : cartCount}
                   </span>
                 )}
@@ -199,12 +199,12 @@ export const StorefrontHeader: React.FC = () => {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Search products or SKU..."
-              className="w-full rounded-md border border-[#FFE89E] bg-[#FFF9E3] py-2 pl-4 pr-10 text-sm text-[#000000] placeholder-gray-500 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full rounded-full border-0 bg-white py-2 pl-4 pr-11 text-sm text-text-main placeholder-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <button
               type="submit"
               aria-label="Search"
-              className="absolute inset-y-1 right-1 flex items-center justify-center w-8 rounded bg-[#FFFF00] text-[#000000] hover:bg-[#F0EE00] transition-colors focus:outline-none"
+              className="absolute inset-y-1 right-1.5 flex items-center justify-center w-8 h-8 my-auto rounded-full bg-primary text-white hover:bg-primary-hover transition-colors focus:outline-none shadow-xs"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -214,14 +214,14 @@ export const StorefrontHeader: React.FC = () => {
         </div>
       </div>
     
-      <nav className="hidden sm:block pb-2 border-t border-zinc-800">
+      <nav className="hidden sm:block pb-2 border-t border-black/10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="bg-[#111111] text-white rounded-md px-4 shadow-sm">
+          <div className="bg-[#0F172A] text-white rounded-md px-4 shadow-sm">
             <ul className="flex h-10 items-center gap-8 text-xs font-bold tracking-wider">
-              <li><Link to="/" className="text-white hover:text-[#FFFF00] transition-colors">HOME</Link></li>
-              <li><Link to="/products" className="text-white hover:text-[#FFFF00] transition-colors">PRODUCTS</Link></li>
-              <li><Link to="/categories" className="text-white hover:text-[#FFFF00] transition-colors">CATEGORIES</Link></li>
-              <li><Link to="/brands" className="text-white hover:text-[#FFFF00] transition-colors">BRANDS</Link></li>
+              <li><Link to="/" className="text-white hover:text-accent transition-colors">HOME</Link></li>
+              <li><Link to="/products" className="text-white hover:text-accent transition-colors">PRODUCTS</Link></li>
+              <li><Link to="/categories" className="text-white hover:text-accent transition-colors">CATEGORIES</Link></li>
+              <li><Link to="/brands" className="text-white hover:text-accent transition-colors">BRANDS</Link></li>
             </ul>
           </div>
         </div>

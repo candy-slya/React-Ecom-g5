@@ -209,10 +209,10 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
             </div>
             
             <div className="bg-page px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 border-t border-border-subtle">
-              <button type="submit" disabled={isSubmitting || zonesLoading} className="inline-flex w-full justify-center rounded-md border border-transparent bg-[#FFFF00] text-[#000000] px-4 py-2 text-base font-bold shadow-sm hover:bg-[#F0EE00] focus:outline-none sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 transition-colors">
+              <button type="submit" disabled={isSubmitting || zonesLoading} className="inline-flex w-full justify-center rounded-md border border-transparent bg-primary text-white px-4 py-2 text-base font-bold shadow-md hover:bg-primary-hover focus:outline-none sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 transition-colors">
                 {isSubmitting ? 'Saving...' : 'Save'}
               </button>
-              <button type="button" onClick={onClose} disabled={isSubmitting} className="mt-3 inline-flex w-full justify-center rounded-md bg-[#F70D1A] text-[#000000] px-4 py-2 text-base font-bold shadow-sm hover:bg-[#D60B16] focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 transition-colors">
+              <button type="button" onClick={onClose} disabled={isSubmitting} className="mt-3 inline-flex w-full justify-center rounded-md border border-border-subtle bg-surface text-text-main px-4 py-2 text-base font-semibold shadow-sm hover:bg-slate-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 transition-colors">
                 Cancel
               </button>
             </div>
