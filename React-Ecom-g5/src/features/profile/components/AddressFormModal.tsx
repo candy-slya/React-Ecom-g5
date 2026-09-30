@@ -24,7 +24,15 @@ interface AddressFormModalProps {
 }
 
 export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onClose, onSubmit, initialData, title }) => {
-  const { cities, getTownshipsForCity, getZoneForLocation, loading: zonesLoading, error: zonesError } = useDeliveryLocations();
+  // ⚠️ သတိပြုရန် - သင့်ရဲ့ useDeliveryLocations hook ထဲမှာ regions နဲ့ getCitiesForRegion တို့ကို ထပ်ထည့်ပေးဖို့ လိုအပ်ပါလိမ့်မယ်။
+  const { 
+    regions = [], // တိုင်း/ပြည်နယ် စာရင်း (ဥပမာ - ['Yangon', 'Mandalay'])
+    getCitiesForRegion, // ရွေးလိုက်တဲ့ တိုင်းပေါ်မူတည်ပြီး မြို့စာရင်း ထုတ်ပေးမယ့် function
+    getTownshipsForCity, 
+    getZoneForLocation, 
+    loading: zonesLoading, 
+    error: zonesError 
+  } = useDeliveryLocations();
 
   const [formData, setFormData] = useState({
     label: '',
@@ -74,23 +82,33 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
     }));
   };
 
+  // ၁။ တိုင်း/ပြည်နယ် ရွေးချယ်မှု
+  const handleRegionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const regionOrState = e.target.value;
+    setFormData(prev => ({
+      ...prev,
+      regionOrState,
+      city: '',     // တိုင်းပြောင်းသွားရင် အရင်ရွေးထားတဲ့ မြို့ကို ဖျက်မယ်
+      township: ''  // မြို့နယ်ကိုပါ အလွတ်ပြန်ထားမယ်
+    }));
+  };
+
+  // ၂။ မြို့/ခရိုင် ရွေးချယ်မှု
   const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const city = e.target.value;
     setFormData(prev => ({
       ...prev,
       city,
-      township: '',
-      regionOrState: ''
+      township: '' // မြို့ပြောင်းသွားရင် မြို့နယ်ကို အလွတ်ပြန်ထားမယ်
     }));
   };
 
+  // ၃။ မြို့နယ် ရွေးချယ်မှု
   const handleTownshipChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const township = e.target.value;
-    const zone = getZoneForLocation(formData.city, township);
     setFormData(prev => ({
       ...prev,
-      township,
-      regionOrState: zone?.regionOrState || prev.regionOrState
+      township
     }));
   };
 
@@ -100,7 +118,7 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
     setError(null);
     
     if (!getZoneForLocation(formData.city, formData.township)) {
-      setError("Please select a currently supported City and Township.");
+      setError("Please select a currently supported Region, City and Township.");
       setIsSubmitting(false);
       return;
     }
@@ -115,16 +133,34 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
     }
   };
 
-  const availableCities = [...cities];
-  if (initialData?.city && !cities.some(c => c.trim().toLowerCase() === initialData.city.trim().toLowerCase())) {
+  // ----------------------------------------------------------------------
+  // Dropdown တွေအတွက် Data များ စစ်ထုတ်ခြင်း
+  // ----------------------------------------------------------------------
+  
+  const availableRegions = [...regions];
+  
+  // ရွေးထားတဲ့ တိုင်း(region) ရှိရင် အဲ့ဒီတိုင်းရဲ့ မြို့တွေကို ယူမယ်
+  const baseCities = formData.regionOrState && getCitiesForRegion ? getCitiesForRegion(formData.regionOrState) : [];
+  const availableCities = [...baseCities];
+  
+  // ရွေးထားတဲ့ မြို့(city) ရှိရင် အဲ့ဒီမြို့ရဲ့ မြို့နယ်တွေကို ယူမယ်
+  const baseTownships = formData.city ? getTownshipsForCity(formData.city) : [];
+  const availableTownships = [...baseTownships];
+
+  // Initial Data တွေ Unavailable ဖြစ်နေရင် ပြန်ပေါ်အောင် ထည့်ပေးတဲ့ Logic
+  if (initialData?.regionOrState && !regions.some(r => r.trim().toLowerCase() === initialData.regionOrState!.trim().toLowerCase())) {
+    if (!availableRegions.includes(initialData.regionOrState)) {
+      availableRegions.unshift(initialData.regionOrState);
+    }
+  }
+
+  if (initialData?.city && formData.regionOrState.trim().toLowerCase() === (initialData?.regionOrState || '').trim().toLowerCase() && !baseCities.some(c => c.trim().toLowerCase() === initialData.city!.trim().toLowerCase())) {
     if (!availableCities.includes(initialData.city)) {
       availableCities.unshift(initialData.city);
     }
   }
 
-  const baseTownships = getTownshipsForCity(formData.city);
-  const availableTownships = [...baseTownships];
-  if (initialData?.township && formData.city.trim().toLowerCase() === (initialData?.city || '').trim().toLowerCase() && !baseTownships.some(t => t.trim().toLowerCase() === initialData.township.trim().toLowerCase())) {
+  if (initialData?.township && formData.city.trim().toLowerCase() === (initialData?.city || '').trim().toLowerCase() && !baseTownships.some(t => t.trim().toLowerCase() === initialData.township!.trim().toLowerCase())) {
     if (!availableTownships.includes(initialData.township)) {
       availableTownships.unshift(initialData.township);
     }
@@ -178,48 +214,65 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
                 <input type="text" name="addressLine2" value={formData.addressLine2} onChange={handleChange} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
               </div>
 
+              {/* တိုင်း နှင့် မြို့ ရွေးချယ်မှု */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-sm font-medium text-text-main">City*</label>
+                  <label className="block text-sm font-medium text-text-main">Region/State*</label>
+                  <select 
+                    required 
+                    name="regionOrState" 
+                    value={formData.regionOrState} 
+                    onChange={handleRegionChange} 
+                    disabled={zonesLoading || availableRegions.length === 0}
+                    className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
+                  >
+                    <option value="" disabled>Select Region/State</option>
+                    {availableRegions.map(region => (
+                      <option key={region} value={region}>
+                        {region} {initialData?.regionOrState === region && !regions.some(r => r.trim().toLowerCase() === region.trim().toLowerCase()) ? '(Unavailable)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="block text-sm font-medium text-text-main">City/District*</label>
                   <select 
                     required 
                     name="city" 
                     value={formData.city} 
                     onChange={handleCityChange} 
-                    disabled={zonesLoading || availableCities.length === 0}
+                    disabled={zonesLoading || !formData.regionOrState || availableCities.length === 0}
                     className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
                   >
                     <option value="" disabled>Select City</option>
                     {availableCities.map(city => (
                       <option key={city} value={city}>
-                        {city} {initialData?.city === city && !cities.some(c => c.trim().toLowerCase() === city.trim().toLowerCase()) ? '(Unavailable)' : ''}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-sm font-medium text-text-main">Township*</label>
-                  <select 
-                    required 
-                    name="township" 
-                    value={formData.township} 
-                    onChange={handleTownshipChange} 
-                    disabled={zonesLoading || !formData.city || availableTownships.length === 0}
-                    className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
-                  >
-                    <option value="" disabled>Select Township</option>
-                    {availableTownships.map(township => (
-                      <option key={township} value={township}>
-                        {township} {initialData?.township === township && !baseTownships.some(t => t.trim().toLowerCase() === township.trim().toLowerCase()) ? '(Unavailable)' : ''}
+                        {city} {initialData?.city === city && !baseCities.some(c => c.trim().toLowerCase() === city.trim().toLowerCase()) ? '(Unavailable)' : ''}
                       </option>
                     ))}
                   </select>
                 </div>
               </div>
 
+              {/* မြို့နယ် ရွေးချယ်မှု */}
               <div>
-                <label className="block text-sm font-medium text-text-main">Region/State</label>
-                <input type="text" name="regionOrState" value={formData.regionOrState} onChange={handleChange} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
+                <label className="block text-sm font-medium text-text-main">Township*</label>
+                <select 
+                  required 
+                  name="township" 
+                  value={formData.township} 
+                  onChange={handleTownshipChange} 
+                  disabled={zonesLoading || !formData.city || availableTownships.length === 0}
+                  className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
+                >
+                  <option value="" disabled>Select Township</option>
+                  {availableTownships.map(township => (
+                    <option key={township} value={township}>
+                      {township} {initialData?.township === township && !baseTownships.some(t => t.trim().toLowerCase() === township.trim().toLowerCase()) ? '(Unavailable)' : ''}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="flex items-center mt-4">
