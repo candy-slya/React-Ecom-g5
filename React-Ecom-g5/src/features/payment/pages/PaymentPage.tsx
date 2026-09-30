@@ -37,9 +37,10 @@ export const PaymentPage: React.FC = () => {
         
         try {
           const fetchedPayment = await paymentApi.getLatestPayment(orderId);
-          setLatestPayment(fetchedPayment);
+          // Handle 204 No Content (axios might return empty string or null)
+          setLatestPayment(fetchedPayment ? fetchedPayment : null);
         } catch (paymentErr) {
-          if (isAxiosError(paymentErr) && paymentErr.response?.status === 404) {
+          if (isAxiosError(paymentErr) && (paymentErr.response?.status === 404 || paymentErr.response?.status === 204)) {
             // No payment exists yet, normal unpaid state
             setLatestPayment(null);
           } else {
