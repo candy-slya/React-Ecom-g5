@@ -27,9 +27,9 @@ export const BrandListPage: React.FC = () => {
         </div>
 
         <div className="bg-gradient-to-r from-secondary to-primary text-white p-8 rounded shadow-sm mb-8">
-          <div className="text-[#dce9e3] text-[13px]">OUR BRANDS</div>
+          <div className="text-[#FFFF00] font-bold text-[13px] tracking-wider">OUR BRANDS</div>
           <h1 className="text-[34px] font-bold my-1.5">Shop by Brand</h1>
-          <p className="text-[#dce9e3] text-[13px] m-0">Explore products from our available brands.</p>
+          <p className="text-zinc-200 text-[13px] m-0">Explore products from our available brands.</p>
         </div>
 
         {loading ? (

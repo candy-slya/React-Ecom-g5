@@ -124,7 +124,7 @@ export const OrderDetailPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="bg-[#F8F6F1] min-h-screen py-16 px-4 flex items-center justify-center">
+      <div className="bg-page min-h-screen py-16 px-4 flex items-center justify-center">
         <div className="text-text-muted text-lg font-medium">Loading order details...</div>
       </div>
     );
@@ -132,20 +132,20 @@ export const OrderDetailPage: React.FC = () => {
 
   if (error || !order) {
     return (
-      <div className="bg-[#F8F6F1] min-h-screen py-16 px-4 flex items-center justify-center">
+      <div className="bg-page min-h-screen py-16 px-4 flex items-center justify-center">
         <div className="mx-auto max-w-xl rounded-lg border border-[#B42318]/20 bg-surface p-8 text-center shadow-sm">
           <h2 className="mb-2 text-xl font-bold text-[#B42318]">Oops!</h2>
           <p className="mb-6 text-text-main">{error || 'Order not found'}</p>
           <div className="space-x-4">
             <button
               onClick={() => navigate('/orders')}
-              className="rounded-md border border-primary bg-white px-6 py-2 text-primary font-bold hover:bg-gray-50 transition-colors"
+              className="rounded-md border border-border-subtle bg-surface px-6 py-2 text-text-main font-bold hover:bg-page transition-colors"
             >
               Back to Orders
             </button>
             <button
               onClick={() => window.location.reload()}
-              className="rounded-md bg-primary px-6 py-2 text-white font-bold hover:bg-primary-hover transition-colors"
+              className="rounded-md bg-[#FFFF00] text-[#000000] px-6 py-2 font-bold hover:bg-[#F0EE00] transition-colors shadow-sm"
             >
               Try Again
             </button>
@@ -156,7 +156,7 @@ export const OrderDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="bg-[#F8F6F1] min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div className="bg-page min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl">
         
         {/* Header Section */}
@@ -190,7 +190,7 @@ export const OrderDetailPage: React.FC = () => {
             {(order.paymentStatus === 'SUCCESS' || order.paymentStatus === 'REFUNDED' || order.paymentStatus === 'PARTIALLY_REFUNDED') && (
               <button
                 onClick={() => navigate(`/orders/${order.orderId}/receipt`)}
-                className="mt-2 inline-flex items-center px-3 py-1.5 border border-primary text-primary text-sm font-medium rounded hover:bg-primary hover:text-white transition-colors"
+                className="mt-2 inline-flex items-center px-4 py-2 bg-[#FFFF00] text-[#000000] text-sm font-bold rounded shadow-sm hover:bg-[#F0EE00] transition-colors"
               >
                 <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

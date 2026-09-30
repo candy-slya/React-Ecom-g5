@@ -64,7 +64,7 @@ export const RequestRefundModal: React.FC<RequestRefundModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2B2B2B]/50">
       <div className="bg-surface rounded-lg shadow-xl max-w-md w-full overflow-hidden">
-        <div className="px-6 py-4 border-b border-border-subtle flex justify-between items-center bg-[#F8F6F1]">
+        <div className="px-6 py-4 border-b border-border-subtle flex justify-between items-center bg-page">
           <h3 className="text-lg font-bold text-text-main">Request Refund</h3>
           <button onClick={onClose} className="text-text-muted hover:text-text-main transition-colors">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -138,14 +138,14 @@ export const RequestRefundModal: React.FC<RequestRefundModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 border border-border-subtle rounded-md text-text-main hover:bg-[#F8F6F1] transition-colors"
+              className="px-4 py-2 bg-[#F70D1A] text-[#000000] font-bold rounded-md hover:bg-[#D60B16] transition-colors disabled:opacity-50 shadow-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-hover transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-[#FFFF00] text-[#000000] font-bold rounded-md hover:bg-[#F0EE00] transition-colors disabled:opacity-50 shadow-sm"
             >
               {loading ? 'Submitting...' : 'Submit Request'}
             </button>

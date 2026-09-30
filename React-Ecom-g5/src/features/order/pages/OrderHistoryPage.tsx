@@ -145,13 +145,13 @@ export const OrderHistoryPage: React.FC = () => {
 
   if (error && !pageData) {
     return (
-      <div className="bg-[#F8F6F1] min-h-screen py-16 px-4 flex items-center justify-center print:hidden">
+      <div className="bg-page min-h-screen py-16 px-4 flex items-center justify-center print:hidden">
         <div className="mx-auto max-w-xl rounded-lg border border-[#B42318]/20 bg-surface p-8 text-center shadow-sm">
           <h2 className="mb-2 text-xl font-bold text-[#B42318]">Oops!</h2>
           <p className="mb-6 text-text-main">{error}</p>
           <button
             onClick={() => fetchOrders(currentPage)}
-            className="rounded-md bg-primary px-6 py-2 text-white font-bold hover:bg-primary-hover transition-colors"
+            className="rounded-md bg-[#FFFF00] text-[#000000] px-6 py-2 font-bold hover:bg-[#F0EE00] transition-colors shadow-sm"
           >
             Try Again
           </button>
@@ -161,13 +161,13 @@ export const OrderHistoryPage: React.FC = () => {
   }
 
   return (
-    <div className="bg-[#F8F6F1] min-h-[calc(100vh-64px)] print:bg-white print:min-h-0 py-12 print:py-0 px-4 sm:px-6 lg:px-8">
+    <div className="bg-page min-h-[calc(100vh-64px)] print:bg-white print:min-h-0 py-12 print:py-0 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 print:mb-4">
           <h1 className="text-3xl font-bold tracking-tight text-text-main print:text-2xl">Customer Order History</h1>
           <button
             onClick={() => window.print()}
-            className="mt-4 sm:mt-0 inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-primary-hover transition-colors print:hidden"
+            className="mt-4 sm:mt-0 inline-flex items-center rounded-md bg-[#FFFF00] text-[#000000] px-4 py-2 text-sm font-bold shadow-sm hover:bg-[#F0EE00] transition-colors print:hidden"
           >
             <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -242,7 +242,7 @@ export const OrderHistoryPage: React.FC = () => {
           <div className="mt-4 flex gap-3">
             <button
               onClick={handleApplyFilters}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-bold text-white hover:bg-primary-hover transition-colors"
+              className="rounded-md bg-[#FFFF00] text-[#000000] px-4 py-2 text-sm font-bold hover:bg-[#F0EE00] transition-colors shadow-sm"
             >
               Apply Filters
             </button>

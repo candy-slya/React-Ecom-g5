@@ -1,16 +1,37 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #388087;
-  --color-primary-hover: #2C666C;
-  --color-secondary: #6FB3B8;
-  --color-secondary-hover: #5A9A9F;
-  --color-accent: #BADFE7;
-  --color-accent-hover: #9ACCD7;
-  --color-accent-soft: #C2EDCE;
-  --color-page: #F6F6F2;
+  --color-primary: #F70D1A;
+  --color-primary-hover: #D60B16;
+  --color-secondary: #111111;
+  --color-secondary-hover: #000000;
+  --color-accent: #FFFF00;
+  --color-accent-hover: #F0EE00;
+  --color-accent-soft: #FFF9E3;
+  --color-page: #FFFEFA;
   --color-surface: #FFFFFF;
-  --color-text-main: #2B2B2B;
-  --color-text-muted: #74746F;
-  --color-border-subtle: #E6E2D8;
+  --color-text-main: #111111;
+  --color-text-muted: #555555;
+  --color-border-subtle: #E8E5DD;
+}
+
+@utility btn-yellow {
+  background-color: #FFFF00;
+  color: #000000;
+  font-weight: 700;
+  transition-property: color, background-color, border-color;
+  transition-duration: 150ms;
+}
+
+@utility btn-cancel {
+  background-color: #F70D1A;
+  color: #000000;
+  font-weight: 700;
+  transition-property: color, background-color, border-color;
+  transition-duration: 150ms;
+}
+
+body {
+  background-color: #FFFEFA;
+  color: #111111;
 }

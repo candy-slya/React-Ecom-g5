@@ -61,7 +61,7 @@ export const RefundHistoryPage: React.FC = () => {
   }
 
   return (
-    <div className="bg-[#F8F6F1] min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div className="bg-page min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl">
         <h1 className="text-3xl font-bold tracking-tight text-text-main mb-8">
           My Refunds
@@ -79,7 +79,7 @@ export const RefundHistoryPage: React.FC = () => {
           <div className="bg-surface shadow-sm rounded-lg border border-border-subtle overflow-hidden">
             <ul className="divide-y divide-[#E6E2D8]">
               {refunds.map((refund) => (
-                <li key={refund.refundId} className="p-6 hover:bg-[#F8F6F1]/50 transition-colors">
+                <li key={refund.refundId} className="p-6 hover:bg-page transition-colors">
                   <div className="flex flex-col sm:flex-row justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">

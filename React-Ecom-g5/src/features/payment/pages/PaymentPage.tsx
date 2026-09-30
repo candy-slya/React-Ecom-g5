@@ -106,7 +106,7 @@ export const PaymentPage: React.FC = () => {
           <p className="mb-8 text-text-main">{error || 'We cannot retrieve the payment details for this order.'}</p>
           <button
             onClick={() => navigate('/products')}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-base font-bold text-white shadow-sm hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            className="inline-flex items-center justify-center rounded-md bg-[#FFFF00] text-[#000000] px-6 py-3 text-base font-bold shadow-sm hover:bg-[#F0EE00] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           >
             Return to Store
           </button>
@@ -178,7 +178,7 @@ export const PaymentPage: React.FC = () => {
                     <p className="text-sm text-gray-500 mb-6">Your order has been paid successfully.</p>
                     <button
                       onClick={() => navigate(`/orders/${orderId}/receipt`)}
-                      className="inline-flex items-center justify-center px-4 py-2 border border-primary text-primary font-medium rounded hover:bg-primary hover:text-white transition-colors"
+                      className="inline-flex items-center justify-center px-5 py-2.5 bg-[#FFFF00] text-[#000000] font-bold rounded shadow-sm hover:bg-[#F0EE00] transition-colors"
                     >
                       <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -224,7 +224,7 @@ export const PaymentPage: React.FC = () => {
                       type="button"
                       onClick={handleProceedToPayment}
                       disabled={isSubmitting}
-                      className="w-full rounded-md bg-primary px-4 py-4 text-base font-bold text-white shadow-sm transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-primary/70"
+                      className="w-full rounded-md bg-[#FFFF00] text-[#000000] px-4 py-4 text-base font-bold shadow-sm transition-colors hover:bg-[#F0EE00] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {isSubmitting ? 'Processing...' : (latestPayment?.paymentStatus === 'FAILED' ? 'Try Again' : 'Proceed to Payment')}
                     </button>

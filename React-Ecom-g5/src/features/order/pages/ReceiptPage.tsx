@@ -76,7 +76,7 @@ export const ReceiptPage: React.FC = () => {
           <p className="mt-2 text-text-muted">Receipt is not available for this order.</p>
           <button 
             onClick={() => navigate(`/orders/${orderId}`)}
-            className="mt-6 w-full px-4 py-2 bg-primary text-white rounded hover:bg-primary-hover transition-colors"
+            className="mt-6 w-full px-4 py-2 bg-[#FFFF00] text-[#000000] font-bold rounded shadow-sm hover:bg-[#F0EE00] transition-colors"
           >
             Back to Order Details
           </button>
@@ -90,14 +90,14 @@ export const ReceiptPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F6F1] py-8 print:bg-white print:py-0 print:min-h-0 print:m-0">
+    <div className="min-h-screen bg-page py-8 print:bg-white print:py-0 print:min-h-0 print:m-0">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 print:px-0 print:max-w-none">
         
         {/* Actions Bar (Hidden on Print) */}
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-center print:hidden space-y-4 sm:space-y-0">
           <button
             onClick={() => navigate(`/orders/${orderId}`)}
-            className="text-text-muted hover:text-primary flex items-center transition-colors"
+            className="text-text-muted hover:text-primary flex items-center transition-colors font-medium"
           >
             <svg className="w-5 h-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -107,7 +107,7 @@ export const ReceiptPage: React.FC = () => {
           
           <button
             onClick={handlePrint}
-            className="flex items-center px-4 py-2 bg-primary text-white rounded hover:bg-primary-hover transition-colors"
+            className="flex items-center px-4 py-2 bg-[#FFFF00] text-[#000000] font-bold rounded shadow-sm hover:bg-[#F0EE00] transition-colors"
           >
             <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />

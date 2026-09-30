@@ -46,13 +46,13 @@ export const HomePage: React.FC = () => {
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Hero Section */}
-      <div className="relative rounded-md overflow-hidden h-80 mb-10 flex items-center bg-gradient-to-r from-primary to-secondary group">
+      <div className="relative rounded-md overflow-hidden h-80 mb-10 flex items-center bg-gradient-to-r from-primary via-[#B7000B] to-black group">
         <img src={heroImg} className="absolute inset-0 w-full h-full object-cover opacity-60" />
         <div className="relative z-10 px-12 text-white max-w-2xl">
-          <div className="text-accent font-bold tracking-wider text-xs mb-3">6SYNC COLLECTION</div>
+          <div className="text-[#FFFF00] font-bold tracking-wider text-xs mb-3">6SYNC COLLECTION</div>
           <h1 className="text-4xl sm:text-5xl font-bold leading-tight mb-4">Discover Products<br/>Made for Your Day.</h1>
           <p className="text-white mb-6 text-sm sm:text-base">Discover products by category and brand, then compare variants and live available stock.</p>
-          <button onClick={() => routeProducts()} className="bg-accent text-[#202020] px-6 py-2.5 text-sm font-bold rounded shadow hover:bg-accent-hover transition-colors">SHOP NOW</button>
+          <button onClick={() => routeProducts()} className="bg-[#FFFF00] text-[#000000] px-6 py-2.5 text-sm font-bold rounded shadow hover:bg-[#F0EE00] transition-colors">SHOP NOW</button>
         </div>
         
         {/* Slider Controls */}

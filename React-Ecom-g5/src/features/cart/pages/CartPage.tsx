@@ -135,7 +135,7 @@ export const CartPage: React.FC = () => {
           <button
             type="button"
             onClick={handleRetry}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            className="inline-flex items-center justify-center rounded-md bg-[#FFFF00] text-[#000000] px-4 py-2 text-sm font-bold shadow-sm transition-colors hover:bg-[#F0EE00] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           >
             Retry
           </button>
@@ -156,7 +156,7 @@ export const CartPage: React.FC = () => {
             <h2 className="text-xl font-medium text-text-main mb-6">Your cart is empty.</h2>
             <Link
               to="/products"
-              className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              className="inline-flex items-center justify-center rounded-md bg-[#FFFF00] text-[#000000] px-6 py-3 text-base font-bold shadow-sm transition-colors hover:bg-[#F0EE00] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             >
               Continue Shopping
             </Link>
@@ -231,7 +231,7 @@ export const CartPage: React.FC = () => {
                   onClick={handleCheckoutNavigation}
                   type="button"
                   disabled={hasUnavailableItems || isUpdating || loading}
-                  className="w-full rounded-md bg-primary px-4 py-4 text-base font-bold text-white shadow-sm transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-border-subtle disabled:text-text-muted"
+                  className="w-full rounded-md bg-[#FFFF00] text-[#000000] px-4 py-4 text-base font-bold shadow-sm transition-colors hover:bg-[#F0EE00] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-border-subtle disabled:text-text-muted"
                 >
                   Proceed to Checkout
                 </button>

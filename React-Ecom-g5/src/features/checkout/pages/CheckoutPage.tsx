@@ -223,7 +223,7 @@ export const CheckoutPage: React.FC = () => {
           <button
             type="button"
             onClick={handleRetry}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            className="inline-flex items-center justify-center rounded-md bg-[#FFFF00] text-[#000000] px-4 py-2 text-sm font-bold shadow-sm transition-colors hover:bg-[#F0EE00] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           >
             Retry
           </button>
@@ -378,7 +378,7 @@ export const CheckoutPage: React.FC = () => {
                           type="button" 
                           onClick={handleCheckCustomDelivery} 
                           disabled={shippingLoading || !customAddress.city.trim() || !customAddress.township.trim() || !getZoneForLocation(customAddress.city, customAddress.township)}
-                          className="w-full sm:w-auto rounded-md border border-border-subtle bg-surface px-4 py-2 text-sm font-medium text-text-main shadow-sm hover:bg-page focus:outline-none disabled:opacity-50"
+                          className="w-full sm:w-auto rounded-md bg-[#FFFF00] text-[#000000] px-4 py-2 text-sm font-bold shadow-sm hover:bg-[#F0EE00] focus:outline-none disabled:opacity-50 transition-colors"
                         >
                           Check Delivery
                         </button>
@@ -437,7 +437,7 @@ export const CheckoutPage: React.FC = () => {
                 type="button"
                 onClick={handlePlaceOrder}
                 disabled={isPlaceOrderDisabled}
-                className="w-full rounded-md bg-primary px-4 py-4 text-base font-bold text-white shadow-sm transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-border-subtle disabled:text-text-muted"
+                className="w-full rounded-md bg-[#FFFF00] text-[#000000] px-4 py-4 text-base font-bold shadow-sm transition-colors hover:bg-[#F0EE00] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-border-subtle disabled:text-text-muted"
               >
                 {isSubmitting ? 'Creating Order...' : 'Place Order'}
               </button>

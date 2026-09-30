@@ -61,9 +61,9 @@ export const CategoryListPage: React.FC = () => {
         </div>
 
         <div className="bg-gradient-to-r from-secondary to-primary text-white p-8 rounded shadow-sm mb-8">
-          <div className="text-[#dce9e3] text-[13px]">SHOP BY CATEGORY</div>
+          <div className="text-[#FFFF00] font-bold text-[13px] tracking-wider">SHOP BY CATEGORY</div>
           <h1 className="text-[34px] font-bold my-1.5">Browse Categories</h1>
-          <p className="text-[#dce9e3] text-[13px] m-0">Explore products by category.</p>
+          <p className="text-zinc-200 text-[13px] m-0">Explore products by category.</p>
         </div>
 
         {loading ? (

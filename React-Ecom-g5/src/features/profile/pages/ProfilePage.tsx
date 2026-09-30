@@ -226,7 +226,7 @@ export const ProfilePage: React.FC = () => {
                 </div>
                 <button 
                   onClick={() => setIsAvatarModalOpen(true)}
-                  className="absolute bottom-1 right-1 bg-primary text-white p-3 rounded-full shadow-lg hover:bg-primary-hover transition-transform hover:scale-110"
+                  className="absolute bottom-1 right-1 bg-[#FFFF00] text-[#000000] p-3 rounded-full shadow-lg hover:bg-[#F0EE00] transition-transform hover:scale-110"
                   aria-label="Change Avatar"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -269,7 +269,7 @@ export const ProfilePage: React.FC = () => {
             ) : (
               <button
                 onClick={() => { setEditingAddress(null); setIsModalOpen(true); }}
-                className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-hover transition-colors"
+                className="inline-flex items-center justify-center rounded-md bg-[#FFFF00] text-[#000000] px-4 py-2 text-sm font-bold shadow-sm hover:bg-[#F0EE00] transition-colors"
               >
                 + Add New Address
               </button>
@@ -372,7 +372,7 @@ export const ProfilePage: React.FC = () => {
                 <button 
                   type="button" 
                   onClick={() => setIsAvatarModalOpen(false)} 
-                  className="mt-3 inline-flex w-full justify-center rounded-md border border-border-subtle bg-surface px-4 py-2 text-base font-medium text-text-main shadow-sm hover:bg-page focus:outline-none sm:mt-0 sm:w-auto sm:text-sm"
+                  className="mt-3 inline-flex w-full justify-center rounded-md bg-[#F70D1A] text-[#000000] font-bold px-4 py-2 text-base shadow-sm hover:bg-[#D60B16] focus:outline-none sm:mt-0 sm:w-auto sm:text-sm transition-colors"
                 >
                   Close
                 </button>
