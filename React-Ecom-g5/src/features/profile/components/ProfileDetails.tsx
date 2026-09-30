@@ -1,130 +1,117 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { profileApi } from '../api/profileApi';
-import { isAxiosError } from 'axios';
 
 interface ProfileDetailsProps {
   initialFullName: string;
   initialPhone: string;
   email: string;
-  onUpdate: (name: string, phone: string) => void;
+  onUpdate: () => void;
+  showToast: (msg: string, type: 'success' | 'error') => void;
 }
 
-export const ProfileDetails: React.FC<ProfileDetailsProps> = ({
-  initialFullName,
-  initialPhone,
-  email,
-  onUpdate
+export const ProfileDetails: React.FC<ProfileDetailsProps> = ({ 
+  initialFullName, 
+  initialPhone, 
+  email, 
+  onUpdate,
+  showToast
 }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [fullName, setFullName] = useState(initialFullName);
-  const [phone, setPhone] = useState(initialPhone);
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [phone, setPhone] = useState(initialPhone || '');
 
-  const handleSave = async () => {
-    if (!fullName.trim() || !phone.trim()) {
-      setError("Full name and phone are required.");
+  useEffect(() => {
+    setFullName(initialFullName);
+    setPhone(initialPhone || '');
+  }, [initialFullName, initialPhone]);
+
+  // ဂဏန်းသီးသန့်သာ လက်ခံမည့် Function
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const onlyNums = e.target.value.replace(/[^0-9]/g, '');
+    setPhone(onlyNums);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!/^\d{11}$/.test(phone)) {
+      showToast("Phone number must be exactly 11 digits.", "error");
       return;
     }
 
+    setIsSubmitting(true);
     try {
-      setIsSaving(true);
-      setError(null);
-      await profileApi.updateProfile({ fullName, phone });
-      onUpdate(fullName, phone);
+      await profileApi.updateProfile({ fullName, phone }); 
+      showToast("Personal information updated successfully.", "success");
       setIsEditing(false);
-    } catch (err) {
-      if (isAxiosError(err) && err.response?.data?.message) {
-        setError(err.response.data.message);
-      } else {
-        setError("Failed to update profile.");
-      }
+      onUpdate();
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to update personal information.", "error");
     } finally {
-      setIsSaving(false);
+      setIsSubmitting(false);
     }
   };
 
-  const handleCancel = () => {
-    setFullName(initialFullName);
-    setPhone(initialPhone);
-    setIsEditing(false);
-    setError(null);
-  };
-
-  return (
-    <div className="rounded-lg border border-border-subtle bg-surface p-6 shadow-sm mb-8">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-text-main">Personal Information</h2>
-        {!isEditing && (
-          <button
-            onClick={() => setIsEditing(true)}
-            className="text-sm font-medium text-primary hover:text-primary-hover"
-          >
+  if (!isEditing) {
+    return (
+      <div className="rounded-lg border border-border-subtle bg-surface p-6 shadow-sm">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-text-main">Personal Information</h2>
+          <button onClick={() => setIsEditing(true)} className="text-primary text-sm font-medium hover:underline">
             Edit Profile
           </button>
-        )}
-      </div>
-
-      {error && (
-        <div className="mb-4 rounded-md bg-[#B42318]/10 p-3 text-sm text-[#B42318]">
-          {error}
         </div>
-      )}
-
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-text-muted">Full Name</label>
-          {isEditing ? (
-            <input
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-          ) : (
-            <div className="mt-1 text-base text-text-main font-medium">{initialFullName}</div>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-text-muted">Email</label>
-          <div className="mt-1 text-base text-text-main">{email}</div>
-          {isEditing && <p className="mt-1 text-xs text-text-muted">Email cannot be changed.</p>}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-text-muted">Phone</label>
-          {isEditing ? (
-            <input
-              type="text"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm text-text-main focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-          ) : (
-            <div className="mt-1 text-base text-text-main">{initialPhone || 'Not provided'}</div>
-          )}
-        </div>
-
-        {isEditing && (
-          <div className="mt-6 flex space-x-3">
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-hover disabled:opacity-50"
-            >
-              {isSaving ? 'Saving...' : 'Save Changes'}
-            </button>
-            <button
-              onClick={handleCancel}
-              disabled={isSaving}
-              className="rounded-md border border-border-subtle bg-surface px-4 py-2 text-sm font-medium text-text-main hover:bg-page disabled:opacity-50"
-            >
-              Cancel
-            </button>
+        <div className="space-y-4">
+          <div>
+            <p className="text-sm text-text-muted">Full Name</p>
+            <p className="font-medium text-text-main">{initialFullName}</p>
           </div>
-        )}
+          <div>
+            <p className="text-sm text-text-muted">Email</p>
+            <p className="font-medium text-text-main">{email}</p>
+          </div>
+          <div>
+            <p className="text-sm text-text-muted">Phone Number</p>
+            <p className="font-medium text-text-main">{initialPhone || '-'}</p>
+          </div>
+        </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="rounded-lg border border-border-subtle bg-surface p-6 shadow-sm">
+      <h2 className="text-xl font-bold text-text-main mb-6">Edit Personal Information</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-text-main">Full Name</label>
+          <input required type="text" value={fullName} onChange={e => setFullName(e.target.value)} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-text-main">Email (Read Only)</label>
+          <input disabled type="email" value={email} className="mt-1 block w-full rounded-md border border-border-subtle bg-gray-100 px-3 py-2 text-sm text-gray-500 cursor-not-allowed" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-text-main">Phone Number (11 Digits)*</label>
+          <input 
+            required 
+            type="text" 
+            value={phone} 
+            onChange={handlePhoneChange} 
+            className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" 
+            placeholder="e.g. 09123456789" 
+          />
+        </div>
+        
+        <div className="pt-4 flex justify-end gap-3 border-t border-border-subtle mt-6 pt-6">
+          <button type="button" onClick={() => setIsEditing(false)} disabled={isSubmitting} className="px-4 py-2 border border-border-subtle text-text-main rounded-md text-sm font-medium hover:bg-page transition-colors disabled:opacity-50">Cancel</button>
+          <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary-hover transition-colors disabled:opacity-50">
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };
