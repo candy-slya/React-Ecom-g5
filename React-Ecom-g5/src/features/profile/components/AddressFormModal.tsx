@@ -1,38 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import type { CustomerAddressResponse } from '../../checkout/types';
-
-export interface CustomerAddressRequest {
-  label: string;
-  recipientName: string;
-  phoneNumber: string;
-  addressLine1: string;
-  addressLine2?: string;
-  township: string;
-  city: string;
-  regionOrState?: string;
-  postalCode?: string;
-  isDefault: boolean;
-}
 import { useDeliveryLocations } from '../../../hooks/useDeliveryLocations';
 
 interface AddressFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: CustomerAddressRequest) => Promise<void>;
+  onSubmit: (data: any) => Promise<void>;
   initialData?: CustomerAddressResponse | null;
   title: string;
+  showToast: (msg: string, type: 'success' | 'error') => void;
 }
 
-export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onClose, onSubmit, initialData, title }) => {
-  // ⚠️ သတိပြုရန် - သင့်ရဲ့ useDeliveryLocations hook ထဲမှာ regions နဲ့ getCitiesForRegion တို့ကို ထပ်ထည့်ပေးဖို့ လိုအပ်ပါလိမ့်မယ်။
-  const { 
-    regions = [], // တိုင်း/ပြည်နယ် စာရင်း (ဥပမာ - ['Yangon', 'Mandalay'])
-    getCitiesForRegion, // ရွေးလိုက်တဲ့ တိုင်းပေါ်မူတည်ပြီး မြို့စာရင်း ထုတ်ပေးမယ့် function
-    getTownshipsForCity, 
-    getZoneForLocation, 
-    loading: zonesLoading, 
-    error: zonesError 
-  } = useDeliveryLocations();
+export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onClose, onSubmit, initialData, title, showToast }) => {
+  const { regions = [], getCitiesForRegion, getTownshipsForCity, getZoneForLocation, loading: zonesLoading } = useDeliveryLocations();
 
   const [formData, setFormData] = useState({
     label: '',
@@ -46,8 +26,8 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
     postalCode: '',
     isDefault: false
   });
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen && initialData) {
@@ -74,51 +54,41 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
   if (!isOpen) return null;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const target = e.target as HTMLInputElement;
-    const { name, value, type, checked } = target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    const { name, value, type, checked } = e.target as HTMLInputElement;
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  // ၁။ တိုင်း/ပြည်နယ် ရွေးချယ်မှု
+  // ဂဏန်းသီးသန့်သာ လက်ခံမည့် Function
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const onlyNums = e.target.value.replace(/[^0-9]/g, '');
+    setFormData(prev => ({ ...prev, phoneNumber: onlyNums }));
+  };
+
   const handleRegionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const regionOrState = e.target.value;
-    setFormData(prev => ({
-      ...prev,
-      regionOrState,
-      city: '',     // တိုင်းပြောင်းသွားရင် အရင်ရွေးထားတဲ့ မြို့ကို ဖျက်မယ်
-      township: ''  // မြို့နယ်ကိုပါ အလွတ်ပြန်ထားမယ်
-    }));
+    setFormData(prev => ({ ...prev, regionOrState: e.target.value, city: '', township: '' }));
   };
 
-  // ၂။ မြို့/ခရိုင် ရွေးချယ်မှု
   const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const city = e.target.value;
-    setFormData(prev => ({
-      ...prev,
-      city,
-      township: '' // မြို့ပြောင်းသွားရင် မြို့နယ်ကို အလွတ်ပြန်ထားမယ်
-    }));
+    setFormData(prev => ({ ...prev, city: e.target.value, township: '' }));
   };
 
-  // ၃။ မြို့နယ် ရွေးချယ်မှု
   const handleTownshipChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const township = e.target.value;
-    setFormData(prev => ({
-      ...prev,
-      township
-    }));
+    setFormData(prev => ({ ...prev, township: e.target.value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // ဂဏန်း ၁၁ လုံးတိတိ ဟုတ်မဟုတ် စစ်ဆေးခြင်း
+    if (!/^\d{11}$/.test(formData.phoneNumber)) {
+      showToast("Phone number must be exactly 11 digits.", "error");
+      return;
+    }
+
     setIsSubmitting(true);
-    setError(null);
     
     if (!getZoneForLocation(formData.city, formData.township)) {
-      setError("Please select a currently supported Region, City and Township.");
+      showToast("Please select a currently supported Region, City and Township.", "error");
       setIsSubmitting(false);
       return;
     }
@@ -127,67 +97,39 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
       await onSubmit(formData);
       onClose();
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || "An error occurred");
+      showToast(err.response?.data?.message || err.message || "An error occurred", "error");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // ----------------------------------------------------------------------
-  // Dropdown တွေအတွက် Data များ စစ်ထုတ်ခြင်း
-  // ----------------------------------------------------------------------
-  
   const availableRegions = [...regions];
-  
-  // ရွေးထားတဲ့ တိုင်း(region) ရှိရင် အဲ့ဒီတိုင်းရဲ့ မြို့တွေကို ယူမယ်
   const baseCities = formData.regionOrState && getCitiesForRegion ? getCitiesForRegion(formData.regionOrState) : [];
   const availableCities = [...baseCities];
-  
-  // ရွေးထားတဲ့ မြို့(city) ရှိရင် အဲ့ဒီမြို့ရဲ့ မြို့နယ်တွေကို ယူမယ်
   const baseTownships = formData.city ? getTownshipsForCity(formData.city) : [];
   const availableTownships = [...baseTownships];
 
-  // Initial Data တွေ Unavailable ဖြစ်နေရင် ပြန်ပေါ်အောင် ထည့်ပေးတဲ့ Logic
-  if (initialData?.regionOrState && !regions.some(r => r.trim().toLowerCase() === initialData.regionOrState!.trim().toLowerCase())) {
-    if (!availableRegions.includes(initialData.regionOrState)) {
-      availableRegions.unshift(initialData.regionOrState);
-    }
-  }
-
-  if (initialData?.city && formData.regionOrState.trim().toLowerCase() === (initialData?.regionOrState || '').trim().toLowerCase() && !baseCities.some(c => c.trim().toLowerCase() === initialData.city!.trim().toLowerCase())) {
-    if (!availableCities.includes(initialData.city)) {
-      availableCities.unshift(initialData.city);
-    }
-  }
-
-  if (initialData?.township && formData.city.trim().toLowerCase() === (initialData?.city || '').trim().toLowerCase() && !baseTownships.some(t => t.trim().toLowerCase() === initialData.township!.trim().toLowerCase())) {
-    if (!availableTownships.includes(initialData.township)) {
-      availableTownships.unshift(initialData.township);
-    }
-  }
-
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-      <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onClick={onClose}></div>
-
+    <div className="fixed inset-0 z-[150] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+      <div className="flex min-h-screen items-center justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        
+        <div 
+          className="fixed inset-0 transition-opacity" 
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }} 
+          aria-hidden="true" 
+          onClick={onClose}
+        ></div>
+        
         <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
 
-        <div className="relative z-10 inline-block transform overflow-hidden rounded-lg bg-surface text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
+        <div className="animate-drop-down relative z-10 inline-block transform overflow-hidden rounded-lg bg-surface text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
           <div className="bg-surface px-4 pt-5 pb-4 sm:p-6 sm:pb-4 border-b border-border-subtle">
-            <h3 className="text-lg font-bold leading-6 text-text-main" id="modal-title">
-              {title}
-            </h3>
+            <h3 className="text-lg font-bold leading-6 text-text-main" id="modal-title">{title}</h3>
           </div>
           
           <form onSubmit={handleSubmit}>
             <div className="bg-surface px-4 pt-5 pb-4 sm:p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-              {(error || zonesError) && (
-                <div className="rounded-md bg-[#B42318]/10 p-3 text-sm text-[#B42318]">
-                  {error || zonesError}
-                </div>
-              )}
-
+              
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 sm:col-span-1">
                   <label className="block text-sm font-medium text-text-main">Label (e.g. Home)*</label>
@@ -200,8 +142,16 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-text-main">Phone Number*</label>
-                <input required type="text" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
+                <label className="block text-sm font-medium text-text-main">Phone Number (11 Digits)*</label>
+                <input 
+                  required 
+                  type="text" 
+                  name="phoneNumber" 
+                  value={formData.phoneNumber} 
+                  onChange={handlePhoneChange} 
+                  placeholder="e.g. 09123456789" 
+                  className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" 
+                />
               </div>
 
               <div>
@@ -214,18 +164,10 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
                 <input type="text" name="addressLine2" value={formData.addressLine2} onChange={handleChange} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
               </div>
 
-              {/* တိုင်း နှင့် မြို့ ရွေးချယ်မှု */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 sm:col-span-1">
                   <label className="block text-sm font-medium text-text-main">Region/State*</label>
-                  <select 
-                    required 
-                    name="regionOrState" 
-                    value={formData.regionOrState} 
-                    onChange={handleRegionChange} 
-                    disabled={zonesLoading || availableRegions.length === 0}
-                    className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
-                  >
+                  <select required name="regionOrState" value={formData.regionOrState} onChange={handleRegionChange} disabled={zonesLoading || availableRegions.length === 0} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50">
                     <option value="" disabled>Select Region/State</option>
                     {availableRegions.map(region => (
                       <option key={region} value={region}>
@@ -234,17 +176,10 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
                     ))}
                   </select>
                 </div>
-
+                
                 <div className="col-span-2 sm:col-span-1">
                   <label className="block text-sm font-medium text-text-main">City/District*</label>
-                  <select 
-                    required 
-                    name="city" 
-                    value={formData.city} 
-                    onChange={handleCityChange} 
-                    disabled={zonesLoading || !formData.regionOrState || availableCities.length === 0}
-                    className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
-                  >
+                  <select required name="city" value={formData.city} onChange={handleCityChange} disabled={zonesLoading || !formData.regionOrState || availableCities.length === 0} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50">
                     <option value="" disabled>Select City</option>
                     {availableCities.map(city => (
                       <option key={city} value={city}>
@@ -255,17 +190,9 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
                 </div>
               </div>
 
-              {/* မြို့နယ် ရွေးချယ်မှု */}
               <div>
                 <label className="block text-sm font-medium text-text-main">Township*</label>
-                <select 
-                  required 
-                  name="township" 
-                  value={formData.township} 
-                  onChange={handleTownshipChange} 
-                  disabled={zonesLoading || !formData.city || availableTownships.length === 0}
-                  className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
-                >
+                <select required name="township" value={formData.township} onChange={handleTownshipChange} disabled={zonesLoading || !formData.city || availableTownships.length === 0} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50">
                   <option value="" disabled>Select Township</option>
                   {availableTownships.map(township => (
                     <option key={township} value={township}>

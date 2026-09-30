@@ -7,37 +7,62 @@ import type { CustomerAddressResponse } from '../../checkout/types';
 import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import { initializeAuth } from '../../auth/store/authSlice';
-
 import { Navigate } from 'react-router-dom';
 
-// 🌟 လုံးဝ Server မကျနိုင်သော၊ အပိတ်မခံရသော Cloudflare CDN မှ ချစ်စရာ ကာတွန်းတိရစ္ဆာန် (၂၀) မျိုး 🌟
 const AVATAR_OPTIONS = [
-  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f98a.svg", // Fox
-  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f43c.svg", // Panda
-  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f428.svg", // Koala
-  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f43b.svg", // Bear
-  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f981.svg", // Lion
-  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f42f.svg", // Tiger
-  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f438.svg", // Frog
-  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f435.svg", // Monkey
-  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f427.svg", // Penguin
-  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f989.svg", // Owl
-  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f423.svg", // Chick
-  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f419.svg", // Octopus
-  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f984.svg", // Unicorn
-  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f437.svg", // Pig
-  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f430.svg", // Rabbit
-  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f439.svg", // Hamster
-  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f43a.svg", // Wolf
-  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f99d.svg", // Raccoon
-  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f9a5.svg", // Sloth
-  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f9a6.svg"  // Otter
+  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f98a.svg",
+  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f43c.svg",
+  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f428.svg",
+  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f43b.svg",
+  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f981.svg",
+  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f42f.svg",
+  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f438.svg",
+  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f435.svg",
+  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f427.svg",
+  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f989.svg",
+  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f423.svg",
+  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f419.svg",
+  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f984.svg",
+  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f437.svg",
+  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f430.svg",
+  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f439.svg",
+  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f43a.svg",
+  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f99d.svg",
+  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f9a5.svg",
+  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f9a6.svg"
 ];
 
-// ပုံမတက်လာခဲ့ရင် အရန်အနေနဲ့ ပြသမယ့် နာမည်အတိုကောက် Avatar
 const getFallbackAvatar = (name: string) => {
   const cleanName = name ? name.trim().replace(/\s+/g, '+') : 'User';
   return `https://ui-avatars.com/api/?name=${cleanName}&background=0D8ABC&color=fff&size=200&font-size=0.4&bold=true`;
+};
+
+const ToastItem = ({ message, type }: { message: string, type: 'success' | 'error' }) => {
+  const [progress, setProgress] = useState(100);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setProgress(0), 50);
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <div className="animate-drop-down relative overflow-hidden rounded-xl shadow-2xl px-6 py-5 min-w-[380px] max-w-lg flex items-center gap-4 bg-surface border border-border-subtle bg-opacity-100">
+      {type === 'success' ? (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-[#10B981] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ) : (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-[#EF4444] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      )}
+      <span className="text-text-main text-base font-semibold">{message}</span>
+      <div 
+        className={`absolute bottom-0 left-0 h-1.5 transition-all ease-linear ${type === 'success' ? 'bg-[#10B981]' : 'bg-[#EF4444]'}`}
+        style={{ width: `${progress}%`, transitionDuration: '2.95s' }}
+      />
+    </div>
+  );
 };
 
 export const ProfilePage: React.FC = () => {
@@ -51,14 +76,21 @@ export const ProfilePage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<CustomerAddressResponse | null>(null);
 
-  // Page Refresh လုပ်လည်း မပျောက်အောင် LocalStorage ကို သုံးထားပေးပါတယ်
   const [selectedAvatar, setSelectedAvatar] = useState<string>(() => {
     return localStorage.getItem('user_avatar') || AVATAR_OPTIONS[0];
   });
   
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+  const [toasts, setToasts] = useState<{ id: number, message: string, type: 'success'|'error' }[]>([]);
 
-  // ရွေးချယ်ထားသော ပုံရဲ့ Background အရောင်ကို သတ်မှတ်ရန်
+  const showToast = (message: string, type: 'success' | 'error') => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 3000);
+  };
+
   const selectedIndex = AVATAR_OPTIONS.indexOf(selectedAvatar);
   const currentBgColor = selectedIndex >= 0 ? `hsl(${selectedIndex * 18}, 85%, 85%)` : '#E2E8F0';
 
@@ -89,8 +121,10 @@ export const ProfilePage: React.FC = () => {
   const handleAddressSubmit = async (data: any) => {
     if (editingAddress) {
       await profileApi.updateAddress(editingAddress.addressId, data);
+      showToast("Address updated successfully.", "success");
     } else {
       await profileApi.createAddress(data);
+      showToast("New address added successfully.", "success");
     }
     await fetchAddresses();
   };
@@ -98,29 +132,31 @@ export const ProfilePage: React.FC = () => {
   const handleDeleteAddress = async (id: number) => {
     try {
       await profileApi.deleteAddress(id);
+      showToast("Address deleted successfully.", "success");
       await fetchAddresses();
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message || "Failed to delete address.");
+      showToast("Failed to delete address.", "error");
     }
   };
 
   const handleSetDefault = async (id: number) => {
     try {
       await profileApi.setDefaultAddress(id);
+      showToast("Default address set successfully.", "success");
       await fetchAddresses();
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message || "Failed to set default address.");
+      showToast("Failed to set default address.", "error");
     }
   };
 
-  // ရွေးလိုက်တဲ့ပုံကို သိမ်းဆည်းခြင်း
   const handleSaveAvatar = async (avatarUrl: string) => {
     try {
       setSelectedAvatar(avatarUrl);
       localStorage.setItem('user_avatar', avatarUrl);
       setIsAvatarModalOpen(false);
+      showToast("Profile picture updated successfully.", "success");
     } catch (err) {
-      console.error("Failed to update avatar");
+      showToast("Failed to update profile picture.", "error");
     }
   };
 
@@ -142,14 +178,34 @@ export const ProfilePage: React.FC = () => {
   const hasMaxAddresses = addresses.length >= 5;
 
   return (
-    <div className="bg-page min-h-screen py-12">
+    <div className="bg-page min-h-screen py-12 relative overflow-hidden">
+      
+      <style>
+        {`
+          @keyframes dropDown {
+            0% { transform: translateY(-30px) scale(0.95); opacity: 0; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+          }
+          .animate-drop-down {
+            animation: dropDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          }
+        `}
+      </style>
+
+      {/* Global Toast Container */}
+      <div className="fixed top-8 left-1/2 transform -translate-x-1/2 z-[9999] flex flex-col gap-4 pointer-events-none items-center w-full px-4">
+        {toasts.map((toast) => (
+          <ToastItem key={toast.id} message={toast.message} type={toast.type} />
+        ))}
+      </div>
+
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 space-y-8">
         
         <h1 className="text-3xl font-bold tracking-tight text-text-main sm:text-4xl">My Profile</h1>
 
         <div className="flex flex-col md:flex-row gap-8 items-stretch">
           
-          {/* ဘယ်ဘက် - Profile Picture (Avatar) */}
+          {/* Avatar Section */}
           <div className="md:w-1/3 flex flex-col">
             <div className="rounded-lg border border-border-subtle bg-surface p-6 shadow-sm w-full h-full flex flex-col items-center justify-center">
               <div className="relative group mb-4">
@@ -160,7 +216,7 @@ export const ProfilePage: React.FC = () => {
                   <img 
                     src={selectedAvatar} 
                     alt="Profile Avatar" 
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-contain drop-shadow-md"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       const fallback = getFallbackAvatar(customer.fullName || 'User');
@@ -183,7 +239,7 @@ export const ProfilePage: React.FC = () => {
             </div>
           </div>
 
-          {/* ညာဘက် - Profile Details */}
+          {/* Personal Information Section */}
           <div className="md:w-2/3 flex flex-col">
             <div className="h-full">
               <ProfileDetails
@@ -191,13 +247,14 @@ export const ProfilePage: React.FC = () => {
                 initialPhone={customer.phone || ''}
                 email={customer.email}
                 onUpdate={handleProfileUpdate}
+                showToast={showToast}
               />
             </div>
           </div>
           
         </div>
 
-        {/* အောက်ပိုင်း - Saved Addresses */}
+        {/* Saved Addresses Section */}
         <div className="rounded-lg border border-border-subtle bg-surface p-6 shadow-sm w-full">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <div>
@@ -261,15 +318,21 @@ export const ProfilePage: React.FC = () => {
         onSubmit={handleAddressSubmit}
         initialData={editingAddress}
         title={editingAddress ? "Edit Address" : "Add New Address"}
+        showToast={showToast}
       />
 
-      {/* Avatar ရွေးချယ်ရန် Modal */}
+      {/* Avatar Modal */}
       {isAvatarModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="avatar-modal-title" role="dialog" aria-modal="true">
-          <div className="flex min-h-screen items-center justify-center px-4 pt-4 pb-20 text-center sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onClick={() => setIsAvatarModalOpen(false)}></div>
-
-            <div className="relative z-10 inline-block transform overflow-hidden rounded-lg bg-surface text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:align-middle">
+        <div className="fixed inset-0 z-[150] overflow-y-auto" aria-labelledby="avatar-modal-title" role="dialog" aria-modal="true">
+          <div className="flex min-h-screen items-center justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div 
+              className="fixed inset-0 transition-opacity" 
+              style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }} 
+              aria-hidden="true" 
+              onClick={() => setIsAvatarModalOpen(false)}
+            ></div>
+            <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
+            <div className="animate-drop-down relative z-10 inline-block transform overflow-hidden rounded-lg bg-surface text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:align-middle">
               <div className="bg-surface px-4 pt-5 pb-4 sm:p-6 sm:pb-4 border-b border-border-subtle">
                 <h3 className="text-lg font-bold leading-6 text-text-main" id="avatar-modal-title">
                   Choose a Cartoon Animal
