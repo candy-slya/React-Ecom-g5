@@ -4,8 +4,6 @@ import { productApi } from '../api/productApi';
 import { ProductCard } from '../../../components/product/ProductCard';
 import type { BrandResponse } from '../api/productApi';
 import type { CategoryNodeResponse, ProductListResponse } from '../types';
-// import heroImg from '../../../assets/hero.png';
-
 
 const getCategoryStyle = (name: string) => {
   const n = name.toLowerCase();
@@ -20,7 +18,7 @@ const getCategoryStyle = (name: string) => {
 const CategoryIcon = ({ name }: { name: string }) => {
   const n = name.toLowerCase();
   const style = getCategoryStyle(name);
-  let path = "M4 6a2 2 0 012-2h2.5l2 2H18a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"; // default folder
+  let path = "M4 6a2 2 0 012-2h2.5l2 2H18a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"; 
   if (n.includes('electronic') || n.includes('laptop') || n.includes('computer')) path = "M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z";
   else if (n.includes('fashion') || n.includes('clothing') || n.includes('shirt')) path = "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z";
   else if (n.includes('home') || n.includes('furniture')) path = "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6";
@@ -41,6 +39,9 @@ export const HomePage: React.FC = () => {
   const [brands, setBrands] = useState<BrandResponse[]>([]);
   const [trending, setTrending] = useState<ProductListResponse[]>([]);
   const [bestSellers, setBestSellers] = useState<ProductListResponse[]>([]);
+  
+  // Slider State
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
     productApi.getCategoryTree().then(setCategories).catch(console.error);
@@ -49,34 +50,108 @@ export const HomePage: React.FC = () => {
     productApi.getBestSellers().then(res => setBestSellers(res.content)).catch(console.error);
   }, []);
 
+  // Auto-play Slider (5 စက္ကန့် တစ်ခါပြောင်းရန်)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev === 2 ? 0 : prev + 1));
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
   const routeProducts = (params?: Record<string, any>) => {
     const q = new URLSearchParams(params).toString();
     navigate(`/products${q ? '?' + q : ''}`);
   };
 
+  
+  const heroSlides = [
+    {
+      badge: "6SYNC COLLECTION",
+      title: <>Discover Products<br/>Made for Your Day.</>,
+      description: "Discover products by category and brand, then compare variants and live available stock.",
+      btnText: "SHOP NOW",
+      action: () => routeProducts()
+    },
+    {
+      badge: "NEW ARRIVALS",
+      title: <>Elevate Your Style<br/>With Latest Trends.</>,
+      description: "Explore our newest collection of premium items carefully curated just for you.",
+      btnText: "SHOP NOW",
+      action: () => routeProducts({ sort: 'createdAt,desc' })
+    },
+    {
+      badge: "LIMITED OFFERS",
+      title: <>HELLO MY FRIEND!<br/>HAVE A NICE DAY</>,
+      description: "Get the best prices on top brands. Shop now before the stock runs out.",
+      btnText: "SHOP NOW",
+      action: () => routeProducts({ tags: ['SALE'] })
+    }
+  ];
+
+  const nextSlide = () => setCurrentSlide((prev) => (prev === heroSlides.length - 1 ? 0 : prev + 1));
+  const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? heroSlides.length - 1 : prev - 1));
+
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Hero Section */}
-      <div className="relative rounded-xl overflow-hidden h-80 mb-10 flex items-center bg-gradient-to-r from-[#0284C7] via-[#0EA5E9] to-[#38BDF8] shadow-md group">
-        {/* <img src={heroImg} className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay" /> */}
-        <div className="relative z-10 px-12 text-white max-w-2xl">
-          <div className="text-accent font-black tracking-wider text-xs mb-3 bg-black/20 inline-block px-3 py-1 rounded-full backdrop-blur-xs">6SYNC COLLECTION</div>
-          <h1 className="text-4xl sm:text-5xl font-black leading-tight mb-4 drop-shadow-sm">Discover Products<br/>Made for Your Day.</h1>
-          <p className="text-white/95 mb-6 text-sm sm:text-base font-medium">Discover products by category and brand, then compare variants and live available stock.</p>
-          <button onClick={() => routeProducts()} className="bg-primary text-white px-7 py-3 text-sm font-bold rounded-lg shadow-lg hover:bg-primary-hover transition-all transform hover:-translate-y-0.5">SHOP NOW</button>
+      
+      {/* Hero Section (Slider) */}
+      <div className="relative rounded-xl overflow-hidden h-80 mb-10 bg-gradient-to-r from-[#0284C7] via-[#0EA5E9] to-[#38BDF8] shadow-md group">
+        
+        {/* Slide Contents */}
+        <div className="relative w-full h-full">
+          {heroSlides.map((slide, index) => (
+            <div 
+              key={index}
+              className={`absolute inset-0 flex items-center px-12 transition-all duration-700 ease-out z-10 ${
+                index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'
+              }`}
+            >
+              <div className="text-white max-w-2xl">
+                <div className="text-accent font-black tracking-wider text-xs mb-3 bg-black/20 inline-block px-3 py-1 rounded-full backdrop-blur-xs">
+                  {slide.badge}
+                </div>
+                <h1 className="text-4xl sm:text-5xl font-black leading-tight mb-4 drop-shadow-sm">
+                  {slide.title}
+                </h1>
+                <p className="text-white/95 mb-6 text-sm sm:text-base font-medium">
+                  {slide.description}
+                </p>
+                <button 
+                  onClick={slide.action} 
+                  className="bg-primary text-white px-7 py-3 text-sm font-bold rounded-lg shadow-lg hover:bg-primary-hover transition-all transform hover:-translate-y-0.5"
+                >
+                  {slide.btnText}
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
         
-        {/* Slider Controls */}
-        <button className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/20 hover:bg-black/40 rounded-full flex items-center justify-center text-white backdrop-blur-sm transition-colors opacity-0 group-hover:opacity-100">
+        {/* Slider Controls (Arrows) */}
+        <button 
+          onClick={prevSlide}
+          className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/20 hover:bg-black/40 rounded-full flex items-center justify-center text-white backdrop-blur-sm transition-colors opacity-0 group-hover:opacity-100 z-20"
+        >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
         </button>
-        <button className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/20 hover:bg-black/40 rounded-full flex items-center justify-center text-white backdrop-blur-sm transition-colors opacity-0 group-hover:opacity-100">
+        <button 
+          onClick={nextSlide}
+          className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/20 hover:bg-black/40 rounded-full flex items-center justify-center text-white backdrop-blur-sm transition-colors opacity-0 group-hover:opacity-100 z-20"
+        >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
         </button>
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-          <span className="w-2 h-2 rounded-full bg-white"></span>
-          <span className="w-2 h-2 rounded-full bg-white/40"></span>
-          <span className="w-2 h-2 rounded-full bg-white/40"></span>
+
+        {/* Slider Dots */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+          {heroSlides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                index === currentSlide ? 'w-6 bg-white' : 'w-2 bg-white/40 hover:bg-white/70'
+              }`}
+            />
+          ))}
         </div>
       </div>
 
@@ -140,4 +215,3 @@ export const HomePage: React.FC = () => {
     </main>
   );
 };
-

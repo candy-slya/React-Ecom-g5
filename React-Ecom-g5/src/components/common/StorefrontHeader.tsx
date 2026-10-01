@@ -214,11 +214,11 @@ export const StorefrontHeader: React.FC = () => {
         </div>
       </div>
     
-      <nav className="hidden sm:block pb-2 border-t border-black/10">
-  <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div className="bg-[#0F172A] text-white rounded-md px-4 shadow-sm">
+      <nav className="hidden sm:block pb-2 border-t border-black/0">
+  <div className="mx-auto max-w-15x1 px-6 sm:px-20 lg:px-8">
+    <div className="bg-[#0F172A] text-white rounded-md px-10 shadow-sm">
       {/* h-10, text-xs နှင့် gap-4 သို့ ပြင်ဆင်ထားပါသည် */}
-      <ul className="flex h-10 items-center gap-4 text-xs font-bold tracking-wider">
+      <ul className="flex h-10 items-center gap-10 text-xs font-bold tracking-wider">
         <li>
           {/* Hover အဝိုင်းလေး ဘောင်နှင့်ညီအောင် px-4 py-1.5 သို့ ပြင်ပေးထားပါသည် */}
           <Link to="/" className="relative px-4 py-1.5 rounded-full overflow-hidden group text-white transition-all duration-200 active:scale-95 block">
