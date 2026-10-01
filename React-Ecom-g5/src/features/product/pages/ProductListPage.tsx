@@ -145,14 +145,13 @@ export const ProductListPage: React.FC = () => {
         <div className="py-6 text-sm text-gray-500">
           <Link to="/" className="hover:underline">Home</Link> / Products
         </div>
-        
-        <div className="bg-gradient-to-r from-secondary to-primary text-white p-8 rounded shadow-sm mb-8">
-          <div className="text-accent font-bold text-[13px] tracking-wider">6SYNC CATALOG</div>
-          <h1 className="text-[34px] font-bold my-1.5">
-            {activeSearch ? `Search Results for "${activeSearch}"` : activeCategoryId ? 'Category' : activeBrandId ? 'Brand' : 'All Products'}
-          </h1>
-          <p className="text-zinc-200 text-[13px] m-0">Refine by category, brand, price, availability, and tags.</p>
-        </div>
+      <div className="bg-gradient-to-r from-[#0284C7] via-[#0EA5E9] to-[#38BDF8] text-white p-8 rounded shadow-sm mb-8">
+  <div className="text-accent font-bold text-[13px] tracking-wider">6SYNC CATALOG</div>
+  <h1 className="text-[34px] font-bold my-1.5">
+    {activeSearch ? `Search Results for "${activeSearch}"` : activeCategoryId ? 'Category' : activeBrandId ? 'Brand' : 'All Products'}
+  </h1>
+  <p className="text-zinc-200 text-[13px] m-0">Refine by category, brand, price, availability, and tags.</p>
+</div>
 
         <div className="flex flex-col md:flex-row gap-8">
           {/* Sidebar */}

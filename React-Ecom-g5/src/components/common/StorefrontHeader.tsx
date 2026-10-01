@@ -215,17 +215,39 @@ export const StorefrontHeader: React.FC = () => {
       </div>
     
       <nav className="hidden sm:block pb-2 border-t border-black/10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="bg-[#0F172A] text-white rounded-md px-4 shadow-sm">
-            <ul className="flex h-10 items-center gap-8 text-xs font-bold tracking-wider">
-              <li><Link to="/" className="text-white hover:text-accent transition-colors">HOME</Link></li>
-              <li><Link to="/products" className="text-white hover:text-accent transition-colors">PRODUCTS</Link></li>
-              <li><Link to="/categories" className="text-white hover:text-accent transition-colors">CATEGORIES</Link></li>
-              <li><Link to="/brands" className="text-white hover:text-accent transition-colors">BRANDS</Link></li>
-            </ul>
-          </div>
-        </div>
-      </nav>
+  <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div className="bg-[#0F172A] text-white rounded-md px-4 shadow-sm">
+      {/* h-10, text-xs နှင့် gap-4 သို့ ပြင်ဆင်ထားပါသည် */}
+      <ul className="flex h-10 items-center gap-4 text-xs font-bold tracking-wider">
+        <li>
+          {/* Hover အဝိုင်းလေး ဘောင်နှင့်ညီအောင် px-4 py-1.5 သို့ ပြင်ပေးထားပါသည် */}
+          <Link to="/" className="relative px-4 py-1.5 rounded-full overflow-hidden group text-white transition-all duration-200 active:scale-95 block">
+            <span className="relative z-10 group-hover:text-white">HOME</span>
+            <span className="absolute inset-0 bg-[#1589FF] rounded-full scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 ease-out z-0"></span>
+          </Link>
+        </li>
+        <li>
+          <Link to="/products" className="relative px-4 py-1.5 rounded-full overflow-hidden group text-white transition-all duration-200 active:scale-95 block">
+            <span className="relative z-10 group-hover:text-white">PRODUCTS</span>
+            <span className="absolute inset-0 bg-[#1589FF] rounded-full scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 ease-out z-0"></span>
+          </Link>
+        </li>
+        <li>
+          <Link to="/categories" className="relative px-4 py-1.5 rounded-full overflow-hidden group text-white transition-all duration-200 active:scale-95 block">
+            <span className="relative z-10 group-hover:text-white">CATEGORIES</span>
+            <span className="absolute inset-0 bg-[#1589FF] rounded-full scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 ease-out z-0"></span>
+          </Link>
+        </li>
+        <li>
+          <Link to="/brands" className="relative px-4 py-1.5 rounded-full overflow-hidden group text-white transition-all duration-200 active:scale-95 block">
+            <span className="relative z-10 group-hover:text-white">BRANDS</span>
+            <span className="absolute inset-0 bg-[#1589FF] rounded-full scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 ease-out z-0"></span>
+          </Link>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
     </header>
   );
 };

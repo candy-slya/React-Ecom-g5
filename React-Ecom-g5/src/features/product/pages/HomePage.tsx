@@ -4,7 +4,7 @@ import { productApi } from '../api/productApi';
 import { ProductCard } from '../../../components/product/ProductCard';
 import type { BrandResponse } from '../api/productApi';
 import type { CategoryNodeResponse, ProductListResponse } from '../types';
-import heroImg from '../../../assets/hero.png';
+// import heroImg from '../../../assets/hero.png';
 
 
 const getCategoryStyle = (name: string) => {
@@ -58,7 +58,7 @@ export const HomePage: React.FC = () => {
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Hero Section */}
       <div className="relative rounded-xl overflow-hidden h-80 mb-10 flex items-center bg-gradient-to-r from-[#0284C7] via-[#0EA5E9] to-[#38BDF8] shadow-md group">
-        <img src={heroImg} className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay" />
+        {/* <img src={heroImg} className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay" /> */}
         <div className="relative z-10 px-12 text-white max-w-2xl">
           <div className="text-accent font-black tracking-wider text-xs mb-3 bg-black/20 inline-block px-3 py-1 rounded-full backdrop-blur-xs">6SYNC COLLECTION</div>
           <h1 className="text-4xl sm:text-5xl font-black leading-tight mb-4 drop-shadow-sm">Discover Products<br/>Made for Your Day.</h1>

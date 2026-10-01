@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+ import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { productApi } from '../../product/api/productApi';
 import type { BrandResponse } from '../../product/api/productApi';
@@ -26,11 +26,11 @@ export const BrandListPage: React.FC = () => {
           <Link to="/" className="hover:underline">Home</Link> / Brands
         </div>
 
-        <div className="bg-gradient-to-r from-secondary to-primary text-white p-8 rounded shadow-sm mb-8">
-          <div className="text-accent font-bold text-[13px] tracking-wider">OUR BRANDS</div>
-          <h1 className="text-[34px] font-bold my-1.5">Shop by Brand</h1>
-          <p className="text-zinc-200 text-[13px] m-0">Explore products from our available brands.</p>
-        </div>
+        <div className="bg-gradient-to-r from-[#0284C7] via-[#0EA5E9] to-[#38BDF8] text-white p-8 rounded shadow-sm mb-8">
+  <div className="text-accent font-bold text-[13px] tracking-wider">OUR BRANDS</div>
+  <h1 className="text-[34px] font-bold my-1.5">Shop by Brand</h1>
+  <p className="text-zinc-200 text-[13px] m-0">Explore products from our available brands.</p>
+</div>
 
         {loading ? (
           <div className="text-center py-12 text-gray-500">Loading brands...</div>

@@ -30,7 +30,7 @@ export const StorefrontFooter: React.FC = () => {
         </div>
         <div className="mt-12 border-t border-slate-800 pt-8 text-center md:text-left">
           <p className="text-sm text-slate-400">
-            &copy; {new Date().getFullYear()} 6Sync. All rights reserved.
+            &copy; {new Date().getFullYear()} <br /> 6SYNC All rights reserved.
           </p>
         </div>
       </div>
