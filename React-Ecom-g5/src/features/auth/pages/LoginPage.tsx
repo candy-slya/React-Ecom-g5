@@ -15,14 +15,6 @@ export const LoginPage: React.FC = () => {
   const [formError, setFormError] = useState("");
   const [mergeWarning, setMergeWarning] = useState("");
 
-  // Contact Support Modal State များ
-  const [showSupportModal, setShowSupportModal] = useState(false);
-  const [supportName, setSupportName] = useState("");
-  const [supportEmail, setSupportEmail] = useState("");
-  const [issueType, setIssueType] = useState("အကောင့်နှင့် ပတ်သက်၍");
-  const [supportMessage, setSupportMessage] = useState("");
-  const [supportSuccess, setSupportSuccess] = useState(false);
-
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { isAuthenticated, loading, error, isInitializing } = useAppSelector(
@@ -90,18 +82,6 @@ export const LoginPage: React.FC = () => {
     } catch (err) {
       // login rejected
     }
-  };
-
-  const handleSupportSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSupportSuccess(true);
-    setTimeout(() => {
-      setSupportSuccess(false);
-      setShowSupportModal(false);
-      setSupportName("");
-      setSupportEmail("");
-      setSupportMessage("");
-    }, 2000);
   };
 
   return (
@@ -255,14 +235,6 @@ export const LoginPage: React.FC = () => {
               >
                 Forgot your password?
               </Link>
-
-              <button
-                type="button"
-                onClick={() => setShowSupportModal(true)}
-                className="font-medium text-primary hover:text-primary-hover transition-colors focus:outline-none"
-              >
-                Need Support?
-              </button>
             </div>
 
             <div>
@@ -277,110 +249,6 @@ export const LoginPage: React.FC = () => {
           </form>
         </div>
       </div>
-
-      {/* Clean & Compact Contact Support Modal */}
-      {showSupportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 backdrop-blur-sm p-4 sm:p-6">
-          <div className="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-2xl transition-all my-8">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <h3 className="text-lg font-bold text-gray-900">
-                Contact Support
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowSupportModal(false)}
-                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-1 w-8 h-8 flex items-center justify-center transition-colors"
-              >
-                ✕
-              </button>
-            </div>
-
-            {supportSuccess ? (
-              <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-xl text-sm text-center font-medium my-4">
-                မက်ဆေ့ချ် ပို့ဆောင်ပြီးပါပြီ။ မကြာမီ ပြန်လည်ဆက်သွယ်ပေးပါမည်။
-              </div>
-            ) : (
-              <form onSubmit={handleSupportSubmit} className="mt-4 space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    သင့်အမည်
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="သင့်အမည်ကို ထည့်ပါ"
-                    value={supportName}
-                    onChange={(e) => setSupportName(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border rounded-lg border-gray-300 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    အီးမေးလ်
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="you@example.com"
-                    value={supportEmail}
-                    onChange={(e) => setSupportEmail(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border rounded-lg border-gray-300 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    ပြဿနာ အမျိုးအစား
-                  </label>
-                  <select
-                    value={issueType}
-                    onChange={(e) => setIssueType(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border rounded-lg border-gray-300 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all bg-white"
-                  >
-                    <option value="အကောင့်နှင့် ပတ်သက်၍">
-                      အကောင့်နှင့် ပတ်သက်၍
-                    </option>
-                    <option value="ငွေပေးချေမှုဆိုင်ရာ">
-                      ငွေပေးချေမှုဆိုင်ရာ
-                    </option>
-                    <option value="အခြား">အခြား</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    အသေးစိတ် ရှင်းလင်းချက်
-                  </label>
-                  <textarea
-                    rows={3}
-                    required
-                    placeholder="သင့်ပြဿနာကို အသေးစိတ် ရေးသားပေးပါ..."
-                    value={supportMessage}
-                    onChange={(e) => setSupportMessage(e.target.value)}
-                    className="w-full text-xs px-3 py-2 border rounded-lg border-gray-300 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all resize-none"
-                  ></textarea>
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    className="w-full py-2 bg-primary text-white font-medium text-xs rounded-lg hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all shadow-sm"
-                  >
-                    မက်ဆေ့ချ် ပို့မည်
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {/* Support Info Footer */}
-            <div className="mt-4 pt-3 border-t border-gray-100 text-center text-[11px] text-gray-500 space-y-1">
-              <p>Hotline: +95 9 123 456 789 (9:00 AM - 6:00 PM)</p>
-              <p>Email: support@eshop.com</p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
