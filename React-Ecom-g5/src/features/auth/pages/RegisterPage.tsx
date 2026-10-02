@@ -15,16 +15,6 @@ export const RegisterPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Shipping Address State များ
-  const [addShippingAddress, setAddShippingAddress] = useState(false);
-  const [recipientName, setRecipientName] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
-  const [addressLine1, setAddressLine1] = useState("");
-  const [addressLine2, setAddressLine2] = useState("");
-  const [township, setTownship] = useState("");
-  const [city, setCity] = useState("");
-  const [postalCode, setPostalCode] = useState("");
-
   // Checkbox & Modal State များ (Terms & Policy ကို တစ်ခုတည်း ပေါင်းထားပါသည်)
   const [agreeTermsAndPolicy, setAgreeTermsAndPolicy] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
@@ -85,24 +75,12 @@ export const RegisterPage: React.FC = () => {
       return;
     }
 
-    const registerPayload: any = {
+    const registerPayload = {
       fullName: fullName.trim(),
       email: email.trim(),
       phone: phone.trim(),
       password,
     };
-
-    if (addShippingAddress) {
-      registerPayload.shippingAddress = {
-        recipientName: recipientName.trim(),
-        contactPhone: contactPhone.trim(),
-        addressLine1: addressLine1.trim(),
-        addressLine2: addressLine2.trim(),
-        township: township.trim(),
-        city: city.trim(),
-        postalCode: postalCode.trim(),
-      };
-    }
 
     try {
       await dispatch(register(registerPayload)).unwrap();
@@ -418,124 +396,6 @@ export const RegisterPage: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            {/* Add Shipping Address Toggle Checkbox */}
-            <div className="flex items-center pt-2">
-              <input
-                id="addShippingAddress"
-                type="checkbox"
-                checked={addShippingAddress}
-                onChange={(e) => setAddShippingAddress(e.target.checked)}
-                className="h-4 w-4 text-primary focus:ring-primary border-border-subtle rounded cursor-pointer"
-              />
-              <label
-                htmlFor="addShippingAddress"
-                className="ml-2 block text-sm font-medium text-text-main cursor-pointer"
-              >
-                Add shipping address now
-              </label>
-            </div>
-
-            {/* Dynamic Shipping Address Fields */}
-            {addShippingAddress && (
-              <div className="space-y-4 pt-2 border-t border-gray-100">
-                <h3 className="text-sm font-bold text-text-main">
-                  Shipping Address
-                </h3>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-text-muted mb-1">
-                      Recipient Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Recipient Name"
-                      value={recipientName}
-                      onChange={(e) => setRecipientName(e.target.value)}
-                      className="block w-full rounded-md border border-border-subtle px-3 py-2 text-sm text-text-main placeholder-[#9CA3AF] focus:border-primary focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-text-muted mb-1">
-                      Contact Phone
-                    </label>
-                    <input
-                      type="tel"
-                      placeholder="Contact Phone"
-                      value={contactPhone}
-                      onChange={(e) => setContactPhone(e.target.value)}
-                      className="block w-full rounded-md border border-border-subtle px-3 py-2 text-sm text-text-main placeholder-[#9CA3AF] focus:border-primary focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-text-muted mb-1">
-                    Address Line 1
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Street name, house number"
-                    value={addressLine1}
-                    onChange={(e) => setAddressLine1(e.target.value)}
-                    className="block w-full rounded-md border border-border-subtle px-3 py-2 text-sm text-text-main placeholder-[#9CA3AF] focus:border-primary focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-text-muted mb-1">
-                    Address Line 2 (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Apartment, suite, unit, etc."
-                    value={addressLine2}
-                    onChange={(e) => setAddressLine2(e.target.value)}
-                    className="block w-full rounded-md border border-border-subtle px-3 py-2 text-sm text-text-main placeholder-[#9CA3AF] focus:border-primary focus:outline-none"
-                  />
-                </div>
-
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium text-text-muted mb-1">
-                      Township
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Township"
-                      value={township}
-                      onChange={(e) => setTownship(e.target.value)}
-                      className="block w-full rounded-md border border-border-subtle px-3 py-2 text-sm text-text-main placeholder-[#9CA3AF] focus:border-primary focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-text-muted mb-1">
-                      City
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="City"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      className="block w-full rounded-md border border-border-subtle px-3 py-2 text-sm text-text-main placeholder-[#9CA3AF] focus:border-primary focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-text-muted mb-1">
-                      Postal Code
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Postal Code"
-                      value={postalCode}
-                      onChange={(e) => setPostalCode(e.target.value)}
-                      className="block w-full rounded-md border border-border-subtle px-3 py-2 text-sm text-text-main placeholder-[#9CA3AF] focus:border-primary focus:outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Single Combined Terms & Privacy Checkbox */}
             <div className="flex items-center">
