@@ -2,15 +2,23 @@
 
 @theme {
   --color-primary: #388087;
-  --color-primary-hover: #2C666C;
-  --color-secondary: #6FB3B8;
-  --color-secondary-hover: #5A9A9F;
-  --color-accent: #BADFE7;
-  --color-accent-hover: #9ACCD7;
-  --color-accent-soft: #C2EDCE;
-  --color-page: #F6F6F2;
-  --color-surface: #FFFFFF;
-  --color-text-main: #2B2B2B;
-  --color-text-muted: #74746F;
-  --color-border-subtle: #E6E2D8;
+  --color-primary-hover: #2c666c;
+  --color-secondary: #6fb3b8;
+  --color-secondary-hover: #5a9a9f;
+  --color-accent: #badfe7;
+  --color-accent-hover: #9accd7;
+  --color-accent-soft: #c2edce;
+  --color-page: #f6f6f2;
+  --color-surface: #ffffff;
+  --color-text-main: #2b2b2b;
+  --color-text-muted: #74746f;
+  --color-border-subtle: #e6e2d8;
+}
+
+/* Tailwind v4 SVG Reset Fix */
+@layer base {
+  svg:not([class*="w-"]) {
+    width: 2rem;
+    height: 2rem;
+  }
 }

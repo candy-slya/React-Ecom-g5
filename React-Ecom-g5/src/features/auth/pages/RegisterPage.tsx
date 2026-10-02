@@ -8,14 +8,28 @@ import {
   fetchAuthenticatedCart,
 } from "../../cart/store/cartSlice";
 
-
 export const RegisterPage: React.FC = () => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [agreePrivacy, setAgreePrivacy] = useState(false);
+
+  // Shipping Address State များ
+  const [addShippingAddress, setAddShippingAddress] = useState(false);
+  const [recipientName, setRecipientName] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [addressLine1, setAddressLine1] = useState("");
+  const [addressLine2, setAddressLine2] = useState("");
+  const [township, setTownship] = useState("");
+  const [city, setCity] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+
+  // Checkbox & Modal State များ (Terms & Policy ကို တစ်ခုတည်း ပေါင်းထားပါသည်)
+  const [agreeTermsAndPolicy, setAgreeTermsAndPolicy] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formError, setFormError] = useState("");
@@ -50,8 +64,8 @@ export const RegisterPage: React.FC = () => {
       return;
     }
 
-    if (!agreePrivacy) {
-      setFormError("You must agree to the Privacy Policy.");
+    if (!agreeTermsAndPolicy) {
+      setFormError("You must agree to the Terms of Service & Privacy Policy.");
       return;
     }
 
@@ -71,15 +85,27 @@ export const RegisterPage: React.FC = () => {
       return;
     }
 
+    const registerPayload: any = {
+      fullName: fullName.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      password,
+    };
+
+    if (addShippingAddress) {
+      registerPayload.shippingAddress = {
+        recipientName: recipientName.trim(),
+        contactPhone: contactPhone.trim(),
+        addressLine1: addressLine1.trim(),
+        addressLine2: addressLine2.trim(),
+        township: township.trim(),
+        city: city.trim(),
+        postalCode: postalCode.trim(),
+      };
+    }
+
     try {
-      await dispatch(
-        register({
-          fullName: fullName.trim(),
-          email: email.trim(),
-          phone: phone.trim(),
-          password,
-        }),
-      ).unwrap();
+      await dispatch(register(registerPayload)).unwrap();
 
       if (guestItems && guestItems.length > 0) {
         try {
@@ -98,7 +124,7 @@ export const RegisterPage: React.FC = () => {
 
       navigate("/products");
     } catch (err) {
-      // register rejected, handled by redux state error
+      // register rejected
     }
   };
 
@@ -136,6 +162,7 @@ export const RegisterPage: React.FC = () => {
               </div>
             )}
 
+            {/* Full Name */}
             <div>
               <label
                 htmlFor="fullName"
@@ -150,7 +177,6 @@ export const RegisterPage: React.FC = () => {
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
                     fill="currentColor"
-                    aria-hidden="true"
                   >
                     <path
                       fillRule="evenodd"
@@ -163,8 +189,8 @@ export const RegisterPage: React.FC = () => {
                   id="fullName"
                   name="fullName"
                   type="text"
-                  autoComplete="name"
                   required
+                  placeholder="John Doe"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   className="block w-full appearance-none rounded-md border border-border-subtle pl-10 px-3 py-2 text-text-main placeholder-[#9CA3AF] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
@@ -172,6 +198,7 @@ export const RegisterPage: React.FC = () => {
               </div>
             </div>
 
+            {/* Email Address */}
             <div>
               <label
                 htmlFor="email"
@@ -186,7 +213,6 @@ export const RegisterPage: React.FC = () => {
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
                     fill="currentColor"
-                    aria-hidden="true"
                   >
                     <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                     <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
@@ -196,8 +222,8 @@ export const RegisterPage: React.FC = () => {
                   id="email"
                   name="email"
                   type="email"
-                  autoComplete="email"
                   required
+                  placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="block w-full appearance-none rounded-md border border-border-subtle pl-10 px-3 py-2 text-text-main placeholder-[#9CA3AF] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
@@ -205,12 +231,13 @@ export const RegisterPage: React.FC = () => {
               </div>
             </div>
 
+            {/* Phone Number */}
             <div>
               <label
                 htmlFor="phone"
                 className="block text-sm font-medium text-text-main"
               >
-                Phone Number (Optional)
+                Phone Number (Optional - Myanmar Only)
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -219,7 +246,6 @@ export const RegisterPage: React.FC = () => {
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
                     fill="currentColor"
-                    aria-hidden="true"
                   >
                     <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
                   </svg>
@@ -228,7 +254,7 @@ export const RegisterPage: React.FC = () => {
                   id="phone"
                   name="phone"
                   type="tel"
-                  autoComplete="tel"
+                  placeholder="959123456789"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="block w-full appearance-none rounded-md border border-border-subtle pl-10 px-3 py-2 text-text-main placeholder-[#9CA3AF] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
@@ -236,6 +262,7 @@ export const RegisterPage: React.FC = () => {
               </div>
             </div>
 
+            {/* Passwords */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
                 <label
@@ -251,7 +278,6 @@ export const RegisterPage: React.FC = () => {
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 20 20"
                       fill="currentColor"
-                      aria-hidden="true"
                     >
                       <path
                         fillRule="evenodd"
@@ -264,7 +290,6 @@ export const RegisterPage: React.FC = () => {
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
-                    autoComplete="new-password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -277,7 +302,7 @@ export const RegisterPage: React.FC = () => {
                   >
                     {showPassword ? (
                       <svg
-                        className="h-5 w-5 text-text-muted hover:text-text-muted"
+                        className="h-5 w-5 text-text-muted"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
@@ -292,7 +317,7 @@ export const RegisterPage: React.FC = () => {
                       </svg>
                     ) : (
                       <svg
-                        className="h-5 w-5 text-text-muted hover:text-text-muted"
+                        className="h-5 w-5 text-text-muted"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
@@ -330,7 +355,6 @@ export const RegisterPage: React.FC = () => {
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 20 20"
                       fill="currentColor"
-                      aria-hidden="true"
                     >
                       <path
                         fillRule="evenodd"
@@ -343,7 +367,6 @@ export const RegisterPage: React.FC = () => {
                     id="confirmPassword"
                     name="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
-                    autoComplete="new-password"
                     required
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
@@ -356,7 +379,7 @@ export const RegisterPage: React.FC = () => {
                   >
                     {showConfirmPassword ? (
                       <svg
-                        className="h-5 w-5 text-text-muted hover:text-text-muted"
+                        className="h-5 w-5 text-text-muted"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
@@ -371,7 +394,7 @@ export const RegisterPage: React.FC = () => {
                       </svg>
                     ) : (
                       <svg
-                        className="h-5 w-5 text-text-muted hover:text-text-muted"
+                        className="h-5 w-5 text-text-muted"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
@@ -396,24 +419,158 @@ export const RegisterPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center">
+            {/* Add Shipping Address Toggle Checkbox */}
+            <div className="flex items-center pt-2">
               <input
-                id="agreePrivacy"
-                name="agreePrivacy"
+                id="addShippingAddress"
                 type="checkbox"
-                required
-                checked={agreePrivacy}
-                onChange={(e) => setAgreePrivacy(e.target.checked)}
-                className="h-4 w-4 text-primary focus:ring-primary border-border-subtle rounded"
+                checked={addShippingAddress}
+                onChange={(e) => setAddShippingAddress(e.target.checked)}
+                className="h-4 w-4 text-primary focus:ring-primary border-border-subtle rounded cursor-pointer"
               />
               <label
-                htmlFor="agreePrivacy"
-                className="ml-2 block text-sm text-text-main"
+                htmlFor="addShippingAddress"
+                className="ml-2 block text-sm font-medium text-text-main cursor-pointer"
               >
-                I agree to the Privacy Policy
+                Add shipping address now
               </label>
             </div>
 
+            {/* Dynamic Shipping Address Fields */}
+            {addShippingAddress && (
+              <div className="space-y-4 pt-2 border-t border-gray-100">
+                <h3 className="text-sm font-bold text-text-main">
+                  Shipping Address
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-text-muted mb-1">
+                      Recipient Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Recipient Name"
+                      value={recipientName}
+                      onChange={(e) => setRecipientName(e.target.value)}
+                      className="block w-full rounded-md border border-border-subtle px-3 py-2 text-sm text-text-main placeholder-[#9CA3AF] focus:border-primary focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-text-muted mb-1">
+                      Contact Phone
+                    </label>
+                    <input
+                      type="tel"
+                      placeholder="Contact Phone"
+                      value={contactPhone}
+                      onChange={(e) => setContactPhone(e.target.value)}
+                      className="block w-full rounded-md border border-border-subtle px-3 py-2 text-sm text-text-main placeholder-[#9CA3AF] focus:border-primary focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-text-muted mb-1">
+                    Address Line 1
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Street name, house number"
+                    value={addressLine1}
+                    onChange={(e) => setAddressLine1(e.target.value)}
+                    className="block w-full rounded-md border border-border-subtle px-3 py-2 text-sm text-text-main placeholder-[#9CA3AF] focus:border-primary focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-text-muted mb-1">
+                    Address Line 2 (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Apartment, suite, unit, etc."
+                    value={addressLine2}
+                    onChange={(e) => setAddressLine2(e.target.value)}
+                    className="block w-full rounded-md border border-border-subtle px-3 py-2 text-sm text-text-main placeholder-[#9CA3AF] focus:border-primary focus:outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-text-muted mb-1">
+                      Township
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Township"
+                      value={township}
+                      onChange={(e) => setTownship(e.target.value)}
+                      className="block w-full rounded-md border border-border-subtle px-3 py-2 text-sm text-text-main placeholder-[#9CA3AF] focus:border-primary focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-text-muted mb-1">
+                      City
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="City"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      className="block w-full rounded-md border border-border-subtle px-3 py-2 text-sm text-text-main placeholder-[#9CA3AF] focus:border-primary focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-text-muted mb-1">
+                      Postal Code
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Postal Code"
+                      value={postalCode}
+                      onChange={(e) => setPostalCode(e.target.value)}
+                      className="block w-full rounded-md border border-border-subtle px-3 py-2 text-sm text-text-main placeholder-[#9CA3AF] focus:border-primary focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Single Combined Terms & Privacy Checkbox */}
+            <div className="flex items-center">
+              <input
+                id="agreeTermsAndPolicy"
+                type="checkbox"
+                required
+                checked={agreeTermsAndPolicy}
+                onChange={(e) => setAgreeTermsAndPolicy(e.target.checked)}
+                className="h-4 w-4 text-primary focus:ring-primary border-border-subtle rounded cursor-pointer"
+              />
+              <label
+                htmlFor="agreeTermsAndPolicy"
+                className="ml-2 block text-sm text-text-main cursor-pointer"
+              >
+                I agree to the{" "}
+                <button
+                  type="button"
+                  onClick={() => setShowTermsModal(true)}
+                  className="text-primary hover:underline font-medium focus:outline-none"
+                >
+                  Terms of Service
+                </button>{" "}
+                &{" "}
+                <button
+                  type="button"
+                  onClick={() => setShowPrivacyModal(true)}
+                  className="text-primary hover:underline font-medium focus:outline-none"
+                >
+                  Privacy Policy
+                </button>
+              </label>
+            </div>
+
+            {/* Submit Button */}
             <div>
               <button
                 type="submit"
@@ -426,6 +583,139 @@ export const RegisterPage: React.FC = () => {
           </form>
         </div>
       </div>
+
+      {/* Privacy Policy Modal */}
+      {showPrivacyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 backdrop-blur-sm p-4 sm:p-6">
+          <div className="relative w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-2xl transition-all my-8 max-h-[85vh] flex flex-col">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <h3 className="text-xl font-bold text-gray-900">
+                Privacy Policy
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowPrivacyModal(false)}
+                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-1 w-8 h-8 flex items-center justify-center transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="text-sm text-gray-700 space-y-4 overflow-y-auto pr-2 mt-4 flex-1">
+              <p className="text-xs text-gray-500">
+                Last updated: October 26, 2023
+              </p>
+              <p className="leading-relaxed">
+                ကျွန်ုပ်တို့၏ E-commerce ဆိုင်မှ ဝယ်ယူသည့်အခါ
+                သင့်ကိုယ်ရေးကိုယ်တာ အချက်အလက်များကို မည်သို့ စုဆောင်း၊ အသုံးပြု၊
+                သိမ်းဆည်းနည်းကို ဤ Privacy Policy တွင် ရှင်းပြထားပါသည်။
+              </p>
+              <h4 className="font-bold text-gray-900 mt-3 text-base">
+                ၁။ စုဆောင်းသော အချက်အလက်များ
+              </h4>
+              <ul className="list-disc pl-5 space-y-2 leading-relaxed">
+                <li>
+                  <strong>ကိုယ်ရေးကိုယ်တာ အချက်အလက်:</strong> အမည်၊ အီးမေးလ်၊
+                  ဖုန်းနံပါတ်၊ ပို့ဆောင်ရေးလိပ်စာ။
+                </li>
+                <li>
+                  <strong>ငွေပေးချေမှု အချက်အလက်:</strong> ကတ်နံပါတ်
+                  (ကျွန်ုပ်တို့ထံတွင် သိမ်းဆည်းထားခြင်းမရှိဘဲ Payment Gateway
+                  မှတဆင့် လုံခြုံစွာ ဆောင်ရွက်ပါသည်)။
+                </li>
+                <li>
+                  <strong>အသုံးပြုမှု အချက်အလက်:</strong> သင်ကြည့်ရှုသော
+                  ပစ္စည်းများ၊ ဝယ်ယူမှု မှတ်တမ်းများ။
+                </li>
+              </ul>
+              <h4 className="font-bold text-gray-900 mt-3 text-base">
+                ၂။ အချက်အလက်များကို အသုံးပြုခြင်း
+              </h4>
+              <p>သင့်အချက်အလက်များကို အောက်ပါအတွက် အသုံးပြုပါသည် -</p>
+              <ul className="list-disc pl-5 space-y-2 leading-relaxed">
+                <li>အမှာစာများ ဆောင်ရွက်ပေးရန်နှင့် ပစ္စည်းပို့ဆောင်ရန်။</li>
+                <li>ဝယ်ယူမှုဆိုင်ရာ အသိပေးချက်များ ပို့ပေးရန်။</li>
+              </ul>
+            </div>
+            <div className="mt-6 pt-3 border-t border-gray-100 text-right">
+              <button
+                type="button"
+                onClick={() => setShowPrivacyModal(false)}
+                className="px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Terms of Service Modal */}
+      {showTermsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 backdrop-blur-sm p-4 sm:p-6">
+          <div className="relative w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-2xl transition-all my-8 max-h-[85vh] flex flex-col">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <h3 className="text-xl font-bold text-gray-900">
+                Terms of Service
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowTermsModal(false)}
+                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-1 w-8 h-8 flex items-center justify-center transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="text-sm text-gray-700 space-y-4 overflow-y-auto pr-2 mt-4 flex-1">
+              <p className="leading-relaxed">
+                ဤစည်းကမ်းချက်များသည် ကျွန်ုပ်တို့၏ ဝဘ်ဆိုက်နှင့်
+                ဝန်ဆောင်မှုများကို အသုံးပြုခြင်းအတွက် သဘောတူညီချက် ဖြစ်ပါသည်။
+              </p>
+              <h4 className="font-bold text-gray-900 mt-3 text-base">
+                ၁။ အကောင့်ဖွင့်ခြင်း
+              </h4>
+              <p className="leading-relaxed">
+                အကောင့်ဖွင့်ရန် အသက် ၁၈ နှစ်ပြည့်ပြီးသူဖြစ်ရမည်။ သင့်အကောင့်၏
+                လုံခြုံရေးအတွက် Password ကို လုံခြုံစွာ သိမ်းဆည်းရန် သင့်တွင်
+                တာဝန်ရှိပါသည်။
+              </p>
+              <h4 className="font-bold text-gray-900 mt-3 text-base">
+                ၂။ အော်ဒါနှင့် ငွေပေးချေမှု
+              </h4>
+              <ul className="list-disc pl-5 space-y-2 leading-relaxed">
+                <li>
+                  အော်ဒါတင်ပြီးပါက ငွေပေးချေမှု အတည်ပြုချက်ရရှိမှသာ အော်ဒါကို
+                  စတင်ဆောင်ရွက်မည် ဖြစ်သည်။
+                </li>
+                <li>
+                  စျေးနှုန်းများနှင့် ပစ္စည်းလက်ကျန်များကို
+                  ကြိုတင်အသိပေးခြင်းမရှိဘဲ ပြောင်းလဲနိုင်ပါသည်။
+                </li>
+              </ul>
+              <h4 className="font-bold text-gray-900 mt-3 text-base">
+                ၃။ ပစ္စည်းပို့ဆောင်ခြင်းနှင့် ပြန်အပ်ခြင်း
+              </h4>
+              <ul className="list-disc pl-5 space-y-2 leading-relaxed">
+                <li>
+                  ပစ္စည်းများကို သတ်မှတ်ထားသော လိပ်စာသို့သာ ပို့ဆောင်ပါသည်။
+                </li>
+                <li>
+                  ပစ္စည်းလက်ခံရရှိပြီး ၇ ရက်အတွင်း ချို့ယွင်းချက်ရှိပါက
+                  ပြန်လည်အဆန်းနိုင်ပါသည်။
+                </li>
+              </ul>
+            </div>
+            <div className="mt-6 pt-3 border-t border-gray-100 text-right">
+              <button
+                type="button"
+                onClick={() => setShowTermsModal(false)}
+                className="px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
