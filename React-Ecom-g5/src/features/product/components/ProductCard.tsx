@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { ProductListResponse } from '../types';
+import { getAssetUrl } from '../../../utils/assetUtils';
 
 interface ProductCardProps {
   product: ProductListResponse;
@@ -11,6 +12,10 @@ const formatPrice = (price: number) => {
 };
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
+  const [imageError, setImageError] = useState(false);
+  const imageUrl = getAssetUrl(product.primaryImageUrl);
+  const hasImage = Boolean(imageUrl) && !imageError;
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (onClick && (e.key === 'Enter' || e.key === ' ')) {
       e.preventDefault();
@@ -27,10 +32,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) =>
       className={`group relative flex flex-col overflow-hidden rounded-lg bg-surface shadow-sm transition-shadow hover:shadow-md ${onClick ? 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2' : ''}`}
     >
       <div className="aspect-[4/5] w-full bg-page">
-        {product.primaryImageUrl ? (
+        {hasImage ? (
           <img
-            src={product.primaryImageUrl}
+            src={imageUrl}
             alt={product.productName}
+            onError={() => setImageError(true)}
             className="h-full w-full object-cover"
           />
         ) : (

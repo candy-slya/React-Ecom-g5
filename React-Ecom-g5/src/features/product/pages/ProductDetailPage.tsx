@@ -6,6 +6,7 @@ import { useDispatch } from 'react-redux';
 import { addGuestItem, addAuthenticatedCartItem, fetchAuthenticatedCart } from '../../cart/store/cartSlice';
 import { useAppSelector } from '../../../hooks/useAppSelector';
 import type { AppDispatch } from '../../../app/store';
+import { getAssetUrl } from '../../../utils/assetUtils';
 
 export const ProductDetailPage: React.FC = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -27,7 +28,8 @@ export const ProductDetailPage: React.FC = () => {
     productApi.getProductDetail(Number(productId)).then(res => {
       setProduct(res);
       setSelectedVariant(res.variants[0] || null);
-      setActiveImage(res.images.find(img => img.isPrimary)?.imageUrl || res.images[0]?.imageUrl || null);
+      const rawImg = res.images.find(img => img.isPrimary)?.imageUrl || res.images[0]?.imageUrl || null;
+      setActiveImage(rawImg ? getAssetUrl(rawImg) : null);
       setQuantity(1);
       setLoading(false);
     }).catch((e) => {
@@ -85,14 +87,42 @@ export const ProductDetailPage: React.FC = () => {
           {/* Gallery */}
           <div className="flex flex-col sm:flex-row gap-4 lg:w-1/2">
             <div className="flex sm:flex-col gap-2 overflow-auto sm:w-20">
-              {product.images.map(img => (
-                <div key={img.imageId} onClick={() => setActiveImage(img.imageUrl)} className={`w-16 h-16 border cursor-pointer ${activeImage === img.imageUrl ? 'border-green-600 border-2' : ''}`}>
-                  <img src={img.imageUrl} className="w-full h-full object-cover transition-transform duration-250 group-hover:scale-105" />
-                </div>
-              ))}
+              {product.images.map(img => {
+                const fullUrl = getAssetUrl(img.imageUrl);
+                return (
+                  <div
+                    key={img.imageId}
+                    onClick={() => setActiveImage(fullUrl)}
+                    className={`w-16 h-16 border cursor-pointer overflow-hidden flex items-center justify-center bg-gray-50 ${activeImage === fullUrl ? 'border-primary border-2' : ''}`}
+                  >
+                    <img
+                      src={fullUrl}
+                      alt=""
+                      className="w-full h-full object-cover transition-transform duration-250 group-hover:scale-105"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                );
+              })}
             </div>
-            <div className="flex-1 bg-gray-100 aspect-square">
-              {activeImage && <img src={activeImage} className="w-full h-full object-contain" />}
+            <div className="flex-1 bg-gray-100 aspect-square flex items-center justify-center overflow-hidden">
+              {activeImage ? (
+                <img
+                  src={activeImage}
+                  alt={product.productName}
+                  className="w-full h-full object-contain"
+                  onError={() => setActiveImage(null)}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center text-gray-400 opacity-60">
+                  <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span className="text-xs mt-2 font-bold uppercase tracking-wider">No Image</span>
+                </div>
+              )}
             </div>
           </div>
           

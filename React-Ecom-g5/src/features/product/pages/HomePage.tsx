@@ -4,6 +4,36 @@ import { productApi } from '../api/productApi';
 import { ProductCard } from '../../../components/product/ProductCard';
 import type { BrandResponse } from '../api/productApi';
 import type { CategoryNodeResponse, ProductListResponse } from '../types';
+import { getAssetUrl } from '../../../utils/assetUtils';
+
+const BrandCard: React.FC<{ brand: BrandResponse; onClick: () => void }> = ({ brand, onClick }) => {
+  const [hasError, setHasError] = useState(false);
+  const logoUrl = getAssetUrl(brand.brandLogoUrl);
+  const showImage = Boolean(logoUrl) && !hasError;
+
+  return (
+    <div
+      onClick={onClick}
+      className="bg-white border border-border-subtle rounded-xl p-5 text-center cursor-pointer hover:-translate-y-1 hover:border-primary hover:shadow-md transition-all"
+    >
+      <div className="w-[76px] h-[76px] mx-auto border border-border-subtle bg-accent-soft rounded-full flex items-center justify-center font-black text-xs mb-3 overflow-hidden shadow-xs p-2">
+        {showImage ? (
+          <img
+            src={logoUrl}
+            alt={brand.brandName}
+            onError={() => setHasError(true)}
+            className="w-full h-full object-contain"
+          />
+        ) : (
+          <span className="text-xs font-black text-text-main uppercase tracking-wider text-center line-clamp-2 px-1">
+            {brand.brandName}
+          </span>
+        )}
+      </div>
+      <b className="text-sm block text-text-main">{brand.brandName}</b>
+    </div>
+  );
+};
 
 const getCategoryStyle = (name: string) => {
   const n = name.toLowerCase();
@@ -185,12 +215,11 @@ export const HomePage: React.FC = () => {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {brands.map(b => (
-            <div key={b.brandId} onClick={() => navigate(`/brands/${b.brandId}`)} className="bg-white border border-border-subtle rounded-xl p-5 text-center cursor-pointer hover:-translate-y-1 hover:border-primary hover:shadow-md transition-all">
-              <div className="w-[76px] h-[76px] mx-auto border border-border-subtle bg-accent-soft rounded-full flex items-center justify-center font-black text-xs mb-3 overflow-hidden shadow-xs">
-                {b.brandLogoUrl ? <img src={b.brandLogoUrl} className="w-full h-full object-contain" /> : b.brandName}
-              </div>
-              <b className="text-sm block text-text-main">{b.brandName}</b>
-            </div>
+            <BrandCard
+              key={b.brandId}
+              brand={b}
+              onClick={() => navigate(`/brands/${b.brandId}`)}
+            />
           ))}
         </div>
       </section>

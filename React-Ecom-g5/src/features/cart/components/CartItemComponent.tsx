@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { CartItemResponse, GuestCartResolvedItemResponse } from '../types';
+import { getAssetUrl } from '../../../utils/assetUtils';
 
 interface CartItemProps {
   item: CartItemResponse | GuestCartResolvedItemResponse;
@@ -83,7 +84,7 @@ export const CartItemComponent: React.FC<CartItemProps> = ({
 
     return (
       <img 
-        src={item.imageUrl as string} 
+        src={getAssetUrl(item.imageUrl as string)} 
         alt={productName} 
         onError={() => setImageError(true)}
         className={`h-full w-full object-cover object-center ${!hasLink ? 'grayscale opacity-75' : ''}`} 
