@@ -9,6 +9,11 @@ export const getAssetUrl = (url?: string | null): string => {
   let clean = url.trim();
   if (!clean) return '';
 
+  // Intercept known broken external URLs (e.g., deprecated iconscout assets)
+  if (clean.includes('iconscout.com') && (clean.includes('4545224') || clean.toLowerCase().includes('the-ordinary'))) {
+    return '/brands/the-ordinary.svg';
+  }
+
   const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
   let backendOrigin = 'http://localhost:8080';
   try {

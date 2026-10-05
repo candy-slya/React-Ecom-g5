@@ -1,29 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { productApi } from '../../product/api/productApi';
 import type { CategoryNodeResponse } from '../../product/types';
-
-const CategoryIcon = ({ name }: { name: string }) => {
-  const n = name.toLowerCase();
-  let path = "M4 6a2 2 0 012-2h2.5l2 2H18a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"; // default folder
-  if (n.includes('electronic') || n.includes('laptop') || n.includes('computer')) path = "M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z";
-  else if (n.includes('fashion') || n.includes('clothing') || n.includes('shirt')) path = "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z";
-  else if (n.includes('home') || n.includes('furniture')) path = "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6";
-  else if (n.includes('sport') || n.includes('fitness')) path = "M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z";
-  else if (n.includes('accessory') || n.includes('bag') || n.includes('jewelry')) path = "M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z";
-  else if (n.includes('audio') || n.includes('headphone')) path = "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a7 7 0 0114 0v10a2 2 0 01-2 2h-2a2 2 0 01-2-2v-6a2 2 0 012-2h2a2 2 0 012 2v6";
-  
-  return (
-    <svg className="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={path} />
-    </svg>
-  );
-};
+import { CategoryCard } from '../../../components/category/CategoryCard';
 
 export const CategoryListPage: React.FC = () => {
   const navigate = useNavigate();
   const [categories, setCategories] = useState<CategoryNodeResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedParentId, setSelectedParentId] = useState<number | 'ALL'>('ALL');
 
   useEffect(() => {
     productApi.getCategoryTree().then(res => {
@@ -35,46 +21,146 @@ export const CategoryListPage: React.FC = () => {
     });
   }, []);
 
-  const renderCategoryCard = (c: CategoryNodeResponse, depth = 0) => {
-    return (
-      <React.Fragment key={c.categoryId}>
-        <div 
-          onClick={() => navigate(`/categories/${c.categoryId}`)} 
-          className={`bg-white border border-border-subtle p-5 text-center cursor-pointer hover:-translate-y-[3px] hover:border-primary hover:shadow-[0_8px_20px_#0000000d] transition-all ${depth > 0 ? 'ml-8 bg-gray-50' : ''}`}
-        >
-          <div className="w-[76px] h-[76px] mx-auto bg-page rounded-full flex items-center justify-center mb-3">
-            <CategoryIcon name={c.categoryName} />
-          </div>
-          <b className="text-sm block">{c.categoryName}</b>
-        </div>
-        {c.children && c.children.length > 0 && c.children.map(child => renderCategoryCard(child, depth + 1))}
-      </React.Fragment>
-    );
-  };
+  // Flatten categories into an organized list with parent information
+  const flattenedCategories = useMemo(() => {
+    const list: Array<{ category: CategoryNodeResponse; parentName?: string; parentId?: number }> = [];
+
+    categories.forEach(parent => {
+      // Add the parent category
+      list.push({ category: parent, parentId: parent.categoryId });
+
+      // Add child subcategories
+      if (parent.children && parent.children.length > 0) {
+        parent.children.forEach(child => {
+          list.push({
+            category: child,
+            parentName: parent.categoryName,
+            parentId: parent.categoryId,
+          });
+        });
+      }
+    });
+
+    return list;
+  }, [categories]);
+
+  // Filter based on search query and selected parent department
+  const filteredCategories = useMemo(() => {
+    return flattenedCategories.filter(item => {
+      const matchesSearch = item.category.categoryName.toLowerCase().includes(searchQuery.toLowerCase().trim());
+      const matchesParent = selectedParentId === 'ALL' || item.parentId === selectedParentId;
+      return matchesSearch && matchesParent;
+    });
+  }, [flattenedCategories, searchQuery, selectedParentId]);
 
   return (
-    <div className="min-h-screen bg-page pb-12">
+    <div className="min-h-screen bg-page pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
+        {/* Breadcrumb */}
         <div className="py-6 text-sm text-gray-500">
           <Link to="/" className="hover:underline">Home</Link> / Categories
         </div>
 
-       
-<div className="bg-gradient-to-r from-[#0284C7] via-[#0EA5E9] to-[#38BDF8] text-white p-8 rounded shadow-sm mb-8">
-  <div className="text-accent font-bold text-[13px] tracking-wider">SHOP BY CATEGORY</div>
-  <h1 className="text-[34px] font-bold my-1.5">Browse Categories</h1>
-  <p className="text-zinc-200 text-[13px] m-0">Explore products by category.</p>
-</div>
+        {/* Hero Banner */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-[#0284C7] via-[#0EA5E9] to-[#38BDF8] text-white p-8 sm:p-10 rounded-2xl shadow-md mb-8">
+          <div className="relative z-10">
+            <div className="text-amber-300 font-black text-xs tracking-widest uppercase mb-1">
+              SHOP BY CATEGORY
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-black my-2">Browse Categories</h1>
+            <p className="text-sky-100 text-sm sm:text-base max-w-xl m-0 font-medium">
+              Explore our curated selection of premium products across all categories and departments.
+            </p>
+          </div>
+          {/* Subtle decorative circles */}
+          <div className="absolute -right-10 -bottom-10 w-60 h-60 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute right-40 -top-10 w-40 h-40 bg-white/10 rounded-full blur-xl pointer-events-none" />
+        </div>
+
+        {/* Filter & Search Bar */}
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs mb-8 flex flex-col md:flex-row gap-4 justify-between items-center">
+          {/* Department Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none">
+            <button
+              onClick={() => setSelectedParentId('ALL')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                selectedParentId === 'ALL'
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+              }`}
+            >
+              All Categories ({flattenedCategories.length})
+            </button>
+            {categories.map(cat => (
+              <button
+                key={cat.categoryId}
+                onClick={() => setSelectedParentId(cat.categoryId)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                  selectedParentId === cat.categoryId
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+                }`}
+              >
+                {cat.categoryName}
+              </button>
+            ))}
+          </div>
+
+          {/* Quick Search */}
+          <div className="relative w-full md:w-72">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search categories..."
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:bg-white transition-all pl-9"
+            />
+            <svg
+              className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
+              >
+                &times;
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Content Section */}
         {loading ? (
-          <div className="text-center py-12 text-gray-500">Loading categories...</div>
-        ) : categories.length === 0 ? (
-          <div className="bg-white border p-12 text-center text-gray-500 rounded">
-            No categories available.
+          <div className="py-20 text-center">
+            <div className="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-full animate-spin mx-auto mb-4" />
+            <div className="text-slate-500 text-sm font-medium">Loading categories...</div>
+          </div>
+        ) : filteredCategories.length === 0 ? (
+          <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center text-slate-500 shadow-xs">
+            <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="font-semibold text-slate-700">No categories found</p>
+            <p className="text-xs text-slate-400 mt-1">Try searching with a different keyword or filter.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {categories.map(c => renderCategoryCard(c, 0))}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {filteredCategories.map(({ category, parentName }) => (
+              <CategoryCard
+                key={category.categoryId}
+                category={category}
+                parentCategoryName={parentName}
+                onClick={() => navigate(`/categories/${category.categoryId}`)}
+              />
+            ))}
           </div>
         )}
       </div>

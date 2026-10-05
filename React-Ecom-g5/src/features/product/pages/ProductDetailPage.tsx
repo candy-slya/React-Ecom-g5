@@ -10,6 +10,7 @@ import { getAssetUrl } from '../../../utils/assetUtils';
 
 export const ProductDetailPage: React.FC = () => {
   const { productId } = useParams<{ productId: string }>();
+  const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const { isAuthenticated } = useAppSelector((state: any) => state.auth);
 
@@ -21,6 +22,8 @@ export const ProductDetailPage: React.FC = () => {
   const [activeImage, setActiveImage] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [toastMsg, setToastMsg] = useState('');
+  const [isAddingCart, setIsAddingCart] = useState(false);
+  const [isBuyingNow, setIsBuyingNow] = useState(false);
 
   useEffect(() => {
     if (!productId) return;
@@ -50,27 +53,46 @@ export const ProductDetailPage: React.FC = () => {
     setQuantity(prev => Math.max(1, Math.min(max, prev + delta)));
   };
 
-  const handleAddToCart = () => {
-    if (!selectedVariant || selectedVariant.availableQuantity <= 0) return;
+  const handleAddToCart = async () => {
+    if (!selectedVariant || selectedVariant.availableQuantity <= 0 || isAddingCart) return;
     
     const req = { variantId: selectedVariant.variantId, quantity };
-    if (isAuthenticated) {
-      dispatch(addAuthenticatedCartItem(req)).unwrap().then(() => {
-        dispatch(fetchAuthenticatedCart());
-        setToastMsg(`${quantity} x ${product.productName} added to cart!`);
-        setTimeout(() => setToastMsg(''), 3000);
-      }).catch(() => {
-        alert('Failed to add to cart.');
-      });
-    } else {
-      dispatch(addGuestItem(req));
+    try {
+      setIsAddingCart(true);
+      if (isAuthenticated) {
+        await dispatch(addAuthenticatedCartItem(req)).unwrap();
+        await dispatch(fetchAuthenticatedCart());
+      } else {
+        dispatch(addGuestItem(req));
+      }
       setToastMsg(`${quantity} x ${product.productName} added to cart!`);
       setTimeout(() => setToastMsg(''), 3000);
+    } catch {
+      alert('Failed to add to cart.');
+    } finally {
+      setIsAddingCart(false);
     }
+  };
 
-      setToastMsg(`${quantity} x ${product.productName} added to cart!`);
-      setTimeout(() => setToastMsg(''), 3000);
+  const handleBuyNow = async () => {
+    if (!selectedVariant || selectedVariant.availableQuantity <= 0 || isBuyingNow) return;
 
+    const req = { variantId: selectedVariant.variantId, quantity };
+    try {
+      setIsBuyingNow(true);
+      if (isAuthenticated) {
+        await dispatch(addAuthenticatedCartItem(req)).unwrap();
+        await dispatch(fetchAuthenticatedCart());
+        navigate('/checkout');
+      } else {
+        dispatch(addGuestItem(req));
+        navigate('/login?redirect=/checkout');
+      }
+    } catch {
+      alert('Failed to process order checkout. Please try again.');
+    } finally {
+      setIsBuyingNow(false);
+    }
   };
 
   const effectivePrice = selectedVariant ? (selectedVariant.discountPrice ?? selectedVariant.sellingPrice) : null;
@@ -147,15 +169,63 @@ export const ProductDetailPage: React.FC = () => {
               ))}
             </div>
             
-            <div className="flex items-center gap-4 mt-auto">
-              <div className="flex border bg-white h-12 rounded">
-                <button onClick={() => handleQty(-1)} className="w-12 flex items-center justify-center font-bold hover:bg-page">&minus;</button>
-                <div className="w-12 flex items-center justify-center border-l border-r">{quantity}</div>
-                <button onClick={() => handleQty(1)} className="w-12 flex items-center justify-center font-bold hover:bg-page">+</button>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-auto pt-4 border-t border-slate-100">
+              {/* Quantity Selector */}
+              <div className="flex border border-slate-200 bg-slate-50 h-12 rounded-xl overflow-hidden self-start sm:self-auto shadow-xs">
+                <button
+                  onClick={() => handleQty(-1)}
+                  disabled={!inStock || quantity <= 1}
+                  className="w-11 flex items-center justify-center font-bold text-slate-600 hover:bg-slate-200 hover:text-slate-900 disabled:opacity-40 transition-colors"
+                >
+                  &minus;
+                </button>
+                <div className="w-12 flex items-center justify-center font-bold text-slate-800 bg-white border-x border-slate-200 text-sm">
+                  {quantity}
+                </div>
+                <button
+                  onClick={() => handleQty(1)}
+                  disabled={!inStock || (selectedVariant ? quantity >= selectedVariant.availableQuantity : false)}
+                  className="w-11 flex items-center justify-center font-bold text-slate-600 hover:bg-slate-200 hover:text-slate-900 disabled:opacity-40 transition-colors"
+                >
+                  +
+                </button>
               </div>
-              <button disabled={!inStock} onClick={handleAddToCart} className="flex-1 bg-primary text-white h-12 font-bold rounded-lg shadow-md hover:bg-primary-hover disabled:opacity-50 transition-colors">
-                {inStock ? 'ADD TO CART' : 'SOLD OUT'}
-              </button>
+
+              {/* Action Buttons */}
+              <div className="flex-1 flex flex-col sm:flex-row gap-3">
+                {/* ADD TO CART */}
+                <button
+                  disabled={!inStock || isAddingCart}
+                  onClick={handleAddToCart}
+                  className="flex-1 bg-primary text-white h-12 font-bold rounded-xl shadow-md hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-xs sm:text-sm tracking-wide active:scale-[0.99] cursor-pointer"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  {inStock ? (isAddingCart ? 'ADDING...' : 'ADD TO CART') : 'SOLD OUT'}
+                </button>
+
+                {/* BUY NOW */}
+                <button
+                  disabled={!inStock || isBuyingNow}
+                  onClick={handleBuyNow}
+                  className="flex-1 bg-[#0F172A] hover:bg-[#1E293B] text-white h-12 font-bold rounded-xl shadow-md hover:shadow-lg border border-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-xs sm:text-sm tracking-wide active:scale-[0.99] cursor-pointer group"
+                >
+                  {isBuyingNow ? (
+                    <span className="flex items-center gap-2">
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                      Processing...
+                    </span>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      BUY NOW
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

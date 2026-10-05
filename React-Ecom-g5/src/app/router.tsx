@@ -20,6 +20,7 @@ import { OrderHistoryPage } from "../features/order/pages/OrderHistoryPage";
 import { OrderDetailPage } from "../features/order/pages/OrderDetailPage";
 import { ReceiptPage } from "../features/order/pages/ReceiptPage";
 import { RefundHistoryPage } from "../features/refund/pages/RefundHistoryPage";
+import { PolicyPage } from "../features/policy/pages/PolicyPage";
 
 export const router = createBrowserRouter([
   {
@@ -97,6 +98,14 @@ export const router = createBrowserRouter([
       {
         path: "forgot-password",
         element: <ForgotPasswordPage />,
+      },
+      {
+        path: "privacy-policy",
+        element: <PolicyPage />,
+      },
+      {
+        path: "terms-of-service",
+        element: <PolicyPage />,
       },
     ],
   },
