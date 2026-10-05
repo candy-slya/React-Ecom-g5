@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { profileApi } from '../api/profileApi';
-import { ProfileDetails } from '../components/ProfileDetails';
-import { AddressCard } from '../components/AddressCard';
-import { AddressFormModal } from '../components/AddressFormModal';
-import type { CustomerAddressResponse } from '../../checkout/types';
-import { useAppSelector } from '../../../hooks/useAppSelector';
-import { useAppDispatch } from '../../../hooks/useAppDispatch';
-import { initializeAuth } from '../../auth/store/authSlice';
-import { Navigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { profileApi } from "../api/profileApi";
+import { ProfileDetails } from "../components/ProfileDetails";
+import { AddressCard } from "../components/AddressCard";
+import { AddressFormModal } from "../components/AddressFormModal";
+import { ChangePasswordModal } from "../components/ChangePasswordModal";
+import type { CustomerAddressResponse } from "../../checkout/types";
+import { useAppSelector } from "../../../hooks/useAppSelector";
+import { useAppDispatch } from "../../../hooks/useAppDispatch";
+import { initializeAuth } from "../../auth/store/authSlice";
+import { Navigate } from "react-router-dom";
 
 const AVATAR_OPTIONS = [
   "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f98a.svg",
@@ -29,15 +30,21 @@ const AVATAR_OPTIONS = [
   "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f43a.svg",
   "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f99d.svg",
   "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f9a5.svg",
-  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f9a6.svg"
+  "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f9a6.svg",
 ];
 
 const getFallbackAvatar = (name: string) => {
-  const cleanName = name ? name.trim().replace(/\s+/g, '+') : 'User';
+  const cleanName = name ? name.trim().replace(/\s+/g, "+") : "User";
   return `https://ui-avatars.com/api/?name=${cleanName}&background=0D8ABC&color=fff&size=200&font-size=0.4&bold=true`;
 };
 
-const ToastItem = ({ message, type }: { message: string, type: 'success' | 'error' }) => {
+const ToastItem = ({
+  message,
+  type,
+}: {
+  message: string;
+  type: "success" | "error";
+}) => {
   const [progress, setProgress] = useState(100);
 
   useEffect(() => {
@@ -47,19 +54,41 @@ const ToastItem = ({ message, type }: { message: string, type: 'success' | 'erro
 
   return (
     <div className="animate-drop-down relative overflow-hidden rounded-xl shadow-2xl px-6 py-5 min-w-[380px] max-w-lg flex items-center gap-4 bg-surface border border-border-subtle bg-opacity-100">
-      {type === 'success' ? (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-[#10B981] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      {type === "success" ? (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-8 w-8 text-[#10B981] flex-shrink-0"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2.5}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
       ) : (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-[#EF4444] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-8 w-8 text-[#EF4444] flex-shrink-0"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2.5}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
       )}
       <span className="text-text-main text-base font-semibold">{message}</span>
-      <div 
-        className={`absolute bottom-0 left-0 h-1.5 transition-all ease-linear ${type === 'success' ? 'bg-[#10B981]' : 'bg-[#EF4444]'}`}
-        style={{ width: `${progress}%`, transitionDuration: '2.95s' }}
+      <div
+        className={`absolute bottom-0 left-0 h-1.5 transition-all ease-linear ${type === "success" ? "bg-[#10B981]" : "bg-[#EF4444]"}`}
+        style={{ width: `${progress}%`, transitionDuration: "2.95s" }}
       />
     </div>
   );
@@ -67,23 +96,29 @@ const ToastItem = ({ message, type }: { message: string, type: 'success' | 'erro
 
 export const ProfilePage: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { isAuthenticated, customer, isInitializing } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, customer, isInitializing } = useAppSelector(
+    (state) => state.auth,
+  );
 
   const [addresses, setAddresses] = useState<CustomerAddressResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingAddress, setEditingAddress] = useState<CustomerAddressResponse | null>(null);
+  const [editingAddress, setEditingAddress] =
+    useState<CustomerAddressResponse | null>(null);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   const [selectedAvatar, setSelectedAvatar] = useState<string>(() => {
-    return localStorage.getItem('user_avatar') || AVATAR_OPTIONS[0];
+    return localStorage.getItem("user_avatar") || AVATAR_OPTIONS[0];
   });
-  
-  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
-  const [toasts, setToasts] = useState<{ id: number, message: string, type: 'success'|'error' }[]>([]);
 
-  const showToast = (message: string, type: 'success' | 'error') => {
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+  const [toasts, setToasts] = useState<
+    { id: number; message: string; type: "success" | "error" }[]
+  >([]);
+
+  const showToast = (message: string, type: "success" | "error") => {
     const id = Date.now();
     setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => {
@@ -92,7 +127,8 @@ export const ProfilePage: React.FC = () => {
   };
 
   const selectedIndex = AVATAR_OPTIONS.indexOf(selectedAvatar);
-  const currentBgColor = selectedIndex >= 0 ? `hsl(${selectedIndex * 18}, 85%, 85%)` : '#E2E8F0';
+  const currentBgColor =
+    selectedIndex >= 0 ? `hsl(${selectedIndex * 18}, 85%, 85%)` : "#E2E8F0";
 
   const fetchAddresses = async () => {
     try {
@@ -102,7 +138,11 @@ export const ProfilePage: React.FC = () => {
       data.sort((a, b) => (b.isDefault ? 1 : 0) - (a.isDefault ? 1 : 0));
       setAddresses(data);
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || "Failed to load addresses.");
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to load addresses.",
+      );
     } finally {
       setLoading(false);
     }
@@ -152,7 +192,7 @@ export const ProfilePage: React.FC = () => {
   const handleSaveAvatar = async (avatarUrl: string) => {
     try {
       setSelectedAvatar(avatarUrl);
-      localStorage.setItem('user_avatar', avatarUrl);
+      localStorage.setItem("user_avatar", avatarUrl);
       setIsAvatarModalOpen(false);
       showToast("Profile picture updated successfully.", "success");
     } catch (err) {
@@ -179,7 +219,6 @@ export const ProfilePage: React.FC = () => {
 
   return (
     <div className="bg-page min-h-screen py-12 relative overflow-hidden">
-      
       <style>
         {`
           @keyframes dropDown {
@@ -200,42 +239,75 @@ export const ProfilePage: React.FC = () => {
       </div>
 
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 space-y-8">
-        
-        <h1 className="text-3xl font-bold tracking-tight text-text-main sm:text-4xl">My Profile</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-text-main sm:text-4xl">
+          My Profile
+        </h1>
 
         <div className="flex flex-col md:flex-row gap-8 items-stretch">
-          
           {/* Avatar Section */}
           <div className="md:w-1/3 flex flex-col">
             <div className="rounded-lg border border-border-subtle bg-surface p-6 shadow-sm w-full h-full flex flex-col items-center justify-center">
               <div className="relative group mb-4">
-                <div 
+                <div
                   className="w-40 h-40 rounded-full ring-4 ring-border-subtle ring-offset-2 overflow-hidden shadow-md transition-colors duration-300 p-4"
                   style={{ backgroundColor: currentBgColor }}
                 >
-                  <img 
-                    src={selectedAvatar} 
-                    alt="Profile Avatar" 
+                  <img
+                    src={selectedAvatar}
+                    alt="Profile Avatar"
                     className="w-full h-full object-contain drop-shadow-md"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      const fallback = getFallbackAvatar(customer.fullName || 'User');
+                      const fallback = getFallbackAvatar(
+                        customer.fullName || "User",
+                      );
                       if (target.src !== fallback) target.src = fallback;
                     }}
                   />
                 </div>
-                <button 
+                <button
                   onClick={() => setIsAvatarModalOpen(true)}
                   className="absolute bottom-1 right-1 bg-primary text-white p-3 rounded-full shadow-lg hover:bg-primary-hover transition-transform hover:scale-110"
                   aria-label="Change Avatar"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                   </svg>
                 </button>
               </div>
-              <h2 className="text-xl font-bold text-text-main text-center mt-2">{customer.fullName || 'User'}</h2>
-              <p className="text-sm text-text-muted text-center mt-1">{customer.email}</p>
+              <h2 className="text-xl font-bold text-text-main text-center mt-2">
+                {customer.fullName || "User"}
+              </h2>
+              <p className="text-sm text-text-muted text-center mt-1">
+                {customer.email}
+              </p>
+
+              {/* Change Password Button */}
+              <button
+                onClick={() => setIsPasswordModalOpen(true)}
+                className="mt-6 w-full flex items-center justify-center gap-2 rounded-md border border-border-subtle px-4 py-2 text-sm font-semibold text-text-main hover:bg-slate-50 transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  />
+                </svg>
+                Change Password
+              </button>
             </div>
           </div>
 
@@ -243,32 +315,38 @@ export const ProfilePage: React.FC = () => {
           <div className="md:w-2/3 flex flex-col">
             <div className="h-full">
               <ProfileDetails
-                initialFullName={customer.fullName || ''}
-                initialPhone={customer.phone || ''}
+                initialFullName={customer.fullName || ""}
+                initialPhone={customer.phone || ""}
                 email={customer.email}
                 onUpdate={handleProfileUpdate}
                 showToast={showToast}
               />
             </div>
           </div>
-          
         </div>
 
         {/* Saved Addresses Section */}
         <div className="rounded-lg border border-border-subtle bg-surface p-6 shadow-sm w-full">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <div>
-              <h2 className="text-xl font-bold text-text-main">Saved Addresses</h2>
-              <p className="text-sm text-text-muted mt-1">Manage up to 5 delivery addresses.</p>
+              <h2 className="text-xl font-bold text-text-main">
+                Saved Addresses
+              </h2>
+              <p className="text-sm text-text-muted mt-1">
+                Manage up to 5 delivery addresses.
+              </p>
             </div>
-            
+
             {hasMaxAddresses ? (
               <div className="text-sm font-medium text-accent bg-accent/10 px-3 py-1.5 rounded-md">
                 You can save up to 5 addresses.
               </div>
             ) : (
               <button
-                onClick={() => { setEditingAddress(null); setIsModalOpen(true); }}
+                onClick={() => {
+                  setEditingAddress(null);
+                  setIsModalOpen(true);
+                }}
                 className="inline-flex items-center justify-center rounded-md bg-primary text-white px-4 py-2 text-sm font-bold shadow-sm hover:bg-primary-hover transition-colors"
               >
                 + Add New Address
@@ -284,13 +362,23 @@ export const ProfilePage: React.FC = () => {
           ) : error ? (
             <div className="rounded-md bg-[#B42318]/10 p-4 text-[#B42318]">
               <p>{error}</p>
-              <button onClick={fetchAddresses} className="mt-2 font-medium underline">Try again</button>
+              <button
+                onClick={fetchAddresses}
+                className="mt-2 font-medium underline"
+              >
+                Try again
+              </button>
             </div>
           ) : addresses.length === 0 ? (
             <div className="py-12 text-center border-2 border-dashed border-border-subtle rounded-lg">
-              <p className="text-text-muted mb-4">You haven't saved any addresses yet.</p>
+              <p className="text-text-muted mb-4">
+                You haven't saved any addresses yet.
+              </p>
               <button
-                onClick={() => { setEditingAddress(null); setIsModalOpen(true); }}
+                onClick={() => {
+                  setEditingAddress(null);
+                  setIsModalOpen(true);
+                }}
                 className="text-primary font-medium hover:underline"
               >
                 Add your first address
@@ -302,7 +390,10 @@ export const ProfilePage: React.FC = () => {
                 <AddressCard
                   key={addr.addressId}
                   address={addr}
-                  onEdit={(a) => { setEditingAddress(a); setIsModalOpen(true); }}
+                  onEdit={(a) => {
+                    setEditingAddress(a);
+                    setIsModalOpen(true);
+                  }}
                   onDelete={handleDeleteAddress}
                   onSetDefault={handleSetDefault}
                 />
@@ -312,6 +403,7 @@ export const ProfilePage: React.FC = () => {
         </div>
       </div>
 
+      {/* Address Form Modal */}
       <AddressFormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -321,45 +413,69 @@ export const ProfilePage: React.FC = () => {
         showToast={showToast}
       />
 
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+        showToast={showToast}
+      />
+
       {/* Avatar Modal */}
       {isAvatarModalOpen && (
-        <div className="fixed inset-0 z-[150] overflow-y-auto" aria-labelledby="avatar-modal-title" role="dialog" aria-modal="true">
+        <div
+          className="fixed inset-0 z-[150] overflow-y-auto"
+          aria-labelledby="avatar-modal-title"
+          role="dialog"
+          aria-modal="true"
+        >
           <div className="flex min-h-screen items-center justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div 
-              className="fixed inset-0 transition-opacity" 
-              style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }} 
-              aria-hidden="true" 
+            <div
+              className="fixed inset-0 transition-opacity"
+              style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+              aria-hidden="true"
               onClick={() => setIsAvatarModalOpen(false)}
             ></div>
-            <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
+            <span
+              className="hidden sm:inline-block sm:h-screen sm:align-middle"
+              aria-hidden="true"
+            >
+              &#8203;
+            </span>
             <div className="animate-drop-down relative z-10 inline-block transform overflow-hidden rounded-lg bg-surface text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:align-middle">
               <div className="bg-surface px-4 pt-5 pb-4 sm:p-6 sm:pb-4 border-b border-border-subtle">
-                <h3 className="text-lg font-bold leading-6 text-text-main" id="avatar-modal-title">
+                <h3
+                  className="text-lg font-bold leading-6 text-text-main"
+                  id="avatar-modal-title"
+                >
                   Choose a Cartoon Animal
                 </h3>
               </div>
-              
+
               <div className="p-6 bg-page">
                 <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-5 gap-4 max-h-[60vh] overflow-y-auto p-2">
                   {AVATAR_OPTIONS.map((avatarUrl, index) => (
-                    <div 
+                    <div
                       key={index}
                       onClick={() => handleSaveAvatar(avatarUrl)}
                       className={`cursor-pointer rounded-full p-2 transition-all duration-300 aspect-square flex items-center justify-center ${
-                        selectedAvatar === avatarUrl 
-                          ? 'ring-4 ring-primary ring-offset-2 scale-110 shadow-lg' 
-                          : 'border border-transparent hover:ring-4 hover:ring-border-subtle hover:scale-105 shadow-sm'
+                        selectedAvatar === avatarUrl
+                          ? "ring-4 ring-primary ring-offset-2 scale-110 shadow-lg"
+                          : "border border-transparent hover:ring-4 hover:ring-border-subtle hover:scale-105 shadow-sm"
                       }`}
-                      style={{ backgroundColor: `hsl(${index * 18}, 85%, 85%)` }}
+                      style={{
+                        backgroundColor: `hsl(${index * 18}, 85%, 85%)`,
+                      }}
                     >
-                      <img 
-                        src={avatarUrl} 
-                        alt={`Animal ${index + 1}`} 
+                      <img
+                        src={avatarUrl}
+                        alt={`Animal ${index + 1}`}
                         className="w-3/4 h-3/4 object-contain drop-shadow-md"
                         loading="lazy"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          const fallback = getFallbackAvatar(customer.fullName || 'User');
+                          const fallback = getFallbackAvatar(
+                            customer.fullName || "User",
+                          );
                           if (target.src !== fallback) target.src = fallback;
                         }}
                       />
@@ -369,9 +485,9 @@ export const ProfilePage: React.FC = () => {
               </div>
 
               <div className="bg-surface px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 border-t border-border-subtle">
-                <button 
-                  type="button" 
-                  onClick={() => setIsAvatarModalOpen(false)} 
+                <button
+                  type="button"
+                  onClick={() => setIsAvatarModalOpen(false)}
                   className="mt-3 inline-flex w-full justify-center rounded-md border border-border-subtle bg-surface text-text-main font-semibold px-4 py-2 text-base shadow-sm hover:bg-slate-50 focus:outline-none sm:mt-0 sm:w-auto sm:text-sm transition-colors"
                 >
                   Close

@@ -13,7 +13,7 @@ export const ForgotPasswordPage: React.FC = () => {
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  // STEP 1: Email ပို့ပေးခြင်း
+  // STEP 1: Send Email
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -31,7 +31,7 @@ export const ForgotPasswordPage: React.FC = () => {
       setStep(2);
     } catch (err: any) {
       if (err.response && err.response.status === 404) {
-        setError("ဤ အီးမေးလ်ဖြင့် Register ပြုလုပ်ထားခြင်း မရှိပါ။");
+        setError("This email address is not registered.");
       } else {
         setError(
           err?.response?.data?.message ||
@@ -43,7 +43,7 @@ export const ForgotPasswordPage: React.FC = () => {
     }
   };
 
-  // STEP 2: Code တိုက်စစ်ခြင်း
+  // STEP 2: Verify Code
   const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -59,7 +59,7 @@ export const ForgotPasswordPage: React.FC = () => {
         email,
         code,
       });
-      setStep(3); // Code မှန်မှ Step 3 (New Password) သို့ ရောက်မည်
+      setStep(3); // Proceed to Step 3 (New Password) if code is valid
     } catch (err: any) {
       setError(
         err?.response?.data?.message || "Invalid or expired verification code.",
@@ -69,7 +69,7 @@ export const ForgotPasswordPage: React.FC = () => {
     }
   };
 
-  // STEP 3: Password အသစ် ပြောင်းလဲခြင်း
+  // STEP 3: Reset Password
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");

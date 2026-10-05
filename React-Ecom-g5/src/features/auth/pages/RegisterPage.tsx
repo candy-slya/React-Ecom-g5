@@ -15,7 +15,7 @@ export const RegisterPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Checkbox & Modal State များ (Terms & Policy ကို တစ်ခုတည်း ပေါင်းထားပါသည်)
+  // Checkbox & Modal States (Combined Terms & Policy)
   const [agreeTermsAndPolicy, setAgreeTermsAndPolicy] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -232,7 +232,7 @@ export const RegisterPage: React.FC = () => {
                   id="phone"
                   name="phone"
                   type="tel"
-                  placeholder="959123456789"
+                  placeholder="09123456789"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="block w-full appearance-none rounded-md border border-border-subtle pl-10 px-3 py-2 text-text-main placeholder-[#9CA3AF] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
@@ -450,7 +450,7 @@ export const RegisterPage: React.FC = () => {
           <div className="relative w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-2xl transition-all my-8 max-h-[85vh] flex flex-col">
             <div className="flex justify-between items-center border-b border-gray-100 pb-3">
               <h3 className="text-xl font-bold text-gray-900">
-                Privacy Policy
+                Privacy Policy / သီးသန့်လုံခြုံရေး မူဝါဒ
               </h3>
               <button
                 type="button"
@@ -460,41 +460,90 @@ export const RegisterPage: React.FC = () => {
                 ✕
               </button>
             </div>
-            <div className="text-sm text-gray-700 space-y-4 overflow-y-auto pr-2 mt-4 flex-1">
-              <p className="text-xs text-gray-500">
-                Last updated: October 26, 2023
-              </p>
-              <p className="leading-relaxed">
-                ကျွန်ုပ်တို့၏ E-commerce ဆိုင်မှ ဝယ်ယူသည့်အခါ
-                သင့်ကိုယ်ရေးကိုယ်တာ အချက်အလက်များကို မည်သို့ စုဆောင်း၊ အသုံးပြု၊
-                သိမ်းဆည်းနည်းကို ဤ Privacy Policy တွင် ရှင်းပြထားပါသည်။
-              </p>
-              <h4 className="font-bold text-gray-900 mt-3 text-base">
-                ၁။ စုဆောင်းသော အချက်အလက်များ
-              </h4>
-              <ul className="list-disc pl-5 space-y-2 leading-relaxed">
-                <li>
-                  <strong>ကိုယ်ရေးကိုယ်တာ အချက်အလက်:</strong> အမည်၊ အီးမေးလ်၊
-                  ဖုန်းနံပါတ်၊ ပို့ဆောင်ရေးလိပ်စာ။
-                </li>
-                <li>
-                  <strong>ငွေပေးချေမှု အချက်အလက်:</strong> ကတ်နံပါတ်
-                  (ကျွန်ုပ်တို့ထံတွင် သိမ်းဆည်းထားခြင်းမရှိဘဲ Payment Gateway
-                  မှတဆင့် လုံခြုံစွာ ဆောင်ရွက်ပါသည်)။
-                </li>
-                <li>
-                  <strong>အသုံးပြုမှု အချက်အလက်:</strong> သင်ကြည့်ရှုသော
-                  ပစ္စည်းများ၊ ဝယ်ယူမှု မှတ်တမ်းများ။
-                </li>
-              </ul>
-              <h4 className="font-bold text-gray-900 mt-3 text-base">
-                ၂။ အချက်အလက်များကို အသုံးပြုခြင်း
-              </h4>
-              <p>သင့်အချက်အလက်များကို အောက်ပါအတွက် အသုံးပြုပါသည် -</p>
-              <ul className="list-disc pl-5 space-y-2 leading-relaxed">
-                <li>အမှာစာများ ဆောင်ရွက်ပေးရန်နှင့် ပစ္စည်းပို့ဆောင်ရန်။</li>
-                <li>ဝယ်ယူမှုဆိုင်ရာ အသိပေးချက်များ ပို့ပေးရန်။</li>
-              </ul>
+            <div className="text-sm text-gray-700 space-y-6 overflow-y-auto pr-2 mt-4 flex-1">
+              {/* English Section */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-xs tracking-wider text-indigo-600 uppercase">
+                  [ English Version ]
+                </h4>
+                <p className="leading-relaxed">
+                  This Privacy Policy explains how we collect, use, and store
+                  your personal information when you make purchases from our
+                  E-commerce store.
+                </p>
+                <h5 className="font-bold text-gray-900 mt-2 text-base">
+                  1. Information We Collect
+                </h5>
+                <ul className="list-disc pl-5 space-y-1 leading-relaxed">
+                  <li>
+                    <strong>Personal Information:</strong> Name, Email address,
+                    Phone number, Shipping address.
+                  </li>
+                  <li>
+                    <strong>Payment Information:</strong> Card details (We do
+                    not store these details; they are processed securely through
+                    the Payment Gateway).
+                  </li>
+                  <li>
+                    <strong>Usage Data:</strong> Items viewed, Purchase history.
+                  </li>
+                </ul>
+                <h5 className="font-bold text-gray-900 mt-2 text-base">
+                  2. How We Use Your Information
+                </h5>
+                <p>We use your information for the following purposes:</p>
+                <ul className="list-disc pl-5 space-y-1 leading-relaxed">
+                  <li>To process orders and deliver products.</li>
+                  <li>To send purchase-related notifications.</li>
+                </ul>
+              </div>
+
+              <hr className="border-gray-200" />
+
+              {/* Myanmar Section */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-xs tracking-wider text-indigo-600 uppercase">
+                  [ မြန်မာဘာသာ ပြန်ဆိုချက် ]
+                </h4>
+                <p className="leading-relaxed">
+                  ဤသီးသန့်လုံခြုံရေး မူဝါဒသည် ကျွန်ုပ်တို့၏ E-commerce စတိုးမှ
+                  ဝယ်ယူမှုများ ပြုလုပ်သည့်အခါ သင်၏ ကိုယ်ရေးအချက်အလက်များကို
+                  မည်သို့ စုဆောင်း၊ အသုံးပြုပြီး သိမ်းဆည်းထားကြောင်း
+                  ရှင်းပြထားခြင်း ဖြစ်ပါသည်။
+                </p>
+                <h5 className="font-bold text-gray-900 mt-2 text-base">
+                  ၁။ စုဆောင်းရယူသော အချက်အလက်များ
+                </h5>
+                <ul className="list-disc pl-5 space-y-1 leading-relaxed">
+                  <li>
+                    <strong>ကိုယ်ရေးအချက်အလက်များ -</strong> အမည်၊
+                    အီးမေးလ်လိပ်စာ၊ ဖုန်းနံပါတ်၊ ပစ္စည်းပို့ဆောင်ရမည့် လိပ်စာ။
+                  </li>
+                  <li>
+                    <strong>ငွေပေးချေမှု အချက်အလက်များ -</strong>{" "}
+                    ကတ်အချက်အလက်များ (ဤအချက်အလက်များကို ကျွန်ုပ်တို့ထံတွင်
+                    သိမ်းဆည်းမထားဘဲ ငွေပေးချေမှုစနစ်မှတစ်ဆင့် ဘေးကင်းလုံခြုံစွာ
+                    ဆောင်ရွက်ပါသည်။)
+                  </li>
+                  <li>
+                    <strong>အသုံးပြုမှုဆိုင်ရာ အချက်အလက်များ -</strong>{" "}
+                    ကြည့်ရှုခဲ့သည့် ပစ္စည်းများ၊ ဝယ်ယူမှုမှတ်တမ်း။
+                  </li>
+                </ul>
+                <h5 className="font-bold text-gray-900 mt-2 text-base">
+                  ၂။ သင့်အချက်အလက်များကို မည်သို့ အသုံးပြုသနည်း
+                </h5>
+                <p>
+                  သင့်အချက်အလက်များကို အောက်ပါ ရည်ရွယ်ချက်များအတွက်
+                  အသုံးပြုပါသည်။
+                </p>
+                <ul className="list-disc pl-5 space-y-1 leading-relaxed">
+                  <li>
+                    အော်ဒါများကို ဆောင်ရွက်ရန်နှင့် ပစ္စည်းများ ပို့ဆောင်ပေးရန်။
+                  </li>
+                  <li>ဝယ်ယူမှုဆိုင်ရာ အကြောင်းကြားချက်များကို ပေးပို့ရန်။</li>
+                </ul>
+              </div>
             </div>
             <div className="mt-6 pt-3 border-t border-gray-100 text-right">
               <button
@@ -515,7 +564,7 @@ export const RegisterPage: React.FC = () => {
           <div className="relative w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-2xl transition-all my-8 max-h-[85vh] flex flex-col">
             <div className="flex justify-between items-center border-b border-gray-100 pb-3">
               <h3 className="text-xl font-bold text-gray-900">
-                Terms of Service
+                Terms of Service / စည်းမျဉ်းများနှင့် သတ်မှတ်ချက်များ
               </h3>
               <button
                 type="button"
@@ -525,44 +574,93 @@ export const RegisterPage: React.FC = () => {
                 ✕
               </button>
             </div>
-            <div className="text-sm text-gray-700 space-y-4 overflow-y-auto pr-2 mt-4 flex-1">
-              <p className="leading-relaxed">
-                ဤစည်းကမ်းချက်များသည် ကျွန်ုပ်တို့၏ ဝဘ်ဆိုက်နှင့်
-                ဝန်ဆောင်မှုများကို အသုံးပြုခြင်းအတွက် သဘောတူညီချက် ဖြစ်ပါသည်။
-              </p>
-              <h4 className="font-bold text-gray-900 mt-3 text-base">
-                ၁။ အကောင့်ဖွင့်ခြင်း
-              </h4>
-              <p className="leading-relaxed">
-                အကောင့်ဖွင့်ရန် အသက် ၁၈ နှစ်ပြည့်ပြီးသူဖြစ်ရမည်။ သင့်အကောင့်၏
-                လုံခြုံရေးအတွက် Password ကို လုံခြုံစွာ သိမ်းဆည်းရန် သင့်တွင်
-                တာဝန်ရှိပါသည်။
-              </p>
-              <h4 className="font-bold text-gray-900 mt-3 text-base">
-                ၂။ အော်ဒါနှင့် ငွေပေးချေမှု
-              </h4>
-              <ul className="list-disc pl-5 space-y-2 leading-relaxed">
-                <li>
-                  အော်ဒါတင်ပြီးပါက ငွေပေးချေမှု အတည်ပြုချက်ရရှိမှသာ အော်ဒါကို
-                  စတင်ဆောင်ရွက်မည် ဖြစ်သည်။
-                </li>
-                <li>
-                  စျေးနှုန်းများနှင့် ပစ္စည်းလက်ကျန်များကို
-                  ကြိုတင်အသိပေးခြင်းမရှိဘဲ ပြောင်းလဲနိုင်ပါသည်။
-                </li>
-              </ul>
-              <h4 className="font-bold text-gray-900 mt-3 text-base">
-                ၃။ ပစ္စည်းပို့ဆောင်ခြင်းနှင့် ပြန်အပ်ခြင်း
-              </h4>
-              <ul className="list-disc pl-5 space-y-2 leading-relaxed">
-                <li>
-                  ပစ္စည်းများကို သတ်မှတ်ထားသော လိပ်စာသို့သာ ပို့ဆောင်ပါသည်။
-                </li>
-                <li>
-                  ပစ္စည်းလက်ခံရရှိပြီး ၇ ရက်အတွင်း ချို့ယွင်းချက်ရှိပါက
-                  ပြန်လည်အဆန်းနိုင်ပါသည်။
-                </li>
-              </ul>
+            <div className="text-sm text-gray-700 space-y-6 overflow-y-auto pr-2 mt-4 flex-1">
+              {/* English Section */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-xs tracking-wider text-indigo-600 uppercase">
+                  [ English Version ]
+                </h4>
+                <p className="leading-relaxed">
+                  These terms constitute an agreement for using our website and
+                  services.
+                </p>
+                <h5 className="font-bold text-gray-900 mt-2 text-base">
+                  1. Account Registration
+                </h5>
+                <p className="leading-relaxed">
+                  You must be at least 18 years old to register an account. You
+                  are responsible for maintaining the confidentiality of your
+                  account password.
+                </p>
+                <h5 className="font-bold text-gray-900 mt-2 text-base">
+                  2. Orders and Payment
+                </h5>
+                <ul className="list-disc pl-5 space-y-1 leading-relaxed">
+                  <li>
+                    Orders will only be processed once payment confirmation is
+                    received.
+                  </li>
+                  <li>
+                    Prices and stock availability are subject to change without
+                    prior notice.
+                  </li>
+                </ul>
+                <h5 className="font-bold text-gray-900 mt-2 text-base">
+                  3. Shipping and Returns
+                </h5>
+                <ul className="list-disc pl-5 space-y-1 leading-relaxed">
+                  <li>
+                    Products will only be delivered to the specified address.
+                  </li>
+                  <li>
+                    Items with defects can be returned within 7 days of receipt.
+                  </li>
+                </ul>
+              </div>
+
+              <hr className="border-gray-200" />
+
+              {/* Myanmar Section */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-xs tracking-wider text-indigo-600 uppercase">
+                  [ မြန်မာဘာသာ ပြန်ဆိုချက် ]
+                </h4>
+                <p className="leading-relaxed">
+                  ဤစည်းမျဉ်းများသည် ကျွန်ုပ်တို့၏ ဝဘ်ဆိုက်နှင့်
+                  ဝန်ဆောင်မှုများကို အသုံးပြုခြင်းအတွက် သဘောတူညီချက် ဖြစ်ပါသည်။
+                </p>
+                <h5 className="font-bold text-gray-900 mt-2 text-base">
+                  ၁။ အကောင့်ဖွင့်လှစ်ခြင်း
+                </h5>
+                <p className="leading-relaxed">
+                  အကောင့်ဖွင့်လှစ်ရန် အနည်းဆုံး အသက် ၁၈ နှစ် ပြည့်ပြီးသူ
+                  ဖြစ်ရပါမည်။ သင့်အကောင့်၏ စကားဝှက် လုံခြုံရေးအတွက် သင့်တွင်
+                  တာဝန်ရှိပါသည်။
+                </p>
+                <h5 className="font-bold text-gray-900 mt-2 text-base">
+                  ၂။ အော်ဒါများနှင့် ငွေပေးချေမှု
+                </h5>
+                <ul className="list-disc pl-5 space-y-1 leading-relaxed">
+                  <li>
+                    ငွေပေးချေမှု အတည်ပြုချက် ရရှိပြီးမှသာ အော်ဒါများကို
+                    စတင်ဆောင်ရွက်ပေးပါမည်။
+                  </li>
+                  <li>
+                    ကုန်ပစ္စည်းစျေးနှုန်းများနှင့် လက်ကျန်အခြေအနေများသည်
+                    ကြိုတင်အကြောင်းကြားခြင်းမရှိဘဲ ပြောင်းလဲမှုရှိနိုင်ပါသည်။
+                  </li>
+                </ul>
+                <h5 className="font-bold text-gray-900 mt-2 text-base">
+                  ၃။ ပစ္စည်းပို့ဆောင်ခြင်းနှင့် ပြန်လည်ပေးပို့ခြင်း
+                </h5>
+                <ul className="list-disc pl-5 space-y-1 leading-relaxed">
+                  <li>အတည်ပြုထားသော လိပ်စာသို့သာ ပစ္စည်း ပို့ဆောင်ပေးပါမည်။</li>
+                  <li>
+                    ချို့ယွင်းချက်ရှိသော ပစ္စည်းများကို လက်ခံရရှိပြီး ၇
+                    ရက်အတွင်း ပြန်လည်လဲလှယ်/ပေးပို့နိုင်ပါသည်။
+                  </li>
+                </ul>
+              </div>
             </div>
             <div className="mt-6 pt-3 border-t border-gray-100 text-right">
               <button
