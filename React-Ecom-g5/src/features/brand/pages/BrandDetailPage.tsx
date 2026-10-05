@@ -86,7 +86,7 @@ export const BrandDetailPage: React.FC = () => {
           <Link to="/" className="hover:underline">Home</Link> / <Link to="/brands" className="hover:underline">Brands</Link> / {brand.brandName}
         </div>
 
-        <div className="bg-white border border-border-subtle p-8 rounded shadow-sm mb-8 flex items-center gap-6">
+       <div className="bg-gradient-to-r from-[#0284C7] via-[#0EA5E9] to-[#38BDF8] text-white p-8 rounded shadow-sm mb-8 flex items-center gap-6">
           <div className="w-[100px] h-[100px] flex-shrink-0 border border-border-subtle rounded-full flex items-center justify-center overflow-hidden bg-gray-50">
             {brand.brandLogoUrl ? (
               <img src={brand.brandLogoUrl} className="w-full h-full object-contain" alt={brand.brandName} />
@@ -94,10 +94,10 @@ export const BrandDetailPage: React.FC = () => {
               <span className="font-bold text-gray-400">{brand.brandName}</span>
             )}
           </div>
-          <div>
-            <h1 className="text-[34px] font-bold m-0">{brand.brandName}</h1>
-            <p className="text-gray-500 mt-2">Products by {brand.brandName}</p>
-          </div>
+         <div>
+  <h1 className="text-[34px] font-bold m-0 text-black">{brand.brandName}</h1>
+  <p className="text-black mt-2">Products by {brand.brandName}</p>
+</div>
         </div>
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-[18px]">

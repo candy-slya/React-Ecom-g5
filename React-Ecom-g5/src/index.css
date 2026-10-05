@@ -70,3 +70,9 @@ body {
   background-color: #f8fafc;
   color: #0f172a;
 }
+@layer base {
+  svg:not([class*="w-"]) {
+    width: 2rem;
+    height: 2rem;
+  }
+}
