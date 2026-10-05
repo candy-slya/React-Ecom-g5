@@ -1,103 +1,107 @@
-import { createBrowserRouter } from 'react-router-dom';
-import { StorefrontLayout } from '../components/common/StorefrontLayout';
-import { HomePage } from '../features/product/pages/HomePage';
-import { ProductListPage } from '../features/product/pages/ProductListPage';
-import { ProductDetailPage } from '../features/product/pages/ProductDetailPage';
-import { BrandListPage } from '../features/brand/pages/BrandListPage';
-import { BrandDetailPage } from '../features/brand/pages/BrandDetailPage';
-import { CategoryListPage } from '../features/category/pages/CategoryListPage';
-import { CategoryDetailPage } from '../features/category/pages/CategoryDetailPage';
+import { createBrowserRouter } from "react-router-dom";
+import { StorefrontLayout } from "../components/common/StorefrontLayout";
+import { HomePage } from "../features/product/pages/HomePage";
+import { ProductListPage } from "../features/product/pages/ProductListPage";
+import { ProductDetailPage } from "../features/product/pages/ProductDetailPage";
+import { BrandListPage } from "../features/brand/pages/BrandListPage";
+import { BrandDetailPage } from "../features/brand/pages/BrandDetailPage";
+import { CategoryListPage } from "../features/category/pages/CategoryListPage";
+import { CategoryDetailPage } from "../features/category/pages/CategoryDetailPage";
 
-
-import { CartPage } from '../features/cart/pages/CartPage';
-import { LoginPage } from '../features/auth/pages/LoginPage';
-import { RegisterPage } from '../features/auth/pages/RegisterPage';
-import { CheckoutPage } from '../features/checkout/pages/CheckoutPage';
-import { ProfilePage } from '../features/profile/pages/ProfilePage';
-import { PaymentPage } from '../features/payment/pages/PaymentPage';
-import { MockG3Page } from '../features/payment/pages/MockG3Page';
-import { OrderHistoryPage } from '../features/order/pages/OrderHistoryPage';
-import { OrderDetailPage } from '../features/order/pages/OrderDetailPage';
-import { ReceiptPage } from '../features/order/pages/ReceiptPage';
-import { RefundHistoryPage } from '../features/refund/pages/RefundHistoryPage';
+import { CartPage } from "../features/cart/pages/CartPage";
+import { LoginPage } from "../features/auth/pages/LoginPage";
+import { RegisterPage } from "../features/auth/pages/RegisterPage";
+import { ForgotPasswordPage } from "../features/auth/pages/ForgotPasswordPage";
+import { CheckoutPage } from "../features/checkout/pages/CheckoutPage";
+import { ProfilePage } from "../features/profile/pages/ProfilePage";
+import { PaymentPage } from "../features/payment/pages/PaymentPage";
+import { MockG3Page } from "../features/payment/pages/MockG3Page";
+import { OrderHistoryPage } from "../features/order/pages/OrderHistoryPage";
+import { OrderDetailPage } from "../features/order/pages/OrderDetailPage";
+import { ReceiptPage } from "../features/order/pages/ReceiptPage";
+import { RefundHistoryPage } from "../features/refund/pages/RefundHistoryPage";
 
 export const router = createBrowserRouter([
   {
-    path: '/',
+    path: "/",
     element: <StorefrontLayout />,
     children: [
       {
-        path: '',
+        path: "",
         element: <HomePage />,
       },
       {
-        path: 'products',
+        path: "products",
         element: <ProductListPage />,
       },
       {
-        path: 'products/:productId',
+        path: "products/:productId",
         element: <ProductDetailPage />,
       },
       {
-        path: 'categories',
+        path: "categories",
         element: <CategoryListPage />,
       },
       {
-        path: 'categories/:categoryId',
+        path: "categories/:categoryId",
         element: <CategoryDetailPage />,
       },
       {
-        path: 'brands',
+        path: "brands",
         element: <BrandListPage />,
       },
       {
-        path: 'brands/:brandId',
+        path: "brands/:brandId",
         element: <BrandDetailPage />,
       },
       {
-        path: 'cart',
+        path: "cart",
         element: <CartPage />,
       },
       {
-        path: 'profile',
+        path: "profile",
         element: <ProfilePage />,
       },
       {
-        path: 'checkout',
+        path: "checkout",
         element: <CheckoutPage />,
       },
       {
-        path: 'payment/:orderId',
+        path: "payment/:orderId",
         element: <PaymentPage />,
       },
       {
-        path: 'orders',
+        path: "orders",
         element: <OrderHistoryPage />,
       },
       {
-        path: 'orders/:orderId',
+        path: "orders/:orderId",
         element: <OrderDetailPage />,
       },
       {
-        path: 'orders/:orderId/receipt',
+        path: "orders/:orderId/receipt",
         element: <ReceiptPage />,
       },
       {
-        path: 'refunds',
+        path: "refunds",
         element: <RefundHistoryPage />,
       },
       {
-        path: 'login',
+        path: "login",
         element: <LoginPage />,
       },
       {
-        path: 'register',
+        path: "register",
         element: <RegisterPage />,
+      },
+      {
+        path: "forgot-password",
+        element: <ForgotPasswordPage />,
       },
     ],
   },
   {
-    path: '/mock-g3/:transactionRef',
+    path: "/mock-g3/:transactionRef",
     element: <MockG3Page />,
   },
 ]);
