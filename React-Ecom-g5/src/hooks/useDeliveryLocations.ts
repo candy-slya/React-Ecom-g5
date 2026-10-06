@@ -1,25 +1,26 @@
 import { useState, useEffect, useMemo } from 'react';
 import { shippingApi } from '../features/shipping/api/shippingApi';
 import type { DeliveryZoneResponse } from '../features/checkout/types';
+import { DEFAULT_DELIVERY_ZONES } from '../features/shipping/data/deliveryZonesData';
 
 export const useDeliveryLocations = () => {
-  const [zones, setZones] = useState<DeliveryZoneResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [zones, setZones] = useState<DeliveryZoneResponse[]>(DEFAULT_DELIVERY_ZONES);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
     const fetchZones = async () => {
       try {
-        setLoading(true);
         const data = await shippingApi.getAvailableDeliveryZones();
-        if (mounted) {
+        if (mounted && Array.isArray(data) && data.length > 0) {
           setZones(data);
           setError(null);
         }
       } catch (err: any) {
         if (mounted) {
-          setError(err.response?.data?.message || err.message || 'Failed to fetch delivery zones');
+          // If unauthenticated or network error, fallback to MySQL exported data
+          setZones(DEFAULT_DELIVERY_ZONES);
         }
       } finally {
         if (mounted) {

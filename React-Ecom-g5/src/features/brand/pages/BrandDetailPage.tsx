@@ -4,6 +4,7 @@ import { productApi } from '../../product/api/productApi';
 import type { BrandResponse } from '../../product/api/productApi';
 import { ProductCard } from '../../../components/product/ProductCard';
 import type { ProductListResponse, PageResponse } from '../../product/types';
+import { getAssetUrl } from '../../../utils/assetUtils';
 
 export const BrandDetailPage: React.FC = () => {
   const { brandId } = useParams<{ brandId: string }>();
@@ -13,6 +14,7 @@ export const BrandDetailPage: React.FC = () => {
   const [productsPage, setProductsPage] = useState<PageResponse<ProductListResponse> | null>(null);
   const [loadingBrand, setLoadingBrand] = useState(true);
   const [loadingProducts, setLoadingProducts] = useState(true);
+  const [logoError, setLogoError] = useState(false);
   
   const activeSort = searchParams.get('sort') || 'newest';
   const activePage = searchParams.get('page') ? Number(searchParams.get('page')) : 0;
@@ -87,11 +89,16 @@ export const BrandDetailPage: React.FC = () => {
         </div>
 
        <div className="bg-gradient-to-r from-[#0284C7] via-[#0EA5E9] to-[#38BDF8] text-white p-8 rounded shadow-sm mb-8 flex items-center gap-6">
-          <div className="w-[100px] h-[100px] flex-shrink-0 border border-border-subtle rounded-full flex items-center justify-center overflow-hidden bg-gray-50">
-            {brand.brandLogoUrl ? (
-              <img src={brand.brandLogoUrl} className="w-full h-full object-contain" alt={brand.brandName} />
+          <div className="w-[100px] h-[100px] flex-shrink-0 border border-border-subtle rounded-full flex items-center justify-center overflow-hidden bg-gray-50 p-2">
+            {brand.brandLogoUrl && !logoError ? (
+              <img
+                src={getAssetUrl(brand.brandLogoUrl)}
+                className="w-full h-full object-contain"
+                alt={brand.brandName}
+                onError={() => setLogoError(true)}
+              />
             ) : (
-              <span className="font-bold text-gray-400">{brand.brandName}</span>
+              <span className="font-bold text-gray-500 text-center text-sm px-2">{brand.brandName}</span>
             )}
           </div>
          <div>

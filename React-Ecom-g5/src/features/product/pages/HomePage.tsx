@@ -4,34 +4,38 @@ import { productApi } from '../api/productApi';
 import { ProductCard } from '../../../components/product/ProductCard';
 import type { BrandResponse } from '../api/productApi';
 import type { CategoryNodeResponse, ProductListResponse } from '../types';
+import { getAssetUrl } from '../../../utils/assetUtils';
 
-const getCategoryStyle = (name: string) => {
-  const n = name.toLowerCase();
-  if (n.includes('fashion') || n.includes('cloth') || n.includes('shirt')) return { bg: 'bg-[#FFE4EC]', text: 'text-[#FF2B6D]' };
-  if (n.includes('electronic') || n.includes('laptop') || n.includes('computer')) return { bg: 'bg-[#E0F2FE]', text: 'text-[#0284C7]' };
-  if (n.includes('skin') || n.includes('beauty')) return { bg: 'bg-[#FFEDD5]', text: 'text-[#EA580C]' };
-  if (n.includes('home') || n.includes('furni')) return { bg: 'bg-[#FEF3C7]', text: 'text-[#D97706]' };
-  if (n.includes('sport') || n.includes('fit')) return { bg: 'bg-[#D1FAE5]', text: 'text-[#059669]' };
-  return { bg: 'bg-[#F3E8FF]', text: 'text-[#7C3AED]' };
-};
+const BrandCard: React.FC<{ brand: BrandResponse; onClick: () => void }> = ({ brand, onClick }) => {
+  const [hasError, setHasError] = useState(false);
+  const logoUrl = getAssetUrl(brand.brandLogoUrl);
+  const showImage = Boolean(logoUrl) && !hasError;
 
-const CategoryIcon = ({ name }: { name: string }) => {
-  const n = name.toLowerCase();
-  const style = getCategoryStyle(name);
-  let path = "M4 6a2 2 0 012-2h2.5l2 2H18a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"; 
-  if (n.includes('electronic') || n.includes('laptop') || n.includes('computer')) path = "M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z";
-  else if (n.includes('fashion') || n.includes('clothing') || n.includes('shirt')) path = "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z";
-  else if (n.includes('home') || n.includes('furniture')) path = "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6";
-  else if (n.includes('sport') || n.includes('fitness')) path = "M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z";
-  else if (n.includes('accessory') || n.includes('bag') || n.includes('jewelry')) path = "M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z";
-  else if (n.includes('audio') || n.includes('headphone')) path = "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a7 7 0 0114 0v10a2 2 0 01-2 2h-2a2 2 0 01-2-2v-6a2 2 0 012-2h2a2 2 0 012 2v6";
-  
   return (
-    <svg className={`w-8 h-8 ${style.text}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d={path} />
-    </svg>
+    <div
+      onClick={onClick}
+      className="bg-white border border-border-subtle rounded-xl p-5 text-center cursor-pointer hover:-translate-y-1 hover:border-primary hover:shadow-md transition-all"
+    >
+      <div className="w-[76px] h-[76px] mx-auto border border-border-subtle bg-accent-soft rounded-full flex items-center justify-center font-black text-xs mb-3 overflow-hidden shadow-xs p-2">
+        {showImage ? (
+          <img
+            src={logoUrl}
+            alt={brand.brandName}
+            onError={() => setHasError(true)}
+            className="w-full h-full object-contain"
+          />
+        ) : (
+          <span className="text-xs font-black text-text-main uppercase tracking-wider text-center line-clamp-2 px-1">
+            {brand.brandName}
+          </span>
+        )}
+      </div>
+      <b className="text-sm block text-text-main">{brand.brandName}</b>
+    </div>
   );
 };
+
+import { CategoryCard } from '../../../components/category/CategoryCard';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -165,15 +169,13 @@ export const HomePage: React.FC = () => {
           <Link to="/categories" className="text-sm text-primary font-bold hover:underline">VIEW ALL CATEGORIES &rarr;</Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {categories.map(c => {
-            const style = getCategoryStyle(c.categoryName);
-            return (
-              <div key={c.categoryId} onClick={() => navigate(`/categories/${c.categoryId}`)} className="bg-white border border-border-subtle rounded-xl p-5 text-center cursor-pointer hover:-translate-y-1 hover:border-primary hover:shadow-md transition-all">
-                <div className={`w-[76px] h-[76px] mx-auto ${style.bg} rounded-full flex items-center justify-center mb-3 shadow-xs`}><CategoryIcon name={c.categoryName} /></div>
-                <b className="text-sm block text-text-main">{c.categoryName}</b>
-              </div>
-            );
-          })}
+          {categories.map(c => (
+            <CategoryCard
+              key={c.categoryId}
+              category={c}
+              onClick={() => navigate(`/categories/${c.categoryId}`)}
+            />
+          ))}
         </div>
       </section>
 
@@ -185,12 +187,11 @@ export const HomePage: React.FC = () => {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {brands.map(b => (
-            <div key={b.brandId} onClick={() => navigate(`/brands/${b.brandId}`)} className="bg-white border border-border-subtle rounded-xl p-5 text-center cursor-pointer hover:-translate-y-1 hover:border-primary hover:shadow-md transition-all">
-              <div className="w-[76px] h-[76px] mx-auto border border-border-subtle bg-accent-soft rounded-full flex items-center justify-center font-black text-xs mb-3 overflow-hidden shadow-xs">
-                {b.brandLogoUrl ? <img src={b.brandLogoUrl} className="w-full h-full object-contain" /> : b.brandName}
-              </div>
-              <b className="text-sm block text-text-main">{b.brandName}</b>
-            </div>
+            <BrandCard
+              key={b.brandId}
+              brand={b}
+              onClick={() => navigate(`/brands/${b.brandId}`)}
+            />
           ))}
         </div>
       </section>

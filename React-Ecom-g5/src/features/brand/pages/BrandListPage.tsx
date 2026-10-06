@@ -1,7 +1,37 @@
- import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { productApi } from '../../product/api/productApi';
 import type { BrandResponse } from '../../product/api/productApi';
+import { getAssetUrl } from '../../../utils/assetUtils';
+
+const BrandGridItem: React.FC<{ brand: BrandResponse; onClick: () => void }> = ({ brand, onClick }) => {
+  const [hasError, setHasError] = useState(false);
+  const logoUrl = getAssetUrl(brand.brandLogoUrl);
+  const showImage = Boolean(logoUrl) && !hasError;
+
+  return (
+    <div
+      onClick={onClick}
+      className="bg-white border border-border-subtle p-5 text-center cursor-pointer hover:-translate-y-[3px] hover:border-primary hover:shadow-[0_8px_20px_#0000000d] transition-all"
+    >
+      <div className="w-[76px] h-[76px] mx-auto border border-border-subtle bg-accent-soft rounded-full flex items-center justify-center font-black text-xs mb-3 overflow-hidden p-2">
+        {showImage ? (
+          <img
+            src={logoUrl}
+            className="w-full h-full object-contain"
+            alt={brand.brandName}
+            onError={() => setHasError(true)}
+          />
+        ) : (
+          <span className="text-xs font-black text-text-main uppercase tracking-wider text-center line-clamp-2 px-1">
+            {brand.brandName}
+          </span>
+        )}
+      </div>
+      <b className="text-sm block text-text-main">{brand.brandName}</b>
+    </div>
+  );
+};
 
 export const BrandListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -27,10 +57,10 @@ export const BrandListPage: React.FC = () => {
         </div>
 
         <div className="bg-gradient-to-r from-[#0284C7] via-[#0EA5E9] to-[#38BDF8] text-white p-8 rounded shadow-sm mb-8">
-  <div className="text-accent font-bold text-[13px] tracking-wider">OUR BRANDS</div>
-  <h1 className="text-[34px] font-bold my-1.5">Shop by Brand</h1>
-  <p className="text-zinc-200 text-[13px] m-0">Explore products from our available brands.</p>
-</div>
+          <div className="text-accent font-bold text-[13px] tracking-wider">OUR BRANDS</div>
+          <h1 className="text-[34px] font-bold my-1.5">Shop by Brand</h1>
+          <p className="text-zinc-200 text-[13px] m-0">Explore products from our available brands.</p>
+        </div>
 
         {loading ? (
           <div className="text-center py-12 text-gray-500">Loading brands...</div>
@@ -41,20 +71,11 @@ export const BrandListPage: React.FC = () => {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {brands.map(b => (
-              <div 
-                key={b.brandId} 
-                onClick={() => navigate(`/brands/${b.brandId}`)} 
-                className="bg-white border border-border-subtle p-5 text-center cursor-pointer hover:-translate-y-[3px] hover:border-primary hover:shadow-[0_8px_20px_#0000000d] transition-all"
-              >
-                <div className="w-[76px] h-[76px] mx-auto border border-border-subtle bg-white rounded-full flex items-center justify-center font-black text-xs mb-3 overflow-hidden">
-                  {b.brandLogoUrl ? (
-                    <img src={b.brandLogoUrl} className="w-full h-full object-contain" alt={b.brandName} />
-                  ) : (
-                    b.brandName
-                  )}
-                </div>
-                <b className="text-sm block">{b.brandName}</b>
-              </div>
+              <BrandGridItem
+                key={b.brandId}
+                brand={b}
+                onClick={() => navigate(`/brands/${b.brandId}`)}
+              />
             ))}
           </div>
         )}
