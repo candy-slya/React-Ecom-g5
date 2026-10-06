@@ -30,4 +30,35 @@ export const profileApi = {
     const response = await axiosClient.put(`/v1/profile/addresses/${addressId}/default`);
     return response.data;
   },
+
+  uploadProfileImage: async (file: File): Promise<{ profileImageUrl: string; message: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await axiosClient.post('/v1/profile/image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  updateProfileImage: async (file: File): Promise<{ profileImageUrl: string; message: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await axiosClient.put('/v1/profile/image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  deleteProfileImage: async (): Promise<void> => {
+    await axiosClient.delete('/v1/profile/image');
+  },
+
+  updateProfileAvatar: async (avatarUrl: string): Promise<{ profileImageUrl: string; message: string }> => {
+    const response = await axiosClient.put('/v1/profile/image/avatar', { avatarUrl });
+    return response.data;
+  },
 };

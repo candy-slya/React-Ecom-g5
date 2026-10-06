@@ -92,6 +92,11 @@ const authSlice = createSlice({
     },
     clearError: (state) => {
       state.error = null;
+    },
+    updateProfileImage: (state, action) => {
+      if (state.customer) {
+        state.customer.profileImageUrl = action.payload;
+      }
     }
   },
   extraReducers: (builder) => {
@@ -109,6 +114,8 @@ const authSlice = createSlice({
           customerId: action.payload.customerId,
           fullName: action.payload.fullName,
           email: action.payload.email,
+          phone: action.payload.phone,
+          profileImageUrl: action.payload.profileImageUrl,
         };
       })
       .addCase(login.rejected, (state, action) => {
@@ -129,6 +136,8 @@ const authSlice = createSlice({
           customerId: action.payload.customerId,
           fullName: action.payload.fullName,
           email: action.payload.email,
+          phone: action.payload.phone,
+          profileImageUrl: action.payload.profileImageUrl,
         };
       })
       .addCase(register.rejected, (state, action) => {
@@ -138,7 +147,9 @@ const authSlice = createSlice({
       
       // Initialize Auth
       .addCase(initializeAuth.pending, (state) => {
-        state.isInitializing = true;
+        if (!state.isAuthenticated) {
+          state.isInitializing = true;
+        }
       })
       .addCase(initializeAuth.fulfilled, (state, action) => {
         state.isInitializing = false;
@@ -149,6 +160,7 @@ const authSlice = createSlice({
             fullName: action.payload.fullName,
             email: action.payload.email,
             phone: action.payload.phone,
+            profileImageUrl: action.payload.profileImageUrl,
           };
         } else {
           state.isAuthenticated = false;
@@ -164,5 +176,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, clearError } = authSlice.actions;
+export const { logout, clearError, updateProfileImage } = authSlice.actions;
 export default authSlice.reducer;

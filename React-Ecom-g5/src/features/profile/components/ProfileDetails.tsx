@@ -33,6 +33,18 @@ export const ProfileDetails: React.FC<ProfileDetailsProps> = ({
     setPhone(onlyNums);
   };
 
+  const handleStartEdit = () => {
+    setFullName(initialFullName);
+    setPhone(initialPhone || '');
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setFullName(initialFullName);
+    setPhone(initialPhone || '');
+    setIsEditing(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -59,7 +71,7 @@ export const ProfileDetails: React.FC<ProfileDetailsProps> = ({
       <div className="rounded-lg border border-border-subtle bg-surface p-6 shadow-sm">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-text-main">Personal Information</h2>
-          <button onClick={() => setIsEditing(true)} className="text-primary text-sm font-medium hover:underline">
+          <button onClick={handleStartEdit} className="text-primary text-sm font-medium hover:underline">
             Edit Profile
           </button>
         </div>
@@ -106,7 +118,7 @@ export const ProfileDetails: React.FC<ProfileDetailsProps> = ({
         </div>
         
         <div className="pt-4 flex justify-end gap-3 border-t border-border-subtle mt-6 pt-6">
-          <button type="button" onClick={() => setIsEditing(false)} disabled={isSubmitting} className="px-4 py-2 border border-border-subtle bg-surface text-text-main font-semibold rounded-md text-sm hover:bg-slate-50 transition-colors disabled:opacity-50">Cancel</button>
+          <button type="button" onClick={handleCancel} disabled={isSubmitting} className="px-4 py-2 border border-border-subtle bg-surface text-text-main font-semibold rounded-md text-sm hover:bg-slate-50 transition-colors disabled:opacity-50">Cancel</button>
           <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-primary text-white font-bold rounded-md text-sm hover:bg-primary-hover transition-colors disabled:opacity-50 shadow-sm">
             {isSubmitting ? 'Saving...' : 'Save Changes'}
           </button>

@@ -108,7 +108,7 @@ export const StorefrontFooter: React.FC = () => {
                 className="hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
               >
                 <span>Privacy Policy</span>
-                <span className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.2 rounded border border-slate-700">Read Only</span>
+                <span className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.2 rounded border border-slate-700"></span>
               </button>
               <span className="w-1 h-1 rounded-full bg-slate-600"></span>
               <button
@@ -116,7 +116,7 @@ export const StorefrontFooter: React.FC = () => {
                 className="hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
               >
                 <span>Terms of Service</span>
-                <span className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.2 rounded border border-slate-700">Read Only</span>
+                <span className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.2 rounded border border-slate-700"></span>
               </button>
             </div>
           </div>
