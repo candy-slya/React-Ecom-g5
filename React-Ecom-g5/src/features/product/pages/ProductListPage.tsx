@@ -4,6 +4,7 @@ import { productApi } from '../api/productApi';
 import { ProductCard } from '../../../components/product/ProductCard';
 import type { BrandResponse } from '../api/productApi';
 import type { CategoryNodeResponse, ProductListResponse, PageResponse } from '../types';
+import { GeometricPatternBanner } from '../../../components/common/GeometricPatternBanner';
 
 export const ProductListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -130,14 +131,16 @@ export const ProductListPage: React.FC = () => {
           <Link to="/" className="hover:underline">Home</Link> / Products
         </div>
         
-        <div className="bg-gradient-to-r from-[#0284C7] via-[#0EA5E9] to-[#38BDF8] text-white p-8 rounded shadow-sm mb-8 flex items-center justify-between">
-          <div>
-            <div className="text-accent font-bold text-[13px] tracking-wider">6SYNC CATALOG</div>
-            {/* ဤနေရာတွင် Title ကို All Products ဟု အသေထားလိုက်ပါသည် */}
-            <h1 className="text-[34px] font-bold my-1.5">
+        <div className="relative overflow-hidden bg-gradient-to-r from-[#0A39A6] via-[#0C42B5] to-[#0284C7] text-white p-6 sm:p-8 rounded-xl shadow-sm mb-8 flex items-center justify-between">
+          <div className="relative z-10 max-w-xl">
+            <div className="text-sky-200 font-bold text-[13px] tracking-wider uppercase">6SYNC CATALOG</div>
+            <h1 className="text-3xl sm:text-[34px] font-bold my-1.5 drop-shadow-sm">
               All Products
             </h1>
             <p className="text-zinc-200 text-[13px] m-0">Refine by category, brand, and price.</p>
+          </div>
+          <div className="hidden sm:flex relative z-10 flex-shrink-0 items-center justify-end w-[260px] md:w-[320px] lg:w-[360px] h-[130px] md:h-[150px]">
+            <GeometricPatternBanner className="w-full h-full" />
           </div>
         </div>
 

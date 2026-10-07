@@ -5,6 +5,7 @@ import type { BrandResponse } from '../../product/api/productApi';
 import { ProductCard } from '../../../components/product/ProductCard';
 import type { ProductListResponse, PageResponse } from '../../product/types';
 import { getAssetUrl } from '../../../utils/assetUtils';
+import { GeometricPatternBanner } from '../../../components/common/GeometricPatternBanner';
 
 export const BrandDetailPage: React.FC = () => {
   const { brandId } = useParams<{ brandId: string }>();
@@ -88,23 +89,28 @@ export const BrandDetailPage: React.FC = () => {
           <Link to="/" className="hover:underline">Home</Link> / <Link to="/brands" className="hover:underline">Brands</Link> / {brand.brandName}
         </div>
 
-       <div className="bg-gradient-to-r from-[#0284C7] via-[#0EA5E9] to-[#38BDF8] text-white p-8 rounded shadow-sm mb-8 flex items-center gap-6">
-          <div className="w-[100px] h-[100px] flex-shrink-0 border border-border-subtle rounded-full flex items-center justify-center overflow-hidden bg-gray-50 p-2">
-            {brand.brandLogoUrl && !logoError ? (
-              <img
-                src={getAssetUrl(brand.brandLogoUrl)}
-                className="w-full h-full object-contain"
-                alt={brand.brandName}
-                onError={() => setLogoError(true)}
-              />
-            ) : (
-              <span className="font-bold text-gray-500 text-center text-sm px-2">{brand.brandName}</span>
-            )}
+       <div className="relative overflow-hidden bg-gradient-to-r from-[#0A39A6] via-[#0C42B5] to-[#0284C7] text-white p-6 sm:p-8 rounded-xl shadow-sm mb-8 flex items-center justify-between gap-6">
+          <div className="flex items-center gap-6 relative z-10">
+            <div className="w-[100px] h-[100px] flex-shrink-0 border border-white/20 rounded-full flex items-center justify-center overflow-hidden bg-white p-2 shadow-xs">
+              {brand.brandLogoUrl && !logoError ? (
+                <img
+                  src={getAssetUrl(brand.brandLogoUrl)}
+                  className="w-full h-full object-contain"
+                  alt={brand.brandName}
+                  onError={() => setLogoError(true)}
+                />
+              ) : (
+                <span className="font-bold text-gray-500 text-center text-sm px-2">{brand.brandName}</span>
+              )}
+            </div>
+            <div>
+              <h1 className="text-3xl sm:text-[34px] font-bold m-0 text-white drop-shadow-sm">{brand.brandName}</h1>
+              <p className="text-sky-100 mt-2 text-sm font-medium">Products by {brand.brandName}</p>
+            </div>
           </div>
-         <div>
-  <h1 className="text-[34px] font-bold m-0 text-black">{brand.brandName}</h1>
-  <p className="text-black mt-2">Products by {brand.brandName}</p>
-</div>
+          <div className="hidden sm:flex relative z-10 flex-shrink-0 items-center justify-end w-[260px] md:w-[320px] lg:w-[360px] h-[130px] md:h-[150px]">
+            <GeometricPatternBanner className="w-full h-full" />
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-[18px]">

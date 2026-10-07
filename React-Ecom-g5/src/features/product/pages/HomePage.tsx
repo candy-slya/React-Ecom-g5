@@ -36,6 +36,7 @@ const BrandCard: React.FC<{ brand: BrandResponse; onClick: () => void }> = ({ br
 };
 
 import { CategoryCard } from '../../../components/category/CategoryCard';
+import { GeometricPatternBanner } from '../../../components/common/GeometricPatternBanner';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -99,63 +100,76 @@ export const HomePage: React.FC = () => {
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       
       {/* Hero Section (Slider) */}
-      <div className="relative rounded-xl overflow-hidden h-80 mb-10 bg-gradient-to-r from-[#0284C7] via-[#0EA5E9] to-[#38BDF8] shadow-md group">
+      <div className="relative rounded-xl overflow-hidden h-80 mb-10 bg-gradient-to-r from-[#0A39A6] via-[#0C42B5] to-[#0284C7] shadow-md group">
         
         {/* Slide Contents */}
-        <div className="relative w-full h-full">
+        <div className="relative w-full h-full flex">
           {heroSlides.map((slide, index) => (
             <div 
               key={index}
-              className={`absolute inset-0 flex items-center px-12 transition-all duration-700 ease-out z-10 ${
+              className={`absolute inset-0 flex items-center px-8 sm:px-12 transition-all duration-700 ease-out z-10 ${
                 index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'
               }`}
             >
-              <div className="text-white max-w-2xl">
-                <div className="text-accent font-black tracking-wider text-xs mb-3 bg-black/20 inline-block px-3 py-1 rounded-full backdrop-blur-xs">
+              <div className="text-white max-w-md lg:max-w-lg z-10">
+                <div className="text-sky-200 font-bold tracking-wider text-xs mb-3 uppercase">
                   {slide.badge}
                 </div>
-                <h1 className="text-4xl sm:text-5xl font-black leading-tight mb-4 drop-shadow-sm">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight mb-4 drop-shadow-sm">
                   {slide.title}
                 </h1>
-                <p className="text-white/95 mb-6 text-sm sm:text-base font-medium">
+                <p className="text-white/90 mb-6 text-sm sm:text-base font-normal max-w-md">
                   {slide.description}
                 </p>
                 <button 
                   onClick={slide.action} 
-                  className="bg-primary text-white px-7 py-3 text-sm font-bold rounded-lg shadow-lg hover:bg-primary-hover transition-all transform hover:-translate-y-0.5"
+                  className="bg-[#0284C7] text-white px-7 py-3 text-xs font-bold rounded uppercase tracking-wider shadow hover:bg-sky-500 transition-all transform hover:-translate-y-0.5"
                 >
                   {slide.btnText}
                 </button>
               </div>
             </div>
           ))}
+
+          {/* Right Geometric Pattern - Prominent & Seamlessly Integrated */}
+          <div className="absolute right-4 lg:right-12 inset-y-0 w-1/2 hidden md:flex items-center justify-center z-10">
+            <GeometricPatternBanner className="w-full max-w-[380px] h-[220px]" />
+          </div>
         </div>
         
         {/* Slider Controls (Arrows) */}
         <button 
           onClick={prevSlide}
-          className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/20 hover:bg-black/40 rounded-full flex items-center justify-center text-white backdrop-blur-sm transition-colors opacity-0 group-hover:opacity-100 z-20"
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/10 hover:bg-white/25 rounded flex items-center justify-center text-white backdrop-blur-xs transition-colors z-20"
+          aria-label="Previous slide"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7"></path></svg>
         </button>
         <button 
           onClick={nextSlide}
-          className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/20 hover:bg-black/40 rounded-full flex items-center justify-center text-white backdrop-blur-sm transition-colors opacity-0 group-hover:opacity-100 z-20"
+          className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/10 hover:bg-white/25 rounded flex items-center justify-center text-white backdrop-blur-xs transition-colors z-20"
+          aria-label="Next slide"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7"></path></svg>
         </button>
 
         {/* Slider Dots */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+        <div className="absolute bottom-4 left-12 md:left-1/2 -translate-x-0 md:-translate-x-1/2 flex gap-1.5 z-20">
           {heroSlides.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentSlide(index)}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                index === currentSlide ? 'w-6 bg-white' : 'w-2 bg-white/40 hover:bg-white/70'
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                index === currentSlide ? 'w-5 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/70'
               }`}
+              aria-label={`Slide ${index + 1}`}
             />
           ))}
+        </div>
+
+        {/* Slide Counter (03 / 03) */}
+        <div className="absolute bottom-4 right-8 text-[11px] font-bold text-white/60 tracking-widest z-20 hidden sm:block">
+          {String(currentSlide + 1).padStart(2, '0')} / {String(heroSlides.length).padStart(2, '0')}
         </div>
       </div>
 
