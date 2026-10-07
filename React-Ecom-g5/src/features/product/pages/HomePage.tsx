@@ -106,23 +106,46 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Trending */}
-      <section className="mb-12">
-        <h2 className="text-2xl font-bold mb-1">Trending Now</h2>
-        <div className="text-sm text-gray-500 mb-4">Products connected to the trending tag.</div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {trending.map(p => <ProductCard key={p.productId} product={p} />)}
-        </div>
-      </section>
+     {/* Trending */}
+<section className="mb-12">
+  <h2 className="text-2xl font-bold mb-1">
+    Trending Now
+  </h2>
 
-      {/* Best Sellers */}
-      <section className="mb-12">
-        <h2 className="text-2xl font-bold mb-1">Best Seller</h2>
-        <div className="text-sm text-gray-500 mb-4">Top-selling products.</div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {bestSellers.map(p => <ProductCard key={p.productId} product={p} />)}
-        </div>
-      </section>
+  <div className="text-sm text-gray-500 mb-4">
+    Products connected to the trending tag.
+  </div>
+
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    {trending.map((p) => (
+      <ProductCard
+        key={p.productId}
+        product={p}
+      />
+    ))}
+  </div>
+</section>
+
+
+{/* Best Sellers */}
+<section className="mb-12">
+  <h2 className="text-2xl font-bold mb-1">
+    Best Seller
+  </h2>
+
+  <div className="text-sm text-gray-500 mb-4">
+    Top-selling products.
+  </div>
+
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    {bestSellers.map((p) => (
+      <ProductCard
+        key={p.productId}
+        product={p}
+      />
+    ))}
+  </div>
+</section>
     </main>
   );
 };

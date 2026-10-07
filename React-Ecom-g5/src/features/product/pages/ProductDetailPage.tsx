@@ -142,11 +142,7 @@ export const ProductDetailPage: React.FC = () => {
             ))}
           </div>
           
-          <h2 className="text-xl font-bold mb-4">Tags</h2>
-          <div className="flex flex-wrap gap-2">
-            {product.tags.map(t => <span key={t} className="bg-gray-100 px-3 py-1 text-xs rounded">{t}</span>)}
-            {product.tags.length === 0 && <span className="text-gray-400 text-sm">No tags</span>}
-          </div>
+        
         </section>
 
         {/* Related Products */}
