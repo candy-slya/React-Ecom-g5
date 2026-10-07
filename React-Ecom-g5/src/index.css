@@ -1,16 +1,96 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #388087;
-  --color-primary-hover: #2C666C;
-  --color-secondary: #6FB3B8;
-  --color-secondary-hover: #5A9A9F;
-  --color-accent: #BADFE7;
-  --color-accent-hover: #9ACCD7;
-  --color-accent-soft: #C2EDCE;
-  --color-page: #F6F6F2;
-  --color-surface: #FFFFFF;
-  --color-text-main: #2B2B2B;
-  --color-text-muted: #74746F;
-  --color-border-subtle: #E6E2D8;
+  --color-primary: #ff2b6d;
+  --color-primary-hover: #e11d48;
+  --color-secondary: #0f172a;
+  --color-secondary-hover: #1e293b;
+  --color-accent: #ffc700;
+  --color-accent-hover: #f59e0b;
+  --color-accent-soft: #fffbeb;
+  --color-sky: #0ea5e9;
+  --color-sky-hover: #0284c7;
+  --color-mint: #10b981;
+  --color-page: #f8fafc;
+  --color-surface: #ffffff;
+  --color-text-main: #0f172a;
+  --color-text-muted: #64748b;
+  --color-border-subtle: #e2e8f0;
+}
+
+@utility btn-primary {
+  background-color: #ff2b6d;
+  color: #ffffff;
+  font-weight: 700;
+  transition-property: color, background-color, border-color, box-shadow;
+  transition-duration: 150ms;
+
+  &:hover {
+    background-color: #e11d48;
+  }
+}
+
+@utility btn-accent {
+  background-color: #ffc700;
+  color: #0f172a;
+  font-weight: 700;
+  transition-property: color, background-color, border-color, box-shadow;
+  transition-duration: 150ms;
+
+  &:hover {
+    background-color: #f59e0b;
+  }
+}
+
+@utility btn-yellow {
+  background-color: #ffc700;
+  color: #0f172a;
+  font-weight: 700;
+  transition-property: color, background-color, border-color;
+  transition-duration: 150ms;
+
+  &:hover {
+    background-color: #f59e0b;
+  }
+}
+
+@utility btn-cancel {
+  background-color: #ef4444;
+  color: #ffffff;
+  font-weight: 700;
+  transition-property: color, background-color, border-color;
+  transition-duration: 150ms;
+
+  &:hover {
+    background-color: #dc2626;
+  }
+}
+
+body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+@layer base {
+  svg:not([class*="w-"]) {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-scaleUp {
+  animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

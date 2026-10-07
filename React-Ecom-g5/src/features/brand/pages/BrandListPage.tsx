@@ -2,6 +2,37 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { productApi } from '../../product/api/productApi';
 import type { BrandResponse } from '../../product/api/productApi';
+import { getAssetUrl } from '../../../utils/assetUtils';
+import { GeometricPatternBanner } from '../../../components/common/GeometricPatternBanner';
+
+const BrandGridItem: React.FC<{ brand: BrandResponse; onClick: () => void }> = ({ brand, onClick }) => {
+  const [hasError, setHasError] = useState(false);
+  const logoUrl = getAssetUrl(brand.brandLogoUrl);
+  const showImage = Boolean(logoUrl) && !hasError;
+
+  return (
+    <div
+      onClick={onClick}
+      className="bg-white border border-border-subtle p-5 text-center cursor-pointer hover:-translate-y-[3px] hover:border-primary hover:shadow-[0_8px_20px_#0000000d] transition-all"
+    >
+      <div className="w-[76px] h-[76px] mx-auto border border-border-subtle bg-accent-soft rounded-full flex items-center justify-center font-black text-xs mb-3 overflow-hidden p-2">
+        {showImage ? (
+          <img
+            src={logoUrl}
+            className="w-full h-full object-contain"
+            alt={brand.brandName}
+            onError={() => setHasError(true)}
+          />
+        ) : (
+          <span className="text-xs font-black text-text-main uppercase tracking-wider text-center line-clamp-2 px-1">
+            {brand.brandName}
+          </span>
+        )}
+      </div>
+      <b className="text-sm block text-text-main">{brand.brandName}</b>
+    </div>
+  );
+};
 
 export const BrandListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -26,10 +57,15 @@ export const BrandListPage: React.FC = () => {
           <Link to="/" className="hover:underline">Home</Link> / Brands
         </div>
 
-        <div className="bg-gradient-to-r from-secondary to-primary text-white p-8 rounded shadow-sm mb-8">
-          <div className="text-[#dce9e3] text-[13px]">OUR BRANDS</div>
-          <h1 className="text-[34px] font-bold my-1.5">Shop by Brand</h1>
-          <p className="text-[#dce9e3] text-[13px] m-0">Explore products from our available brands.</p>
+        <div className="relative overflow-hidden bg-gradient-to-r from-[#0A39A6] via-[#0C42B5] to-[#0284C7] text-white p-6 sm:p-8 rounded-xl shadow-sm mb-8 flex items-center justify-between">
+          <div className="relative z-10 max-w-xl">
+            <div className="text-sky-200 font-bold text-[13px] tracking-wider uppercase">OUR BRANDS</div>
+            <h1 className="text-3xl sm:text-[34px] font-bold my-1.5 drop-shadow-sm">Shop by Brand</h1>
+            <p className="text-zinc-200 text-[13px] m-0">Explore products from our available brands.</p>
+          </div>
+          <div className="hidden sm:flex relative z-10 flex-shrink-0 items-center justify-end w-[260px] md:w-[320px] lg:w-[360px] h-[130px] md:h-[150px]">
+            <GeometricPatternBanner className="w-full h-full" />
+          </div>
         </div>
 
         {loading ? (
@@ -41,20 +77,11 @@ export const BrandListPage: React.FC = () => {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {brands.map(b => (
-              <div 
-                key={b.brandId} 
-                onClick={() => navigate(`/brands/${b.brandId}`)} 
-                className="bg-white border border-border-subtle p-5 text-center cursor-pointer hover:-translate-y-[3px] hover:border-primary hover:shadow-[0_8px_20px_#0000000d] transition-all"
-              >
-                <div className="w-[76px] h-[76px] mx-auto border border-border-subtle bg-white rounded-full flex items-center justify-center font-black text-xs mb-3 overflow-hidden">
-                  {b.brandLogoUrl ? (
-                    <img src={b.brandLogoUrl} className="w-full h-full object-contain" alt={b.brandName} />
-                  ) : (
-                    b.brandName
-                  )}
-                </div>
-                <b className="text-sm block">{b.brandName}</b>
-              </div>
+              <BrandGridItem
+                key={b.brandId}
+                brand={b}
+                onClick={() => navigate(`/brands/${b.brandId}`)}
+              />
             ))}
           </div>
         )}

@@ -15,6 +15,8 @@ export interface AuthResponse {
   customerId: number;
   fullName: string;
   email: string;
+  phone?: string | null;
+  profileImageUrl?: string | null;
 }
 
 export interface CustomerMeResponse {
@@ -22,6 +24,7 @@ export interface CustomerMeResponse {
   fullName: string;
   email: string;
   phone: string | null;
+  profileImageUrl?: string | null;
 }
 
 export interface Customer {
@@ -29,4 +32,5 @@ export interface Customer {
   fullName: string;
   email: string;
   phone?: string | null;
+  profileImageUrl?: string | null;
 }
