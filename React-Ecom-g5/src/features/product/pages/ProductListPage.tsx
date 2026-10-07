@@ -312,27 +312,23 @@ export const ProductListPage: React.FC = () => {
           {' / '}Products
         </div>
 
-        {/* Banner */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-[#0A39A6] via-[#0C42B5] to-[#0284C7] text-white p-6 sm:p-8 rounded-xl shadow-sm mb-8 flex items-center justify-between">
+      {/* Banner */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-[#0A39A6] via-[#0C42B5] to-[#0284C7] text-white p-6 sm:p-8 rounded-2xl shadow-md mb-8 flex items-center justify-between min-h-[160px]">
           <div className="relative z-10 max-w-xl">
-            <div className="text-sky-200 font-bold text-[13px] tracking-wider uppercase">
+            <div className="text-sky-200 font-bold text-[13px] tracking-wider uppercase mb-1">
               6SYNC CATALOG
             </div>
-
-            <h1 className="text-3xl sm:text-[34px] font-bold my-1.5">
+            <h1 className="text-3xl sm:text-[34px] font-black my-1.5 drop-shadow-sm">
               All Products
             </h1>
-
-            <p className="text-zinc-200 text-[13px]">
+            <p className="text-sky-100 text-sm max-w-xl m-0 font-medium">
               Refine by category, brand, tags and price.
             </p>
           </div>
-
-          <div className="hidden sm:flex w-[320px] h-[150px]">
+          <div className="hidden sm:flex relative z-10 flex-shrink-0 items-center justify-end w-[260px] md:w-[320px] lg:w-[360px] h-[120px] md:h-[140px]">
             <GeometricPatternBanner className="w-full h-full" />
           </div>
         </div>
-
         <div className="flex flex-col md:flex-row gap-8">
 
           {/* =====================================================

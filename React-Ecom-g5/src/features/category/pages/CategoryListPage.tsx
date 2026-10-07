@@ -63,18 +63,20 @@ export const CategoryListPage: React.FC = () => {
           <Link to="/" className="hover:underline">Home</Link> / Categories
         </div>
 
-        {/* Hero Banner */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-[#0A39A6] via-[#0C42B5] to-[#0284C7] text-white p-6 sm:p-10 rounded-2xl shadow-md mb-8 flex items-center justify-between">
+       {/* Hero Banner */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-[#0A39A6] via-[#0C42B5] to-[#0284C7] text-white p-6 sm:p-8 rounded-2xl shadow-md mb-8 flex items-center justify-between min-h-[160px]">
           <div className="relative z-10 max-w-xl">
-            <div className="text-sky-200 font-bold text-xs tracking-widest uppercase mb-1">
+            <div className="text-sky-200 font-bold text-[13px] tracking-wider uppercase mb-1">
               SHOP BY CATEGORY
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black my-2 drop-shadow-sm">Browse Categories</h1>
-            <p className="text-sky-100 text-sm sm:text-base max-w-xl m-0 font-medium">
+            <h1 className="text-3xl sm:text-[34px] font-black my-1.5 drop-shadow-sm">
+              Browse Categories
+            </h1>
+            <p className="text-sky-100 text-sm max-w-xl m-0 font-medium">
               Explore our curated selection of premium products across all categories and departments.
             </p>
           </div>
-          <div className="hidden sm:flex relative z-10 flex-shrink-0 items-center justify-end w-[260px] md:w-[320px] lg:w-[360px] h-[130px] md:h-[150px]">
+          <div className="hidden sm:flex relative z-10 flex-shrink-0 items-center justify-end w-[260px] md:w-[320px] lg:w-[360px] h-[120px] md:h-[140px]">
             <GeometricPatternBanner className="w-full h-full" />
           </div>
         </div>

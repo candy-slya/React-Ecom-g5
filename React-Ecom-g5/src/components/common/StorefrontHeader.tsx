@@ -71,7 +71,7 @@ export const StorefrontHeader: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-gradient-to-r from-[#FFC700] via-[#FFD000] to-[#FFBF00] text-text-main shadow-md print:hidden">
+    <header className="sticky top-0 z-50 bg-[#FACC15] text-white shadow-md print:hidden">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
         
         <div className="flex items-center justify-between gap-4 md:gap-8 mb-4">
