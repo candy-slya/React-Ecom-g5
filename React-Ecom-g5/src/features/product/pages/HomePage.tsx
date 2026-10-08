@@ -5,7 +5,9 @@ import { ProductCard } from '../../../components/product/ProductCard';
 import type { BrandResponse } from '../api/productApi';
 import type { CategoryNodeResponse, ProductListResponse } from '../types';
 import { getAssetUrl } from '../../../utils/assetUtils';
+import { CategoryCard } from '../../../components/category/CategoryCard';
 
+import { GeometricPatternBanner } from '../../../components/common/GeometricPatternBanner';
 const BrandCard: React.FC<{ brand: BrandResponse; onClick: () => void }> = ({ brand, onClick }) => {
   const [hasError, setHasError] = useState(false);
   const logoUrl = getAssetUrl(brand.brandLogoUrl);
@@ -34,9 +36,6 @@ const BrandCard: React.FC<{ brand: BrandResponse; onClick: () => void }> = ({ br
     </div>
   );
 };
-
-import { CategoryCard } from '../../../components/category/CategoryCard';
-import { GeometricPatternBanner } from '../../../components/common/GeometricPatternBanner';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -100,7 +99,7 @@ export const HomePage: React.FC = () => {
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       
       {/* Hero Section (Slider) */}
-      <div className="relative rounded-xl overflow-hidden h-80 mb-10 bg-gradient-to-r from-[#0A39A6] via-[#0C42B5] to-[#0284C7] shadow-md group">
+      <div className="relative rounded-xl overflow-hidden h-80 mb-10 bg-[#172554] shadow-md group">
         
         {/* Slide Contents */}
         <div className="relative w-full h-full flex">
@@ -123,7 +122,7 @@ export const HomePage: React.FC = () => {
                 </p>
                 <button 
                   onClick={slide.action} 
-                  className="bg-[#0284C7] text-white px-7 py-3 text-xs font-bold rounded uppercase tracking-wider shadow hover:bg-sky-500 transition-all transform hover:-translate-y-0.5"
+                  className="bg-[#E11D48] text-white px-7 py-3 text-xs font-bold rounded uppercase tracking-wider shadow hover:bg-sky-500 transition-all transform hover:-translate-y-0.5"
                 >
                   {slide.btnText}
                 </button>
@@ -134,8 +133,8 @@ export const HomePage: React.FC = () => {
           {/* Right Geometric Pattern - Prominent & Seamlessly Integrated */}
           <div className="absolute right-4 lg:right-12 inset-y-0 w-1/2 hidden md:flex items-center justify-center z-10">
             <GeometricPatternBanner className="w-full max-w-[380px] h-[220px]" />
-          </div>
-        </div>
+          </div>  
+        </div> 
         
         {/* Slider Controls (Arrows) */}
         <button 
@@ -210,23 +209,46 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Trending */}
-      <section className="mb-12">
-        <h2 className="text-2xl font-bold mb-1">Trending Now</h2>
-        <div className="text-sm text-gray-500 mb-4">Products connected to the trending tag.</div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {trending.map(p => <ProductCard key={p.productId} product={p} />)}
-        </div>
-      </section>
+     {/* Trending */}
+<section className="mb-12">
+  <h2 className="text-2xl font-bold mb-1">
+    Trending Now
+  </h2>
 
-      {/* Best Sellers */}
-      <section className="mb-12">
-        <h2 className="text-2xl font-bold mb-1">Best Seller</h2>
-        <div className="text-sm text-gray-500 mb-4">Top-selling products.</div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {bestSellers.map(p => <ProductCard key={p.productId} product={p} />)}
-        </div>
-      </section>
+  <div className="text-sm text-gray-500 mb-4">
+    Products connected to the trending tag.
+  </div>
+
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    {trending.map((p) => (
+      <ProductCard
+        key={p.productId}
+        product={p}
+      />
+    ))}
+  </div>
+</section>
+
+
+{/* Best Sellers */}
+<section className="mb-12">
+  <h2 className="text-2xl font-bold mb-1">
+    Best Seller
+  </h2>
+
+  <div className="text-sm text-gray-500 mb-4">
+    Top-selling products.
+  </div>
+
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    {bestSellers.map((p) => (
+      <ProductCard
+        key={p.productId}
+        product={p}
+      />
+    ))}
+  </div>
+</section>
     </main>
   );
 };
