@@ -102,18 +102,18 @@ export const ProfileDetails: React.FC<ProfileDetailsProps> = ({
           <input required type="text" value={fullName} onChange={e => setFullName(e.target.value)} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-text-main">Email (Read Only)</label>
+          <label className="block text-sm font-medium text-text-main">Email</label>
           <input disabled type="email" value={email} className="mt-1 block w-full rounded-md border border-border-subtle bg-gray-100 px-3 py-2 text-sm text-gray-500 cursor-not-allowed" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-text-main">Phone Number (11 Digits)*</label>
+          <label className="block text-sm font-medium text-text-main">Phone Number</label>
           <input 
             required 
             type="text" 
             value={phone} 
             onChange={handlePhoneChange} 
             className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" 
-            placeholder="e.g. 09123456789" 
+            placeholder="e.g. 09*********" 
           />
         </div>
         

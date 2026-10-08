@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { productApi } from '../../product/api/productApi';
 import type { CategoryNodeResponse } from '../../product/types';
 import { CategoryCard } from '../../../components/category/CategoryCard';
+import { GeometricPatternBanner } from '../../../components/common/GeometricPatternBanner';
 
 export const CategoryListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -62,20 +63,22 @@ export const CategoryListPage: React.FC = () => {
           <Link to="/" className="hover:underline">Home</Link> / Categories
         </div>
 
-        {/* Hero Banner */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-[#0284C7] via-[#0EA5E9] to-[#38BDF8] text-white p-8 sm:p-10 rounded-2xl shadow-md mb-8">
-          <div className="relative z-10">
-            <div className="text-amber-300 font-black text-xs tracking-widest uppercase mb-1">
+       {/* Hero Banner */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-[#0A39A6] via-[#0C42B5] to-[#0284C7] text-white p-6 sm:p-8 rounded-2xl shadow-md mb-8 flex items-center justify-between min-h-[160px]">
+          <div className="relative z-10 max-w-xl">
+            <div className="text-sky-200 font-bold text-[13px] tracking-wider uppercase mb-1">
               SHOP BY CATEGORY
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black my-2">Browse Categories</h1>
-            <p className="text-sky-100 text-sm sm:text-base max-w-xl m-0 font-medium">
+            <h1 className="text-3xl sm:text-[34px] font-black my-1.5 drop-shadow-sm">
+              Browse Categories
+            </h1>
+            <p className="text-sky-100 text-sm max-w-xl m-0 font-medium">
               Explore our curated selection of premium products across all categories and departments.
             </p>
           </div>
-          {/* Subtle decorative circles */}
-          <div className="absolute -right-10 -bottom-10 w-60 h-60 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-          <div className="absolute right-40 -top-10 w-40 h-40 bg-white/10 rounded-full blur-xl pointer-events-none" />
+          <div className="hidden sm:flex relative z-10 flex-shrink-0 items-center justify-end w-[260px] md:w-[320px] lg:w-[360px] h-[120px] md:h-[140px]">
+            <GeometricPatternBanner className="w-full h-full" />
+          </div>
         </div>
 
         {/* Filter & Search Bar */}
