@@ -74,5 +74,19 @@ export const productApi = {
   getRelatedProducts: async (productId: number): Promise<ProductListResponse[]> => {
     const response = await axiosClient.get<ProductListResponse[]>(`/v1/products/${productId}/related`);
     return response.data;
+  },
+
+  getTrendingProducts: async (page: number = 0, size: number = 4): Promise<PageResponse<ProductListResponse>> => {
+    const response = await axiosClient.get<PageResponse<ProductListResponse>>('/v1/products/trending', {
+      params: { page, size }
+    });
+    return response.data;
+  },
+
+  getTrendingSuggestions: async (prefix: string): Promise<ProductListResponse[]> => {
+    const response = await axiosClient.get<ProductListResponse[]>('/v1/products/suggestions', {
+      params: { prefix }
+    });
+    return response.data;
   }
 };
