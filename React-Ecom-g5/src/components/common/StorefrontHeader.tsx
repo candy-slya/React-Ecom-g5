@@ -71,7 +71,7 @@ export const StorefrontHeader: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-[#312E81] text-white shadow-md print:hidden">
+    <header className="sticky top-0 z-50 bg-[#FFFFFF] text-white shadow-md print:hidden">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
         
         <div className="flex items-center justify-between gap-4 md:gap-8 mb-4">
@@ -91,7 +91,8 @@ export const StorefrontHeader: React.FC = () => {
                 // Update local state ONLY, do not navigate yet
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Search products or SKU..."
-                className="w-full rounded-full border-0 bg-white py-2.5 pl-5 pr-11 text-sm text-text-main placeholder-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                // border-[#EF4444] ထည့်သွင်းပြီး အနီရောင်ဘောင်သတ်မှတ်ထားပါသည်
+                className="w-full rounded-full border border-[#EF4444] bg-white py-2.5 pl-5 pr-11 text-sm text-text-main placeholder-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#EF4444]"
               />
               <button
                 type="submit"
@@ -110,10 +111,9 @@ export const StorefrontHeader: React.FC = () => {
               <div className="relative" ref={accountMenuRef}>
                 <button
                   type="button"
-                  className="flex items-center gap-2 text-white transition-colors hover:text-slate-300 focus:outline-none font-medium"
+                  className="flex items-center gap-2 text-[#000000] transition-colors hover:text-[#475569] focus:outline-none font-medium"
                   onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}
                 >
-                  {/* SVG အရွယ်အစား h-7 w-7 နှင့် strokeWidth 2.5 သို့ ပြင်ဆင်ထားသည် */}
                   <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                   </svg>
@@ -133,17 +133,15 @@ export const StorefrontHeader: React.FC = () => {
                 )}
               </div>
             ) : (
-              <Link to="/login" className="text-white transition-colors hover:text-slate-300 focus:outline-none">
-                {/* SVG အရွယ်အစား h-7 w-7 နှင့် strokeWidth 2.5 သို့ ပြင်ဆင်ထားသည် */}
+              <Link to="/login" className="text-[#EF4444] transition-colors hover:text-[#475569] focus:outline-none">
                 <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                 </svg>
               </Link>
             )}
 
-            <Link to="/cart" className="text-white transition-colors hover:text-slate-300 focus:outline-none">
+            <Link to="/cart" className="text-[#EF4444] transition-colors hover:text-[#475569] focus:outline-none">
               <div className="relative">
-                {/* SVG အရွယ်အစား h-7 w-7 နှင့် strokeWidth 2.5 သို့ ပြင်ဆင်ထားသည် */}
                 <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
                 </svg>
@@ -166,7 +164,8 @@ export const StorefrontHeader: React.FC = () => {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Search products or SKU..."
-              className="w-full rounded-full border-0 bg-white py-2 pl-4 pr-11 text-sm text-text-main placeholder-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              // border-[#EF4444] ထည့်သွင်းပြီး အနီရောင်ဘောင်သတ်မှတ်ထားပါသည်
+              className="w-full rounded-full border border-[#EF4444] bg-white py-2 pl-4 pr-11 text-sm text-text-main placeholder-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#EF4444]"
             />
             <button
               type="submit"
@@ -180,37 +179,38 @@ export const StorefrontHeader: React.FC = () => {
         </div>
    
        <nav className="hidden sm:block pb-4">
-  <div className="mx-auto w-full"> 
-    <div className="bg-[#FFFFFF] text-[#1E293B] rounded-lg shadow-sm">
-      <ul className="flex h-10 justify-center items-center gap-6 px-4 text-sm font-bold tracking-wider">
-        <li>
-          <Link to="/" className="relative px-5 py-2.5 rounded-full overflow-hidden group transition-all duration-200 active:scale-95 block">
-            <span className="relative z-10 group-hover:text-[#FFFFFF]">HOME</span>
-            <span className="absolute inset-0 bg-[#1589FF] rounded-full scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 ease-out z-0"></span>
-          </Link>
-        </li>
-        <li>
-          <Link to="/products" className="relative px-5 py-2.5 rounded-full overflow-hidden group transition-all duration-200 active:scale-95 block">
-            <span className="relative z-10 group-hover:text-[#FFFFFF]">PRODUCTS</span>
-            <span className="absolute inset-0 bg-[#1589FF] rounded-full scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 ease-out z-0"></span>
-          </Link>
-        </li>
-        <li>
-          <Link to="/categories" className="relative px-5 py-2.5 rounded-full overflow-hidden group transition-all duration-200 active:scale-95 block">
-            <span className="relative z-10 group-hover:text-[#FFFFFF]">CATEGORIES</span>
-            <span className="absolute inset-0 bg-[#1589FF] rounded-full scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 ease-out z-0"></span>
-          </Link>
-        </li>
-        <li>
-          <Link to="/brands" className="relative px-5 py-2.5 rounded-full overflow-hidden group transition-all duration-200 active:scale-95 block">
-            <span className="relative z-10 group-hover:text-[#FFFFFF]">BRANDS</span>
-            <span className="absolute inset-0 bg-[#1589FF] rounded-full scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 ease-out z-0"></span>
-          </Link>
-        </li>
-      </ul>
-    </div>
-  </div>
-</nav>
+        <div className="mx-auto w-full"> 
+          {/* border border-[#EF4444] ထည့်သွင်းပြီး အနီရောင်ဘောင်သတ်မှတ်ထားပါသည် */}
+          <div className="bg-[#FFFFFF] border border-[#EF4444] text-[#1E293B] rounded-lg shadow-sm">
+            <ul className="flex h-10 justify-center items-center gap-6 px-4 text-sm font-bold tracking-wider">
+              <li>
+                <Link to="/" className="relative px-5 py-2.5 rounded-full overflow-hidden group transition-all duration-200 active:scale-95 block">
+                  <span className="relative z-10 group-hover:text-[#FFFFFF]">HOME</span>
+                  <span className="absolute inset-0 bg-[#1589FF] rounded-full scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 ease-out z-0"></span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/products" className="relative px-5 py-2.5 rounded-full overflow-hidden group transition-all duration-200 active:scale-95 block">
+                  <span className="relative z-10 group-hover:text-[#FFFFFF]">PRODUCTS</span>
+                  <span className="absolute inset-0 bg-[#1589FF] rounded-full scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 ease-out z-0"></span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/categories" className="relative px-5 py-2.5 rounded-full overflow-hidden group transition-all duration-200 active:scale-95 block">
+                  <span className="relative z-10 group-hover:text-[#FFFFFF]">CATEGORIES</span>
+                  <span className="absolute inset-0 bg-[#1589FF] rounded-full scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 ease-out z-0"></span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/brands" className="relative px-5 py-2.5 rounded-full overflow-hidden group transition-all duration-200 active:scale-95 block">
+                  <span className="relative z-10 group-hover:text-[#FFFFFF]">BRANDS</span>
+                  <span className="absolute inset-0 bg-[#1589FF] rounded-full scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 ease-out z-0"></span>
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
         
       </div>
     </header>
