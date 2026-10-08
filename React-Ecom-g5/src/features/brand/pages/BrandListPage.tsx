@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { productApi } from '../../product/api/productApi';
 import type { BrandResponse } from '../../product/api/productApi';
 import { getAssetUrl } from '../../../utils/assetUtils';
+import { GeometricPatternBanner } from '../../../components/common/GeometricPatternBanner';
 
 const BrandGridItem: React.FC<{ brand: BrandResponse; onClick: () => void }> = ({ brand, onClick }) => {
   const [hasError, setHasError] = useState(false);
@@ -56,10 +57,22 @@ export const BrandListPage: React.FC = () => {
           <Link to="/" className="hover:underline">Home</Link> / Brands
         </div>
 
-        <div className="bg-gradient-to-r from-[#0284C7] via-[#0EA5E9] to-[#38BDF8] text-white p-8 rounded shadow-sm mb-8">
-          <div className="text-accent font-bold text-[13px] tracking-wider">OUR BRANDS</div>
-          <h1 className="text-[34px] font-bold my-1.5">Shop by Brand</h1>
-          <p className="text-zinc-200 text-[13px] m-0">Explore products from our available brands.</p>
+        {/* Banner */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-[#0A39A6] via-[#0C42B5] to-[#0284C7] text-white p-6 sm:p-8 rounded-2xl shadow-md mb-8 flex items-center justify-between min-h-[160px]">
+          <div className="relative z-10 max-w-xl">
+            <div className="text-sky-200 font-bold text-[13px] tracking-wider uppercase mb-1">
+              OUR BRANDS
+            </div>
+            <h1 className="text-3xl sm:text-[34px] font-black my-1.5 drop-shadow-sm">
+              Shop by Brand
+            </h1>
+            <p className="text-sky-100 text-sm max-w-xl m-0 font-medium">
+              Explore products from our available brands.
+            </p>
+          </div>
+          <div className="hidden sm:flex relative z-10 flex-shrink-0 items-center justify-end w-[260px] md:w-[320px] lg:w-[360px] h-[120px] md:h-[140px]">
+            <GeometricPatternBanner className="w-full h-full" />
+          </div>
         </div>
 
         {loading ? (
