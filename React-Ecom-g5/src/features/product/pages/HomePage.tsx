@@ -99,7 +99,7 @@ export const HomePage: React.FC = () => {
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       
       {/* Hero Section (Slider) */}
-      <div className="relative rounded-xl overflow-hidden h-80 mb-10 bg-[#0F172A] shadow-md group">
+      <div className="relative rounded-xl overflow-hidden h-80 mb-10 bg-[#172554] shadow-md group">
         
         {/* Slide Contents */}
         <div className="relative w-full h-full flex">
