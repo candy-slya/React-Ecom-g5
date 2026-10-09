@@ -12,6 +12,10 @@ export const CategoryListPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedParentId, setSelectedParentId] = useState<number | 'ALL'>('ALL');
 
+  // --- Pagination States ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9; // တစ်မျက်နှာလျှင် ၉ ခုသာပြရန်
+
   useEffect(() => {
     productApi.getCategoryTree().then(res => {
       setCategories(res);
@@ -21,6 +25,11 @@ export const CategoryListPage: React.FC = () => {
       setLoading(false);
     });
   }, []);
+
+  // Search သို့မဟုတ် Category Filter ပြောင်းတိုင်း Page 1 သို့ ပြန်သွားရန်
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedParentId]);
 
   // Flatten categories into an organized list with parent information
   const flattenedCategories = useMemo(() => {
@@ -53,6 +62,14 @@ export const CategoryListPage: React.FC = () => {
       return matchesSearch && matchesParent;
     });
   }, [flattenedCategories, searchQuery, selectedParentId]);
+
+  // --- Pagination Logic ---
+  const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
+  
+  const paginatedCategories = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredCategories.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredCategories, currentPage]);
 
   return (
     <div className="min-h-screen bg-page pb-16">
@@ -155,16 +172,46 @@ export const CategoryListPage: React.FC = () => {
             <p className="text-xs text-slate-400 mt-1">Try searching with a different keyword or filter.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {filteredCategories.map(({ category, parentName }) => (
-              <CategoryCard
-                key={category.categoryId}
-                category={category}
-                parentCategoryName={parentName}
-                onClick={() => navigate(`/categories/${category.categoryId}`)}
-              />
-            ))}
-          </div>
+          <>
+            {/* Grid layout updated to show only 3 cards per row (md:grid-cols-3) */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
+              {paginatedCategories.map(({ category, parentName }) => (
+                <CategoryCard
+                  key={category.categoryId}
+                  category={category}
+                  parentCategoryName={parentName}
+                  onClick={() => navigate(`/categories/${category.categoryId}`)}
+                />
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-10 flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  className="w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-primary hover:border-primary hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-all font-bold"
+                >
+                  ←
+                </button>
+
+                <span className="px-5 h-10 rounded-xl flex items-center bg-white border border-slate-200 text-xs text-slate-500 font-medium shadow-sm">
+                  Page <b className="mx-1.5 text-primary text-sm">{currentPage}</b> of <span className="ml-1.5">{totalPages}</span>
+                </span>
+
+                <button
+                  type="button"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  className="w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-primary hover:border-primary hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-all font-bold"
+                >
+                  →
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
