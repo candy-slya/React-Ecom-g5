@@ -92,38 +92,40 @@ export const DeliveryFeeModal: React.FC<DeliveryFeeModalProps> = ({ isOpen, onCl
       <div className="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-3xl shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45)] flex flex-col overflow-hidden border border-slate-200/90 animate-scaleUp z-10">
         
         {/* Premium Header */}
-        <div className="flex items-center justify-between px-6 py-4.5 border-b border-slate-800 bg-gradient-to-r from-slate-900 via-[#1E293B] to-[#0F172A] text-white">
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-slate-950 flex items-center justify-center shadow-lg shadow-amber-500/25 flex-shrink-0">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-              </svg>
-            </div>
-            <div>
-              <div className="flex items-center gap-2.5">
-                <h2 className="text-lg font-black tracking-tight text-white">
-                  Delivery Rates & Coverage
-                </h2>
-                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2.5 py-0.5 rounded-full shadow-xs">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                  Verified Rates
-                </span>
-              </div>
-              <p className="text-xs text-slate-300 mt-0.5">
-                Standard delivery rates and estimated delivery timelines by region, district, and township.
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer text-xl flex-shrink-0"
-            aria-label="Close modal"
-          >
-            &times;
-          </button>
-        </div>
-
+       <div className="flex items-center justify-between px-6 py-4.5 border-b border-slate-200 bg-[#FFFFFF] text-[#000000]">
+  <div className="flex items-center gap-3.5">
+    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-slate-950 flex items-center justify-center shadow-lg shadow-amber-500/25 flex-shrink-0">
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+      </svg>
+    </div>
+    <div>
+      <div className="flex items-center gap-2.5">
+        <h2 className="text-lg font-black tracking-tight text-[#000000]">
+          Delivery Rates & Coverage
+        </h2>
+        {/* Background အဖြူနဲ့ လိုက်ဖက်အောင် Badge အရောင်ကို အနည်းငယ် ပြင်ဆင်ထားပါသည် */}
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200 px-2.5 py-0.5 rounded-full shadow-xs">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          Verified Rates
+        </span>
+      </div>
+      {/* Background အဖြူပေါ်တွင် မြင်ရအောင် စာသားအရောင်ကို text-slate-500 ပြောင်းထားပါသည် */}
+      <p className="text-xs text-slate-500 mt-0.5">
+        Standard delivery rates and estimated delivery timelines by region, district, and township.
+      </p>
+    </div>
+  </div>
+  {/* Close Button ကို အဖြူရောင်နောက်ခံနှင့် လိုက်ဖက်အောင် ပြင်ဆင်ထားပါသည် */}
+  <button
+    onClick={onClose}
+    className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#000000] flex items-center justify-center transition-all cursor-pointer text-xl flex-shrink-0"
+    aria-label="Close modal"
+  >
+    &times;
+  </button>
+</div>
         {/* Filters and Search Bar */}
         <div className="p-4 sm:p-5 bg-gradient-to-b from-slate-50 via-slate-50 to-indigo-50/20 border-b border-slate-200/90 space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -135,7 +137,7 @@ export const DeliveryFeeModal: React.FC<DeliveryFeeModalProps> = ({ isOpen, onCl
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search township, city, or zone..."
-                className="w-full bg-white border border-slate-300 hover:border-slate-400 rounded-xl px-3.5 py-2.5 pl-9 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 shadow-xs transition-all"
+                className="w-full bg-white border border-[#EF4444] rounded-xl px-3.5 py-2.5 pl-9 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 shadow-xs transition-all"
               />
               <svg className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -155,7 +157,7 @@ export const DeliveryFeeModal: React.FC<DeliveryFeeModalProps> = ({ isOpen, onCl
               <select
                 value={selectedRegion}
                 onChange={(e) => handleRegionChange(e.target.value)}
-                className="w-full bg-white border border-slate-300 hover:border-slate-400 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 shadow-xs transition-all cursor-pointer"
+                className="w-full bg-white border border-[#EF4444] rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 shadow-xs transition-all cursor-pointer"
               >
                 <option value="ALL">All Regions & States</option>
                 {regions.map(r => (
@@ -170,7 +172,7 @@ export const DeliveryFeeModal: React.FC<DeliveryFeeModalProps> = ({ isOpen, onCl
                 value={selectedCity}
                 onChange={(e) => setSelectedCity(e.target.value)}
                 disabled={selectedRegion === 'ALL' || availableCities.length === 0}
-                className="w-full bg-white border border-slate-300 hover:border-slate-400 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed shadow-xs transition-all cursor-pointer"
+                className="w-full bg-white border border-[#EF4444] rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed shadow-xs transition-all cursor-pointer"
               >
                 <option value="ALL">
                   {selectedRegion === 'ALL' ? 'Select a region first' : 'All Districts & Cities'}
@@ -227,7 +229,7 @@ export const DeliveryFeeModal: React.FC<DeliveryFeeModalProps> = ({ isOpen, onCl
               <div key={regionName} className="border border-slate-200 rounded-2xl overflow-hidden shadow-xs bg-white hover:border-indigo-200 transition-all">
                 
                 {/* Region Bar */}
-                <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white px-5 py-3.5 flex items-center justify-between border-l-4 border-amber-400">
+                <div className="bg-gradient-to-r from-slate-900 via-black-950 to-slate-900 text-white px-5 py-3.5 flex items-center justify-between border-l-4 border-amber-400">
                   <div className="flex items-center gap-2.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-xs shadow-amber-400/80"></span>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-amber-300">Region / State:</span>
