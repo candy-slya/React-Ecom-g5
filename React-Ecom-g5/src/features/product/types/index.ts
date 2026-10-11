@@ -69,3 +69,18 @@ export interface PageResponse<T> {
   last: boolean;
   empty: boolean;
 }
+
+export interface SearchHistoryRequest {
+  keyword: string;
+}
+
+export interface RecentSearchResponse {
+  keyword: string;
+  searchedAt: string;
+}
+
+export interface PopularSearchResponse {
+  keyword: string;
+  totalCount: number;
+}
+

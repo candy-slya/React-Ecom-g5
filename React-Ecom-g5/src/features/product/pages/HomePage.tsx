@@ -6,6 +6,7 @@ import type { BrandResponse } from '../api/productApi';
 import type { CategoryNodeResponse, ProductListResponse } from '../types';
 import { getAssetUrl } from '../../../utils/assetUtils';
 import { CategoryCard } from '../../../components/category/CategoryCard';
+import { PopularSearchesHomeSection } from '../components/PopularSearchesHomeSection';
 
 import { GeometricPatternBanner } from '../../../components/common/GeometricPatternBanner';
 const BrandCard: React.FC<{ brand: BrandResponse; onClick: () => void }> = ({ brand, onClick }) => {
@@ -41,7 +42,6 @@ export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const [categories, setCategories] = useState<CategoryNodeResponse[]>([]);
   const [brands, setBrands] = useState<BrandResponse[]>([]);
-  const [trending, setTrending] = useState<ProductListResponse[]>([]);
   const [bestSellers, setBestSellers] = useState<ProductListResponse[]>([]);
   
   // Slider State
@@ -50,7 +50,6 @@ export const HomePage: React.FC = () => {
   useEffect(() => {
     productApi.getCategoryTree().then(setCategories).catch(console.error);
     productApi.getActiveBrands().then(setBrands).catch(console.error);
-    productApi.getProducts({ tags: ['TRENDING'], size: 4 }).then(res => setTrending(res.content)).catch(console.error);
     productApi.getBestSellers().then(res => setBestSellers(res.content)).catch(console.error);
   }, []);
 
@@ -209,25 +208,7 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-     {/* Trending */}
-<section className="mb-12">
-  <h2 className="text-2xl font-bold mb-1">
-    Trending Now
-  </h2>
-
-  <div className="text-sm text-gray-500 mb-4">
-    Products connected to the trending tag.
-  </div>
-
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-    {trending.map((p) => (
-      <ProductCard
-        key={p.productId}
-        product={p}
-      />
-    ))}
-  </div>
-</section>
+     <PopularSearchesHomeSection />
 
 
 {/* Best Sellers */}
