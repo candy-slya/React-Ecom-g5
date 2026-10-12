@@ -132,17 +132,17 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-sm font-medium text-text-main">Label (e.g. Home)*</label>
+                  <label className="block text-sm font-medium text-text-main">Label</label>
                   <input required type="text" name="label" value={formData.label} onChange={handleChange} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-sm font-medium text-text-main">Recipient Name*</label>
+                  <label className="block text-sm font-medium text-text-main">Recipient Name</label>
                   <input required type="text" name="recipientName" value={formData.recipientName} onChange={handleChange} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-text-main">Phone Number (11 Digits)*</label>
+                <label className="block text-sm font-medium text-text-main">Phone Number</label>
                 <input 
                   required 
                   type="text" 
@@ -155,7 +155,7 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-text-main">Address Line 1*</label>
+                <label className="block text-sm font-medium text-text-main">Address Line 1</label>
                 <input required type="text" name="addressLine1" value={formData.addressLine1} onChange={handleChange} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
               </div>
 
@@ -166,7 +166,7 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-sm font-medium text-text-main">Region/State*</label>
+                  <label className="block text-sm font-medium text-text-main">Region/State</label>
                   <select required name="regionOrState" value={formData.regionOrState} onChange={handleRegionChange} disabled={zonesLoading || availableRegions.length === 0} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50">
                     <option value="" disabled>Select Region/State</option>
                     {availableRegions.map(region => (
@@ -178,7 +178,7 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
                 </div>
                 
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-sm font-medium text-text-main">City/District*</label>
+                  <label className="block text-sm font-medium text-text-main">City/District</label>
                   <select required name="city" value={formData.city} onChange={handleCityChange} disabled={zonesLoading || !formData.regionOrState || availableCities.length === 0} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50">
                     <option value="" disabled>Select City</option>
                     {availableCities.map(city => (
@@ -191,7 +191,7 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-text-main">Township*</label>
+                <label className="block text-sm font-medium text-text-main">Township</label>
                 <select required name="township" value={formData.township} onChange={handleTownshipChange} disabled={zonesLoading || !formData.city || availableTownships.length === 0} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50">
                   <option value="" disabled>Select Township</option>
                   {availableTownships.map(township => (

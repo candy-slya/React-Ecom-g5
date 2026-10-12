@@ -257,11 +257,11 @@ export const CheckoutPage: React.FC = () => {
   const isCustomFormValid = !!customAddress.recipientName.trim() && 
                             !!customAddress.phoneNumber.trim() && 
                             !!customAddress.addressLine1.trim() && 
-                            // regionOrState ရှိမှ trim() လုပ်မည်ဟု ပြင်ထားပါသည်
+                         
                             !!customAddress.regionOrState?.trim() &&
                             !!customAddress.city.trim() &&
                             !!customAddress.township.trim();
-                            
+
   const isPlaceOrderDisabled = isSubmitting || 
                                (addressMode === 'saved' && !selectedAddressId) || 
                                (addressMode === 'custom' && (!isCustomFormValid || !quotedCustomLocation)) ||
@@ -334,15 +334,15 @@ export const CheckoutPage: React.FC = () => {
                   {addressMode === 'custom' && (
                     <div className="ml-7 mt-4 grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-4">
                       <div className="sm:col-span-2">
-                        <label className="block text-sm font-medium text-text-main">Recipient Name *</label>
+                        <label className="block text-sm font-medium text-text-main">Recipient Name</label>
                         <input type="text" name="recipientName" value={customAddress.recipientName} onChange={handleCustomAddressChange} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
                       </div>
                       <div className="sm:col-span-2">
-                        <label className="block text-sm font-medium text-text-main">Phone Number *</label>
+                        <label className="block text-sm font-medium text-text-main">Phone Number</label>
                         <input type="text" name="phoneNumber" value={customAddress.phoneNumber} onChange={handleCustomAddressChange} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
                       </div>
                       <div className="sm:col-span-2">
-                        <label className="block text-sm font-medium text-text-main">Address Line 1 *</label>
+                        <label className="block text-sm font-medium text-text-main">Address Line 1</label>
                         <input type="text" name="addressLine1" value={customAddress.addressLine1} onChange={handleCustomAddressChange} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
                       </div>
                       <div className="sm:col-span-2">
@@ -352,7 +352,7 @@ export const CheckoutPage: React.FC = () => {
                       
                       {/* Region/State Select Field (First) */}
                       <div className="sm:col-span-2">
-                        <label className="block text-sm font-medium text-text-main">Region / State *</label>
+                        <label className="block text-sm font-medium text-text-main">Region / State</label>
                         <select 
                           name="regionOrState" 
                           value={customAddress.regionOrState} 
@@ -369,7 +369,7 @@ export const CheckoutPage: React.FC = () => {
 
                       {/* City/District Select Field (Second) */}
                       <div>
-                        <label className="block text-sm font-medium text-text-main">City / District *</label>
+                        <label className="block text-sm font-medium text-text-main">City / District</label>
                         <select 
                           name="city" 
                           value={customAddress.city} 
@@ -386,7 +386,7 @@ export const CheckoutPage: React.FC = () => {
                       
                       {/* Township Select Field (Third) */}
                       <div>
-                        <label className="block text-sm font-medium text-text-main">Township *</label>
+                        <label className="block text-sm font-medium text-text-main">Township</label>
                         <select 
                           name="township" 
                           value={customAddress.township} 
