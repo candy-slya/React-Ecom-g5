@@ -29,7 +29,9 @@ export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { authenticatedCart } = useAppSelector((state) => state.cart);
-  const { cities, getTownshipsForCity, getZoneForLocation, loading: zonesLoading } = useDeliveryLocations();
+  
+  // Update useDeliveryLocations to pull regions and getCitiesForRegion
+  const { regions, getCitiesForRegion, getTownshipsForCity, getZoneForLocation, loading: zonesLoading } = useDeliveryLocations();
   
   const [addresses, setAddresses] = useState<CustomerAddressResponse[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
@@ -40,9 +42,9 @@ export const CheckoutPage: React.FC = () => {
     phoneNumber: '',
     addressLine1: '',
     addressLine2: '',
-    township: '',
-    city: '',
     regionOrState: '',
+    city: '',
+    township: '',
   });
 
   const [shippingQuote, setShippingQuote] = useState<ShippingQuoteResponse | null>(null);
@@ -118,26 +120,39 @@ export const CheckoutPage: React.FC = () => {
     setCustomAddress(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleCustomCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const city = e.target.value;
+  // Handle Region Change (Resets City and Township)
+  const handleCustomRegionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const region = e.target.value;
     setCustomAddress(prev => ({
       ...prev,
-      city,
-      township: '',
-      regionOrState: ''
+      regionOrState: region,
+      city: '',
+      township: ''
     }));
     setShippingQuote(null);
     setShippingError(null);
     setQuotedCustomLocation(null);
   };
 
-  const handleCustomTownshipChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const township = e.target.value;
-    const zone = getZoneForLocation(customAddress.city, township);
+  // Handle City Change (Resets Township)
+  const handleCustomCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const city = e.target.value;
     setCustomAddress(prev => ({
       ...prev,
-      township,
-      regionOrState: zone?.regionOrState || prev.regionOrState
+      city,
+      township: ''
+    }));
+    setShippingQuote(null);
+    setShippingError(null);
+    setQuotedCustomLocation(null);
+  };
+
+  // Handle Township Change
+  const handleCustomTownshipChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const township = e.target.value;
+    setCustomAddress(prev => ({
+      ...prev,
+      township
     }));
     setShippingQuote(null);
     setShippingError(null);
@@ -189,9 +204,9 @@ export const CheckoutPage: React.FC = () => {
             phoneNumber: customAddress.phoneNumber.trim(),
             addressLine1: customAddress.addressLine1.trim(),
             addressLine2: customAddress.addressLine2?.trim() || undefined,
-            township: customAddress.township.trim(),
-            city: customAddress.city.trim(),
             regionOrState: customAddress.regionOrState?.trim() || undefined,
+            city: customAddress.city.trim(),
+            township: customAddress.township.trim(),
           } };
 
       const response = await checkoutApi.createOrder(requestPayload);
@@ -242,9 +257,11 @@ export const CheckoutPage: React.FC = () => {
   const isCustomFormValid = !!customAddress.recipientName.trim() && 
                             !!customAddress.phoneNumber.trim() && 
                             !!customAddress.addressLine1.trim() && 
-                            !!customAddress.township.trim() && 
-                            !!customAddress.city.trim();
-
+                            // regionOrState ရှိမှ trim() လုပ်မည်ဟု ပြင်ထားပါသည်
+                            !!customAddress.regionOrState?.trim() &&
+                            !!customAddress.city.trim() &&
+                            !!customAddress.township.trim();
+                            
   const isPlaceOrderDisabled = isSubmitting || 
                                (addressMode === 'saved' && !selectedAddressId) || 
                                (addressMode === 'custom' && (!isCustomFormValid || !quotedCustomLocation)) ||
@@ -332,21 +349,42 @@ export const CheckoutPage: React.FC = () => {
                         <label className="block text-sm font-medium text-text-main">Address Line 2</label>
                         <input type="text" name="addressLine2" value={customAddress.addressLine2} onChange={handleCustomAddressChange} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
                       </div>
+                      
+                      {/* Region/State Select Field (First) */}
+                      <div className="sm:col-span-2">
+                        <label className="block text-sm font-medium text-text-main">Region / State *</label>
+                        <select 
+                          name="regionOrState" 
+                          value={customAddress.regionOrState} 
+                          onChange={handleCustomRegionChange} 
+                          disabled={zonesLoading || !regions || regions.length === 0}
+                          className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
+                        >
+                          <option value="" disabled>Select Region / State</option>
+                          {regions?.map(region => (
+                            <option key={region} value={region}>{region}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* City/District Select Field (Second) */}
                       <div>
-                        <label className="block text-sm font-medium text-text-main">City *</label>
+                        <label className="block text-sm font-medium text-text-main">City / District *</label>
                         <select 
                           name="city" 
                           value={customAddress.city} 
                           onChange={handleCustomCityChange} 
-                          disabled={zonesLoading || cities.length === 0}
+                          disabled={zonesLoading || !customAddress.regionOrState || getCitiesForRegion(customAddress.regionOrState).length === 0}
                           className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
                         >
-                          <option value="" disabled>Select City</option>
-                          {cities.map(city => (
+                          <option value="" disabled>Select City / District</option>
+                          {customAddress.regionOrState && getCitiesForRegion(customAddress.regionOrState).map(city => (
                             <option key={city} value={city}>{city}</option>
                           ))}
                         </select>
                       </div>
+                      
+                      {/* Township Select Field (Third) */}
                       <div>
                         <label className="block text-sm font-medium text-text-main">Township *</label>
                         <select 
@@ -357,17 +395,13 @@ export const CheckoutPage: React.FC = () => {
                           className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
                         >
                           <option value="" disabled>Select Township</option>
-                          {getTownshipsForCity(customAddress.city).map(township => (
+                          {customAddress.city && getTownshipsForCity(customAddress.city).map(township => (
                             <option key={township} value={township}>{township}</option>
                           ))}
                         </select>
                       </div>
-                      <div className="sm:col-span-2">
-                        <label className="block text-sm font-medium text-text-main">Region / State</label>
-                        <input type="text" name="regionOrState" value={customAddress.regionOrState} onChange={handleCustomAddressChange} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
-                      </div>
                       
-                      {!zonesLoading && cities.length === 0 && (
+                      {!zonesLoading && (!regions || regions.length === 0) && (
                         <div className="sm:col-span-2 mt-2 text-sm text-[#B42318]">
                           Delivery locations are currently unavailable.
                         </div>
