@@ -257,11 +257,9 @@ export const CheckoutPage: React.FC = () => {
   const isCustomFormValid = !!customAddress.recipientName.trim() && 
                             !!customAddress.phoneNumber.trim() && 
                             !!customAddress.addressLine1.trim() && 
-                         
-                            !!customAddress.regionOrState?.trim() &&
+                            !!customAddress.regionOrState?.trim() &&  // <-- ဒီနေရာမှာ ? လေး ထည့်လိုက်ပါ
                             !!customAddress.city.trim() &&
                             !!customAddress.township.trim();
-
   const isPlaceOrderDisabled = isSubmitting || 
                                (addressMode === 'saved' && !selectedAddressId) || 
                                (addressMode === 'custom' && (!isCustomFormValid || !quotedCustomLocation)) ||
