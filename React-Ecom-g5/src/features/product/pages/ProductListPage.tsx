@@ -717,38 +717,50 @@ export const ProductListPage: React.FC = () => {
 
             {/* PAGINATION */}
             {productsPage && productsPage.totalPages > 1 && (
-              <div className="mt-8 flex items-center justify-center gap-2">
-
+              <div className="mt-12 flex items-center justify-center space-x-2">
                 <button
                   type="button"
                   disabled={productsPage.first}
-                  onClick={() =>
-                    updateFilters({ page: activePage - 1 })
-                  }
-                  className="page-btn"
+                  onClick={() => {
+                    updateFilters({ page: activePage - 1 });
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-4 py-2 rounded-lg border border-border-subtle bg-white text-sm font-semibold text-text-main hover:bg-page hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
                 >
-                  ←
+                  Previous
                 </button>
 
-                <span className="px-4 h-9 flex items-center bg-white border border-gray-200 text-[12px]">
-                  Page{' '}
-                  <b className="mx-1 text-[#0A39A6]">
-                    {activePage + 1}
-                  </b>
-                  of {productsPage.totalPages}
-                </span>
+                <div className="flex space-x-1">
+                  {Array.from({ length: productsPage.totalPages }).map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        updateFilters({ page: idx });
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className={`w-10 h-10 rounded-lg text-sm font-bold transition-colors ${
+                        activePage === idx
+                          ? 'bg-primary text-white shadow-sm'
+                          : 'bg-white text-text-main border border-border-subtle hover:bg-page hover:text-primary'
+                      }`}
+                    >
+                      {idx + 1}
+                    </button>
+                  ))}
+                </div>
 
                 <button
                   type="button"
                   disabled={productsPage.last}
-                  onClick={() =>
-                    updateFilters({ page: activePage + 1 })
-                  }
-                  className="page-btn"
+                  onClick={() => {
+                    updateFilters({ page: activePage + 1 });
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-4 py-2 rounded-lg border border-border-subtle bg-white text-sm font-semibold text-text-main hover:bg-page hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
                 >
-                  →
+                  Next
                 </button>
-
               </div>
             )}
 
