@@ -187,27 +187,52 @@ export const CategoryListPage: React.FC = () => {
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="mt-10 flex items-center justify-center gap-2">
+              <div className="mt-12 flex items-center justify-center space-x-2">
                 <button
                   type="button"
                   disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  className="w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-primary hover:border-primary hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-all font-bold"
+                  onClick={() => {
+                    setCurrentPage(prev => Math.max(prev - 1, 1));
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-4 py-2 rounded-lg border border-border-subtle bg-white text-sm font-semibold text-text-main hover:bg-page hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
                 >
-                  ←
+                  Previous
                 </button>
-
-                <span className="px-5 h-10 rounded-xl flex items-center bg-white border border-slate-200 text-xs text-slate-500 font-medium shadow-sm">
-                  Page <b className="mx-1.5 text-primary text-sm">{currentPage}</b> of <span className="ml-1.5">{totalPages}</span>
-                </span>
+                
+                <div className="flex space-x-1">
+                  {Array.from({ length: totalPages }).map((_, idx) => {
+                    const pageNum = idx + 1;
+                    return (
+                      <button
+                        key={pageNum}
+                        type="button"
+                        onClick={() => {
+                          setCurrentPage(pageNum);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className={`w-10 h-10 rounded-lg text-sm font-bold transition-colors ${
+                          currentPage === pageNum
+                            ? 'bg-primary text-white shadow-sm'
+                            : 'bg-white text-text-main border border-border-subtle hover:bg-page hover:text-primary'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
 
                 <button
                   type="button"
                   disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  className="w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-primary hover:border-primary hover:shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-all font-bold"
+                  onClick={() => {
+                    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-4 py-2 rounded-lg border border-border-subtle bg-white text-sm font-semibold text-text-main hover:bg-page hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
                 >
-                  →
+                  Next
                 </button>
               </div>
             )}

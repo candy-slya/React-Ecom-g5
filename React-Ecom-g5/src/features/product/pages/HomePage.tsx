@@ -11,21 +11,33 @@ import { GeometricPatternBanner } from '../../../components/common/GeometricPatt
 
 const BrandCard: React.FC<{ brand: BrandResponse; onClick: () => void }> = ({ brand, onClick }) => {
   const [hasError, setHasError] = useState(false);
+  const [isWide, setIsWide] = useState(false);
   const logoUrl = getAssetUrl(brand.brandLogoUrl);
   const showImage = Boolean(logoUrl) && !hasError;
+
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const { naturalWidth, naturalHeight } = e.currentTarget;
+    if (naturalWidth && naturalHeight) {
+      const ratio = naturalWidth / naturalHeight;
+      setIsWide(ratio > 1.35 || ratio < 0.65);
+    }
+  };
 
   return (
     <div
       onClick={onClick}
-      className="bg-white border border-border-subtle rounded-xl p-5 text-center cursor-pointer hover:-translate-y-1 hover:border-primary hover:shadow-md transition-all"
+      className="bg-white border border-border-subtle rounded-xl p-4 sm:p-5 text-center cursor-pointer hover:-translate-y-1 hover:border-primary hover:shadow-md transition-all flex flex-col items-center justify-between"
     >
-      <div className="w-[76px] h-[76px] mx-auto border border-border-subtle bg-accent-soft rounded-full flex items-center justify-center font-black text-xs mb-3 overflow-hidden shadow-xs p-2">
+      <div className={`w-24 h-24 sm:w-28 sm:h-28 mx-auto border-2 border-border-subtle bg-white rounded-full flex items-center justify-center font-black text-xs mb-3 overflow-hidden shadow-xs ${isWide ? 'p-2.5' : 'p-0'}`}>
         {showImage ? (
           <img
             src={logoUrl}
             alt={brand.brandName}
+            onLoad={handleImageLoad}
             onError={() => setHasError(true)}
-            className="w-full h-full object-contain"
+            className={`w-full h-full rounded-full transition-all ${
+              isWide ? 'object-contain' : 'object-cover'
+            }`}
           />
         ) : (
           <span className="text-xs font-black text-text-main uppercase tracking-wider text-center line-clamp-2 px-1">
@@ -33,7 +45,7 @@ const BrandCard: React.FC<{ brand: BrandResponse; onClick: () => void }> = ({ br
           </span>
         )}
       </div>
-      <b className="text-sm block text-text-main">{brand.brandName}</b>
+      <b className="text-sm sm:text-base block text-text-main font-bold mt-1">{brand.brandName}</b>
     </div>
   );
 };
@@ -53,7 +65,12 @@ export const HomePage: React.FC = () => {
 
   useEffect(() => {
     productApi.getCategoryTree().then(setCategories).catch(console.error);
-    productApi.getActiveBrands().then(setBrands).catch(console.error);
+    productApi.getActiveBrands().then(res => {
+      const sorted = [...res].sort((a, b) =>
+        (a.brandName || '').localeCompare(b.brandName || '', undefined, { sensitivity: 'base' })
+      );
+      setBrands(sorted);
+    }).catch(console.error);
     productApi.getBestSellers().then(res => setBestSellers(res.content)).catch(console.error);
   }, []);
 

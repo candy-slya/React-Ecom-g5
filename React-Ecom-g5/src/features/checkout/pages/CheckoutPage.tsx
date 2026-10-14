@@ -117,6 +117,11 @@ export const CheckoutPage: React.FC = () => {
 
   const handleCustomAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    if (name === 'phoneNumber') {
+      const onlyNums = value.replace(/[^0-9]/g, '').slice(0, 11);
+      setCustomAddress(prev => ({ ...prev, phoneNumber: onlyNums }));
+      return;
+    }
     setCustomAddress(prev => ({ ...prev, [name]: value }));
   };
 
@@ -255,9 +260,9 @@ export const CheckoutPage: React.FC = () => {
   };
 
   const isCustomFormValid = !!customAddress.recipientName.trim() && 
-                            !!customAddress.phoneNumber.trim() && 
+                            /^\d{11}$/.test(customAddress.phoneNumber.trim()) && 
                             !!customAddress.addressLine1.trim() && 
-                            !!customAddress.regionOrState?.trim() &&  // <-- ဒီနေရာမှာ ? လေး ထည့်လိုက်ပါ
+                            !!customAddress.regionOrState?.trim() && 
                             !!customAddress.city.trim() &&
                             !!customAddress.township.trim();
   const isPlaceOrderDisabled = isSubmitting || 
@@ -337,7 +342,16 @@ export const CheckoutPage: React.FC = () => {
                       </div>
                       <div className="sm:col-span-2">
                         <label className="block text-sm font-medium text-text-main">Phone Number</label>
-                        <input type="text" name="phoneNumber" value={customAddress.phoneNumber} onChange={handleCustomAddressChange} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
+                        <input
+                          type="tel"
+                          inputMode="numeric"
+                          name="phoneNumber"
+                          value={customAddress.phoneNumber}
+                          onChange={handleCustomAddressChange}
+                          placeholder="e.g. 09123456789"
+                          maxLength={11}
+                          className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                        />
                       </div>
                       <div className="sm:col-span-2">
                         <label className="block text-sm font-medium text-text-main">Address Line 1</label>

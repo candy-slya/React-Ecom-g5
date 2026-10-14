@@ -91,11 +91,11 @@ export const BrandDetailPage: React.FC = () => {
 
        <div className="relative overflow-hidden bg-gradient-to-r from-[#0A39A6] via-[#0C42B5] to-[#0284C7] text-white p-6 sm:p-8 rounded-xl shadow-sm mb-8 flex items-center justify-between gap-6">
           <div className="flex items-center gap-6 relative z-10">
-            <div className="w-[100px] h-[100px] flex-shrink-0 border border-white/20 rounded-full flex items-center justify-center overflow-hidden bg-white p-2 shadow-xs">
+            <div className="w-[100px] h-[100px] flex-shrink-0 border-2 border-white/40 rounded-full flex items-center justify-center overflow-hidden bg-white shadow-md p-2">
               {brand.brandLogoUrl && !logoError ? (
                 <img
                   src={getAssetUrl(brand.brandLogoUrl)}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-contain rounded-full"
                   alt={brand.brandName}
                   onError={() => setLogoError(true)}
                 />
@@ -141,10 +141,48 @@ export const BrandDetailPage: React.FC = () => {
             
             {/* Pagination */}
             {productsPage && productsPage.totalPages > 1 && (
-              <div className="mt-8 flex justify-center gap-2">
-                <button disabled={productsPage.first} onClick={() => updateFilters({ page: activePage - 1 })} className="px-3 py-1 border bg-white disabled:opacity-50">&larr;</button>
-                <span className="px-3 py-1 text-sm">{activePage + 1} of {productsPage.totalPages}</span>
-                <button disabled={productsPage.last} onClick={() => updateFilters({ page: activePage + 1 })} className="px-3 py-1 border bg-white disabled:opacity-50">&rarr;</button>
+              <div className="mt-12 flex items-center justify-center space-x-2">
+                <button
+                  type="button"
+                  disabled={productsPage.first}
+                  onClick={() => {
+                    updateFilters({ page: activePage - 1 });
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-4 py-2 rounded-lg border border-border-subtle bg-white text-sm font-semibold text-text-main hover:bg-page hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  Previous
+                </button>
+                <div className="flex space-x-1">
+                  {Array.from({ length: productsPage.totalPages }).map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        updateFilters({ page: idx });
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className={`w-10 h-10 rounded-lg text-sm font-bold transition-colors ${
+                        activePage === idx
+                          ? 'bg-primary text-white shadow-sm'
+                          : 'bg-white text-text-main border border-border-subtle hover:bg-page hover:text-primary'
+                      }`}
+                    >
+                      {idx + 1}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  disabled={productsPage.last}
+                  onClick={() => {
+                    updateFilters({ page: activePage + 1 });
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-4 py-2 rounded-lg border border-border-subtle bg-white text-sm font-semibold text-text-main hover:bg-page hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  Next
+                </button>
               </div>
             )}
           </>
