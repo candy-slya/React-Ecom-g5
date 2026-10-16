@@ -31,7 +31,7 @@ export const CheckoutPage: React.FC = () => {
   const { authenticatedCart } = useAppSelector((state) => state.cart);
   
   // Update useDeliveryLocations to pull regions and getCitiesForRegion
-  const { regions, getCitiesForRegion, getTownshipsForCity, getZoneForLocation, loading: zonesLoading } = useDeliveryLocations();
+  const { regions, getCitiesForRegion, getTownshipsForCity, getZoneForLocation, zones, loading: zonesLoading } = useDeliveryLocations();
   
   const [addresses, setAddresses] = useState<CustomerAddressResponse[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
@@ -99,21 +99,50 @@ export const CheckoutPage: React.FC = () => {
         return;
       }
 
+      const selectedAddress = addresses.find((a) => a.addressId === selectedAddressId);
+      if (!selectedAddress) return;
+
       try {
         setShippingLoading(true);
         setShippingError(null);
         const quote = await shippingApi.getShippingQuote(selectedAddressId);
         setShippingQuote(quote);
-      } catch (err: unknown) {
-        setShippingError(extractErrorMessage(err));
-        setShippingQuote(null);
+      } catch (_err: unknown) {
+        // Look up delivery zone by location from database delivery zones
+        const matchedZone = getZoneForLocation(selectedAddress.city, selectedAddress.township);
+        if (matchedZone) {
+          // In delivery zone (Database zone id ရှိရင် သက်ဆိုင်ရာ zone data အတိုင်း သတ်မှတ်မည်)
+          setShippingQuote({
+            shippingRateId: matchedZone.zoneId,
+            zoneId: matchedZone.zoneId,
+            zoneCode: matchedZone.zoneCode,
+            zoneName: matchedZone.zoneName,
+            city: selectedAddress.city,
+            township: selectedAddress.township || '',
+            shippingFee: matchedZone.shippingFee,
+            estimatedDays: matchedZone.estimatedDays || 1,
+          });
+        } else {
+          // Delivery zone ထဲက zone id မဟုတ်ပဲ zone ကျော်နေရင် 5000 MMK သတ်မှတ်မည်
+          setShippingQuote({
+            shippingRateId: 0,
+            zoneId: 0,
+            zoneCode: 'DEF-STANDARD',
+            zoneName: 'Standard Delivery (Outside Zone)',
+            city: selectedAddress.city,
+            township: selectedAddress.township || '',
+            shippingFee: 5000,
+            estimatedDays: 3,
+          });
+        }
+        setShippingError(null);
       } finally {
         setShippingLoading(false);
       }
     };
 
     fetchSavedShippingQuote();
-  }, [selectedAddressId, addressMode]);
+  }, [selectedAddressId, addressMode, addresses, zones]);
 
   const handleCustomAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -167,20 +196,46 @@ export const CheckoutPage: React.FC = () => {
   const handleCheckCustomDelivery = async () => {
     if (!customAddress.city.trim() || !customAddress.township.trim()) return;
 
+    const city = customAddress.city.trim();
+    const township = customAddress.township.trim();
+
     try {
       setShippingLoading(true);
       setShippingError(null);
       
-      const city = customAddress.city.trim();
-      const township = customAddress.township.trim();
-      
       const quote = await shippingApi.getCustomShippingQuote(city, township);
       setShippingQuote(quote);
       setQuotedCustomLocation({ city, township });
-    } catch (err: unknown) {
-      setShippingError(extractErrorMessage(err));
-      setShippingQuote(null);
-      setQuotedCustomLocation(null);
+    } catch (_err: unknown) {
+      // Look up delivery zone by location from database delivery zones
+      const matchedZone = getZoneForLocation(city, township);
+      if (matchedZone) {
+        // In delivery zone (Database zone id ရှိရင် သက်ဆိုင်ရာ zone data အတိုင်း သတ်မှတ်မည်)
+        setShippingQuote({
+          shippingRateId: matchedZone.zoneId,
+          zoneId: matchedZone.zoneId,
+          zoneCode: matchedZone.zoneCode,
+          zoneName: matchedZone.zoneName,
+          city,
+          township,
+          shippingFee: matchedZone.shippingFee,
+          estimatedDays: matchedZone.estimatedDays || 1,
+        });
+      } else {
+        // Delivery zone ထဲက zone id မဟုတ်ပဲ zone ကျော်နေရင် 5000 MMK သတ်မှတ်မည်
+        setShippingQuote({
+          shippingRateId: 0,
+          zoneId: 0,
+          zoneCode: 'DEF-STANDARD',
+          zoneName: 'Standard Delivery (Outside Zone)',
+          city,
+          township,
+          shippingFee: 5000,
+          estimatedDays: 3,
+        });
+      }
+      setQuotedCustomLocation({ city, township });
+      setShippingError(null);
     } finally {
       setShippingLoading(false);
     }
@@ -191,11 +246,24 @@ export const CheckoutPage: React.FC = () => {
     fetchCheckoutData();
   };
 
+  const containsTownship = (text?: string) => {
+    if (!text) return false;
+    return /\b(township|tsp)\b|မြို့နယ်/i.test(text);
+  };
+
+  const isCustomLine1Invalid = containsTownship(customAddress.addressLine1);
+  const isCustomLine2Invalid = containsTownship(customAddress.addressLine2);
+
   const handlePlaceOrder = async () => {
     setOrderError(null);
 
     if (shippingError || !shippingQuote) {
       setOrderError("Delivery is currently unavailable for this location.");
+      return;
+    }
+
+    if (addressMode === 'custom' && (isCustomLine1Invalid || isCustomLine2Invalid)) {
+      setOrderError("Please do not include 'Township' or 'Tsp' in Address Line 1 or 2.");
       return;
     }
 
@@ -262,6 +330,8 @@ export const CheckoutPage: React.FC = () => {
   const isCustomFormValid = !!customAddress.recipientName.trim() && 
                             /^\d{11}$/.test(customAddress.phoneNumber.trim()) && 
                             !!customAddress.addressLine1.trim() && 
+                            !isCustomLine1Invalid &&
+                            !isCustomLine2Invalid &&
                             !!customAddress.regionOrState?.trim() && 
                             !!customAddress.city.trim() &&
                             !!customAddress.township.trim();
@@ -338,7 +408,7 @@ export const CheckoutPage: React.FC = () => {
                     <div className="ml-7 mt-4 grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-4">
                       <div className="sm:col-span-2">
                         <label className="block text-sm font-medium text-text-main">Recipient Name</label>
-                        <input type="text" name="recipientName" value={customAddress.recipientName} onChange={handleCustomAddressChange} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
+                        <input type="text" name="recipientName" value={customAddress.recipientName} onChange={handleCustomAddressChange} placeholder="e.g. Khant Thu Zaw" className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
                       </div>
                       <div className="sm:col-span-2">
                         <label className="block text-sm font-medium text-text-main">Phone Number</label>
@@ -353,15 +423,39 @@ export const CheckoutPage: React.FC = () => {
                           className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none"
                         />
                       </div>
+
                       <div className="sm:col-span-2">
                         <label className="block text-sm font-medium text-text-main">Address Line 1</label>
-                        <input type="text" name="addressLine1" value={customAddress.addressLine1} onChange={handleCustomAddressChange} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
+                        <input 
+                          type="text" 
+                          name="addressLine1" 
+                          value={customAddress.addressLine1} 
+                          onChange={handleCustomAddressChange} 
+                          className={`mt-1 block w-full rounded-md border ${isCustomLine1Invalid ? 'border-[#B42318] focus:border-[#B42318]' : 'border-border-subtle focus:border-primary'} bg-page px-3 py-2 text-sm focus:outline-none`} 
+                        />
+                        {isCustomLine1Invalid && (
+                          <p className="text-xs text-[#B42318] mt-1 font-medium">
+                            Township is not allowed here. Please select it from the dropdown below.
+                          </p>
+                        )}
                       </div>
+
                       <div className="sm:col-span-2">
                         <label className="block text-sm font-medium text-text-main">Address Line 2</label>
-                        <input type="text" name="addressLine2" value={customAddress.addressLine2} onChange={handleCustomAddressChange} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
+                        <input 
+                          type="text" 
+                          name="addressLine2" 
+                          value={customAddress.addressLine2} 
+                          onChange={handleCustomAddressChange} 
+                          className={`mt-1 block w-full rounded-md border ${isCustomLine2Invalid ? 'border-[#B42318] focus:border-[#B42318]' : 'border-border-subtle focus:border-primary'} bg-page px-3 py-2 text-sm focus:outline-none`} 
+                        />
+                        {isCustomLine2Invalid && (
+                          <p className="text-xs text-[#B42318] mt-1 font-medium">
+                            Township is not allowed here. Please select it from the dropdown below.
+                          </p>
+                        )}
                       </div>
-                      
+
                       {/* Region/State Select Field (First) */}
                       <div className="sm:col-span-2">
                         <label className="block text-sm font-medium text-text-main">Region / State</label>
@@ -403,11 +497,11 @@ export const CheckoutPage: React.FC = () => {
                           name="township" 
                           value={customAddress.township} 
                           onChange={handleCustomTownshipChange} 
-                          disabled={zonesLoading || !customAddress.city || getTownshipsForCity(customAddress.city).length === 0}
+                          disabled={zonesLoading || !customAddress.city || getTownshipsForCity(customAddress.city, customAddress.regionOrState).length === 0}
                           className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
                         >
                           <option value="" disabled>Select Township</option>
-                          {customAddress.city && getTownshipsForCity(customAddress.city).map(township => (
+                          {customAddress.city && getTownshipsForCity(customAddress.city, customAddress.regionOrState).map(township => (
                             <option key={township} value={township}>{township}</option>
                           ))}
                         </select>
@@ -423,10 +517,10 @@ export const CheckoutPage: React.FC = () => {
                         <button 
                           type="button" 
                           onClick={handleCheckCustomDelivery} 
-                          disabled={shippingLoading || !customAddress.city.trim() || !customAddress.township.trim() || !getZoneForLocation(customAddress.city, customAddress.township)}
+                          disabled={shippingLoading || !customAddress.city.trim() || !customAddress.township.trim()}
                           className="w-full sm:w-auto rounded-md bg-accent text-slate-950 px-4 py-2 text-sm font-bold shadow-sm hover:bg-accent-hover focus:outline-none disabled:opacity-50 transition-colors"
                         >
-                          Check Delivery
+                          {shippingLoading ? 'Checking...' : 'Check Delivery'}
                         </button>
                       </div>
                     </div>
