@@ -10,7 +10,30 @@ import type {
 import { ProductCard } from '../../../components/product/ProductCard';
 import { GeometricPatternBanner } from '../../../components/common/GeometricPatternBanner';
 
-const MAX_PRICE = 5_000_000;
+const MIN_PRICE = 10_000;
+const MAX_PRICE = 10_000_000;
+const DEFAULT_MIN_PRICE = 50_000;
+const DEFAULT_MAX_PRICE = 500_000;
+const PRICE_STEP = 10_000; // slider precision: 30,000, 50,000, etc.
+const MIN_HANDLE_GAP = 50_000; // prevent the two handles from overlapping
+const DROPDOWN_STEP = 20_000; // shorter dropdown: 20,000, 40,000, 60,000...
+const PRICE_OPTIONS = [
+  MIN_PRICE,
+  ...Array.from(
+    { length: MAX_PRICE / DROPDOWN_STEP },
+    (_, index) => (index + 1) * DROPDOWN_STEP
+  )
+];
+
+// Nonlinear slider: customers get more control over everyday budgets.
+// Dropdowns still support the entire 10,000–10,000,000 MMK range.
+const SLIDER_MAX = 1000;
+const priceToSlider = (price: number) =>
+  Math.round(Math.cbrt((Math.max(MIN_PRICE, Math.min(MAX_PRICE, price)) - MIN_PRICE) / (MAX_PRICE - MIN_PRICE)) * SLIDER_MAX);
+const sliderToPrice = (position: number) =>
+  Math.max(MIN_PRICE, Math.min(MAX_PRICE,
+    Math.round((MIN_PRICE + (MAX_PRICE - MIN_PRICE) * Math.pow(position / SLIDER_MAX, 3)) / PRICE_STEP) * PRICE_STEP
+  ));
 
 export const ProductListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -51,13 +74,15 @@ export const ProductListPage: React.FC = () => {
   const [categorySearch, setCategorySearch] = useState('');
   const [brandSearch, setBrandSearch] = useState('');
   const [tagSearch, setTagSearch] = useState('');
+  const [catalogTags, setCatalogTags] = useState<string[]>([]);
+  const [tagsLoading, setTagsLoading] = useState(true);
 
   const [minPrice, setMinPrice] = useState(
-    activeMinPrice ? Number(activeMinPrice) : 0
+    activeMinPrice ? Number(activeMinPrice) : DEFAULT_MIN_PRICE
   );
 
   const [maxPrice, setMaxPrice] = useState(
-    activeMaxPrice ? Number(activeMaxPrice) : MAX_PRICE
+    activeMaxPrice ? Number(activeMaxPrice) : DEFAULT_MAX_PRICE
   );
 
   /* ================= MASTER DATA ================= */
@@ -68,9 +93,47 @@ export const ProductListPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    setMinPrice(activeMinPrice ? Number(activeMinPrice) : 0);
-    setMaxPrice(activeMaxPrice ? Number(activeMaxPrice) : MAX_PRICE);
+    setMinPrice(activeMinPrice ? Number(activeMinPrice) : DEFAULT_MIN_PRICE);
+    setMaxPrice(activeMaxPrice ? Number(activeMaxPrice) : DEFAULT_MAX_PRICE);
   }, [activeMinPrice, activeMaxPrice]);
+
+  /* ================= TAG OPTIONS ================= */
+
+  // Load tag choices separately so selecting a category, brand or tag
+  // does not make the other available tag buttons disappear.
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadTagOptions = async () => {
+      setTagsLoading(true);
+      try {
+        const found = new Set<string>();
+        // Existing product API is reused; no new backend endpoint is assumed.
+        // Cap requests to avoid excessive traffic on very large catalogs.
+        for (let page = 0; page < 10; page++) {
+          const response = await productApi.getProducts({
+            page,
+            size: 100,
+            sort: 'newest'
+          });
+          response.content.forEach(product =>
+            product.tags?.forEach(tag => {
+              if (tag?.trim()) found.add(tag.trim());
+            })
+          );
+          if (response.last || page + 1 >= response.totalPages) break;
+        }
+        if (!cancelled) setCatalogTags([...found].sort());
+      } catch (error) {
+        console.error('Unable to load catalog tags:', error);
+      } finally {
+        if (!cancelled) setTagsLoading(false);
+      }
+    };
+
+    void loadTagOptions();
+    return () => { cancelled = true; };
+  }, []);
 
   /* ================= CATEGORY SEARCH ================= */
 
@@ -116,6 +179,8 @@ export const ProductListPage: React.FC = () => {
   const availableTags = useMemo(() => {
     const tags = new Set<string>();
 
+    catalogTags.forEach(tag => tags.add(tag));
+    // Keep the current product tags as a fallback if catalog loading fails.
     productsPage?.content.forEach(product =>
       product.tags?.forEach(tag => tag && tags.add(tag))
     );
@@ -123,7 +188,7 @@ export const ProductListPage: React.FC = () => {
     activeTags.forEach(tag => tags.add(tag));
 
     return [...tags].sort();
-  }, [productsPage, activeTags]);
+  }, [catalogTags, productsPage, activeTags]);
 
   const filteredTags = useMemo(() => {
     const term = tagSearch.toLowerCase().trim();
@@ -201,17 +266,17 @@ export const ProductListPage: React.FC = () => {
   };
 
   const applyPrice = () => {
-    if (minPrice < 0 || maxPrice < 0 || minPrice > maxPrice) return;
+    if (minPrice < MIN_PRICE || maxPrice > MAX_PRICE || minPrice >= maxPrice) return;
 
     updateFilters({
-      minPrice: minPrice > 0 ? minPrice : null,
+      minPrice: minPrice > MIN_PRICE ? minPrice : null,
       maxPrice: maxPrice < MAX_PRICE ? maxPrice : null
     });
   };
 
   const clearPrice = () => {
-    setMinPrice(0);
-    setMaxPrice(MAX_PRICE);
+    setMinPrice(DEFAULT_MIN_PRICE);
+    setMaxPrice(DEFAULT_MAX_PRICE);
     updateFilters({ minPrice: null, maxPrice: null });
   };
 
@@ -219,8 +284,8 @@ export const ProductListPage: React.FC = () => {
     setCategorySearch('');
     setBrandSearch('');
     setTagSearch('');
-    setMinPrice(0);
-    setMaxPrice(MAX_PRICE);
+    setMinPrice(DEFAULT_MIN_PRICE);
+    setMaxPrice(DEFAULT_MAX_PRICE);
     setSearchParams(new URLSearchParams());
   };
 
@@ -335,16 +400,16 @@ export const ProductListPage: React.FC = () => {
               FILTER SIDEBAR
           ===================================================== */}
 
-          <aside className="w-full md:w-[275px] flex-shrink-0 h-max">
-            <div className="bg-white border border-border-subtle overflow-hidden">
+          <aside className="w-full md:w-[300px] lg:w-[305px] flex-shrink-0 h-max">
+            <div className="bg-white border border-slate-200 overflow-hidden rounded-2xl shadow-sm">
 
               {/* KEEP FILTER HEADER */}
-              <div className="bg-gradient-to-r from-[#0A39A6] to-[#0284C7] px-5 py-4 text-white flex justify-between items-center">
+              <div className="bg-gradient-to-r from-[#0A39A6] to-[#0284C7] px-5 py-5 text-white flex justify-between items-center">
                 <div>
-                  <h3 className="text-[13px] font-black uppercase tracking-wide">
+                  <h3 className="text-[15px] font-black uppercase tracking-wide leading-tight">
                     FILTER PRODUCTS
                   </h3>
-                  <p className="text-[10px] text-sky-100">
+                  <p className="text-[11px] text-sky-100 font-medium mt-1">
                     Refine your results
                   </p>
                 </div>
@@ -356,7 +421,7 @@ export const ProductListPage: React.FC = () => {
                 )}
               </div>
 
-              <div className="p-[18px]">
+              <div className="p-5">
 
                 {/* CATEGORIES */}
                 <FilterSection title="Categories">
@@ -364,7 +429,7 @@ export const ProductListPage: React.FC = () => {
                     value={categorySearch}
                     onChange={e => setCategorySearch(e.target.value)}
                     placeholder="Search categories..."
-                    className="filter-input mb-2"
+                    className="filter-input mb-2 rounded-lg"
                   />
 
                   <div className="max-h-52 overflow-y-auto">
@@ -391,7 +456,7 @@ export const ProductListPage: React.FC = () => {
                     value={brandSearch}
                     onChange={e => setBrandSearch(e.target.value)}
                     placeholder="Search brands..."
-                    className="filter-input mb-2"
+                    className="filter-input mb-2 rounded-lg"
                   />
 
                   <div className="max-h-52 overflow-y-auto">
@@ -440,7 +505,7 @@ export const ProductListPage: React.FC = () => {
                     value={tagSearch}
                     onChange={e => setTagSearch(e.target.value)}
                     placeholder="Search tags..."
-                    className="filter-input mb-3"
+                    className="filter-input mb-3 rounded-lg"
                   />
 
                   {filteredTags.length ? (
@@ -453,9 +518,9 @@ export const ProductListPage: React.FC = () => {
                             key={tag}
                             type="button"
                             onClick={() => handleTagClick(tag)}
-                            className={`px-2.5 py-1.5 border text-[10px] font-bold transition ${
+                            className={`px-3 py-1.5 rounded-lg border text-[11px] font-semibold transition-colors ${
                               selected
-                                ? 'bg-[#0A39A6] border-[#0A39A6] text-white'
+                                ? 'bg-[#0A39A6] border-[#0A39A6] text-white shadow-sm'
                                 : 'bg-white border-blue-200 text-[#0A39A6] hover:bg-blue-50'
                             }`}
                           >
@@ -465,108 +530,133 @@ export const ProductListPage: React.FC = () => {
                       })}
                     </div>
                   ) : (
-                    <EmptyText>No tags available</EmptyText>
+                    <EmptyText>
+                      {tagsLoading ? 'Loading tags...' : tagSearch ? 'No matching tags' : 'No tags available for published products'}
+                    </EmptyText>
                   )}
                 </FilterSection>
 
-                {/* PRICE */}
-                <FilterSection title="Price, K">
-
-                  <div className="grid grid-cols-2 gap-2 mb-3">
-                    <div>
-                      <label className="text-[9px] text-gray-400">
-                        Min
-                      </label>
-
-                      <input
-                        type="number"
-                        min={0}
-                        max={MAX_PRICE}
+                {/* PRICE — screenshot-style dropdowns and one dual-handle track */}
+                <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 text-slate-800 shadow-[0_3px_18px_rgba(15,23,42,0.04)]">
+                  <div className="mb-4 flex items-center justify-between gap-2"><h3 className="text-[12px] font-extrabold uppercase tracking-wide text-slate-800">FILTER BY PRICE</h3><span className="rounded-md bg-blue-50 px-2 py-1 text-[10px] font-bold text-[#0A39A6]">MMK</span></div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="block min-w-0">
+                      <span className="mb-1 block text-[11px] font-semibold text-slate-600">Minimum (MMK)</span>
+                      <select
+                        aria-label="Minimum price in MMK"
                         value={minPrice}
-                        onChange={e =>
-                          setMinPrice(Math.max(0, Number(e.target.value)))
-                        }
-                        className="filter-input mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-[9px] text-gray-400">
-                        Max
-                      </label>
-
-                      <input
-                        type="number"
-                        min={0}
-                        max={MAX_PRICE}
+                        onChange={e => setMinPrice(Math.min(Number(e.target.value), maxPrice - MIN_HANDLE_GAP))}
+                        className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50/80 px-2.5 py-2.5 text-[11px] font-semibold text-slate-700 outline-none transition focus:border-[#0A39A6] focus:ring-2 focus:ring-blue-100"
+                      >
+                        {PRICE_OPTIONS.concat(minPrice)
+                          .filter((v, i, arr) => arr.indexOf(v) === i)
+                          .sort((a, b) => a - b)
+                          .map(value => (
+                            <option key={value} value={value}>{value.toLocaleString('en-US')}</option>
+                          ))}
+                      </select>
+                    </label>
+                    <label className="block min-w-0">
+                      <span className="mb-1 block text-[11px] font-semibold text-slate-600">Maximum (MMK)</span>
+                      <select
+                        aria-label="Maximum price in MMK"
                         value={maxPrice}
-                        onChange={e =>
-                          setMaxPrice(
-                            Math.min(
-                              MAX_PRICE,
-                              Math.max(0, Number(e.target.value))
-                            )
-                          )
-                        }
-                        className="filter-input mt-1"
-                      />
-                    </div>
+                        onChange={e => setMaxPrice(Math.max(Number(e.target.value), minPrice + MIN_HANDLE_GAP))}
+                        className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50/80 px-2.5 py-2.5 text-[11px] font-semibold text-slate-700 outline-none transition focus:border-[#0A39A6] focus:ring-2 focus:ring-blue-100"
+                      >
+                        {PRICE_OPTIONS.concat(maxPrice)
+                          .filter((v, i, arr) => arr.indexOf(v) === i)
+                          .sort((a, b) => a - b)
+                          .map(value => (
+                            <option key={value} value={value}>{value.toLocaleString('en-US')}</option>
+                          ))}
+                      </select>
+                    </label>
                   </div>
-
-                  <div className="flex justify-between text-[10px] font-semibold mb-2">
-                    <span>K{minPrice.toLocaleString()}</span>
-                    <span>K{maxPrice.toLocaleString()}</span>
+                  <div className="mt-4 flex flex-wrap gap-1.5" aria-label="Popular price ranges">
+                    {[
+                      { label: 'Under 100K', min: MIN_PRICE, max: 100_000 },
+                      { label: '50K–500K', min: 50_000, max: 500_000 },
+                      { label: '500K–2M', min: 500_000, max: 2_000_000 },
+                      { label: '2M+', min: 2_000_000, max: MAX_PRICE }
+                    ].map(preset => {
+                      const selected = minPrice === preset.min && maxPrice === preset.max;
+                      return (
+                        <button
+                          key={preset.label}
+                          type="button"
+                          aria-pressed={selected}
+                          onClick={() => { setMinPrice(preset.min); setMaxPrice(preset.max); }}
+                          className={`rounded-lg border px-2.5 py-1.5 text-[10px] font-semibold transition-colors ${selected ? 'border-[#0A39A6] bg-blue-50 text-[#0A39A6]' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:bg-slate-50'}`}
+                        >
+                          {preset.label}
+                        </button>
+                      );
+                    })}
                   </div>
-
-                  <input
-                    type="range"
-                    min={0}
-                    max={MAX_PRICE}
-                    step={50_000}
-                    value={maxPrice}
-                    onChange={e => setMaxPrice(Number(e.target.value))}
-                    className="w-full accent-[#0A39A6]"
-                  />
-
-                  <div className="flex justify-between text-[8px] text-gray-400 mt-1">
-                    <span>K0</span>
-                    <span>K1M</span>
-                    <span>K2M</span>
-                    <span>K3M</span>
-                    <span>K4M</span>
-                    <span>K5M</span>
+                  <div className="mt-5 flex items-center justify-between text-[10px] font-semibold text-slate-500">
+                    <span>Fine-tune your budget</span>
+                    <span>Precise adjustment</span>
                   </div>
-
-                  {minPrice > maxPrice && (
-                    <p className="text-[10px] text-red-500 mt-2">
-                      Min price cannot be greater than Max price.
-                    </p>
-                  )}
-
+                  <div className="relative mt-3 h-11 flex items-center mx-3">
+                    <div className="absolute left-0 right-0 h-[3px] bg-slate-300" />
+                    <div
+                      className="absolute h-[4px] bg-[#0A39A6]"
+                      style={{
+                        left: `${(priceToSlider(minPrice) / SLIDER_MAX) * 100}%`,
+                        right: `${100 - (priceToSlider(maxPrice) / SLIDER_MAX) * 100}%`
+                      }}
+                    />
+                    <input
+                      aria-label="Adjust minimum price"
+                      type="range"
+                      min={0}
+                      max={SLIDER_MAX}
+                      step={1}
+                      value={priceToSlider(minPrice)}
+                      onChange={e => setMinPrice(Math.min(sliderToPrice(Number(e.target.value)), maxPrice - MIN_HANDLE_GAP))}
+                      className="price-range-thumb absolute inset-x-0 w-full"
+                      style={{ zIndex: minPrice >= maxPrice - MIN_HANDLE_GAP * 2 ? 5 : 3 }}
+                    />
+                    <input
+                      aria-label="Adjust maximum price"
+                      type="range"
+                      min={0}
+                      max={SLIDER_MAX}
+                      step={1}
+                      value={priceToSlider(maxPrice)}
+                      onChange={e => setMaxPrice(Math.max(sliderToPrice(Number(e.target.value)), minPrice + MIN_HANDLE_GAP))}
+                      className="price-range-thumb absolute inset-x-0 w-full"
+                      style={{ zIndex: 4 }}
+                    />
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center justify-between gap-1 text-[10px] font-semibold text-slate-500">
+                    <span>{minPrice.toLocaleString('en-US')} MMK</span>
+                    <span>{maxPrice.toLocaleString('en-US')} MMK</span>
+                  </div>
+                  <p className="mt-1.5 text-[10px] text-slate-400">Choose a budget or drag the handles · 10,000 MMK steps</p>
                   <button
                     type="button"
-                    disabled={minPrice > maxPrice}
                     onClick={applyPrice}
-                    className="w-full mt-4 bg-[#0A39A6] hover:bg-[#082E86] disabled:bg-gray-300 text-white font-black py-2.5 text-[11px] transition"
+                    className="mt-3 w-full rounded-xl bg-[#0A39A6] px-3 py-3 text-[11px] font-bold text-white shadow-sm transition hover:bg-[#082E86] hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                   >
                     APPLY PRICE
                   </button>
-
                   {(activeMinPrice || activeMaxPrice) && (
                     <button
                       type="button"
                       onClick={clearPrice}
-                      className="w-full mt-2 text-[10px] text-[#0A39A6] font-bold hover:underline"
+                      className="mt-2 w-full text-[11px] font-semibold text-slate-500 hover:text-[#0A39A6]"
                     >
-                      Clear Price
+                      Reset price
                     </button>
                   )}
-                </FilterSection>
+                </div>
 
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="w-full border border-gray-200 py-2.5 text-[11px] font-bold hover:bg-gray-50"
+                  className="w-full rounded-lg border border-gray-200 py-2.5 text-[11px] font-bold hover:bg-gray-50"
                 >
                   CLEAR FILTERS
                 </button>
@@ -658,7 +748,7 @@ export const ProductListPage: React.FC = () => {
                     onClick={clearPrice}
                     className="px-3 py-1.5 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold"
                   >
-                    K{activeMinPrice || 0} - K{activeMaxPrice || MAX_PRICE} ×
+                    {Number(activeMinPrice || MIN_PRICE).toLocaleString('en-US')} - {Number(activeMaxPrice || MAX_PRICE).toLocaleString('en-US')} MMK ×
                   </button>
                 )}
 
@@ -770,17 +860,80 @@ export const ProductListPage: React.FC = () => {
 
       {/* Small shared CSS */}
       <style>{`
+        /* Two circular handles on one shared price track; dropdowns and handles stay synchronized */
+        .price-range-thumb {
+          position: absolute;
+          left: 0;
+          width: 100%;
+          height: 40px;
+          margin: 0;
+          padding: 0;
+          background: transparent;
+          appearance: none;
+          -webkit-appearance: none;
+          pointer-events: none;
+          cursor: pointer;
+        }
+        .price-range-thumb::-webkit-slider-runnable-track {
+          height: 4px;
+          background: transparent;
+          border: 0;
+        }
+        .price-range-thumb::-moz-range-track {
+          height: 4px;
+          background: transparent;
+          border: 0;
+        }
+        .price-range-thumb::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 16px;
+          height: 16px;
+          margin-top: -6px;
+          border: 2.5px solid #0A39A6;
+          border-radius: 50%;
+          background: #fff;
+          box-shadow: 0 1px 5px rgba(15,23,42,.16);
+          pointer-events: auto;
+          cursor: grab;
+          transition: box-shadow .15s ease, transform .15s ease;
+        }
+        .price-range-thumb::-moz-range-thumb {
+          box-sizing: border-box;
+          width: 16px;
+          height: 16px;
+          border: 2.5px solid #0A39A6;
+          border-radius: 50%;
+          background: #fff;
+          box-shadow: 0 1px 5px rgba(15,23,42,.16);
+          pointer-events: auto;
+          cursor: grab;
+        }
+        .price-range-thumb:active::-webkit-slider-thumb {
+          cursor: grabbing;
+          box-shadow: 0 0 0 4px rgba(10, 57, 166, .10);
+        }
+        .price-range-thumb:focus-visible::-webkit-slider-thumb {
+          outline: 3px solid #bfdbfe;
+          outline-offset: 2px;
+        }
+        .price-range-thumb:focus-visible::-moz-range-thumb {
+          outline: 3px solid #bfdbfe;
+          outline-offset: 2px;
+        }
         .filter-input {
           width: 100%;
           padding: 8px 10px;
           background: #F8FAFC;
           border: 1px solid #E2E8F0;
-          font-size: 11px;
+          font-size: 12px;
           outline: none;
+          transition: border-color .2s, box-shadow .2s;
         }
 
         .filter-input:focus {
           border-color: #0284C7;
+          box-shadow: 0 0 0 3px rgba(2,132,199,.10);
         }
 
         .page-btn {
