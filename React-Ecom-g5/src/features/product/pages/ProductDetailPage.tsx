@@ -801,113 +801,114 @@ export const ProductDetailPage: React.FC = () => {
             SPECS AND TAGS
         ========================= */}
 
-        <section className="bg-white border rounded p-8 mb-8">
+        
+<section className="bg-white border rounded p-8 mb-8">
 
-          <h2 className="text-xl font-bold mb-4">
-            Specifications
-          </h2>
+  <h2 className="text-xl font-bold mb-4">
+    Specifications
+  </h2>
 
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm mb-6">
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm mb-6">
+    {/* BRAND */}
+    <div className="flex justify-between border-b py-2">
+      <b>Brand</b>
+      <span>
+        {product.brand?.brandName || 'N/A'}
+      </span>
+    </div>
 
-            <div className="flex justify-between border-b py-2">
+    {/* CATEGORY */}
+    <div className="flex justify-between border-b py-2">
+      <b>Category</b>
+      <span>
+        {product.categoryName || 'N/A'}
+      </span>
+    </div>
 
-              <b>Brand</b>
+    {/* SKU */}
+    <div className="flex justify-between border-b py-2">
+      <b>SKU</b>
+      <span>
+        {selectedVariant?.sku || 'N/A'}
+      </span>
+    </div>
 
-              <span>
-                {product.brand?.brandName || 'N/A'}
-              </span>
+    {/* EXPIRY DATE - ONLY FOR PERISHABLE PRODUCTS */}
+    {product.isPerishable && (
+      <div className="flex justify-between border-b py-2">
 
-            </div>
+        <b>Expiry Date</b>
 
+        <span className="font-semibold text-red-600">
+          {selectedVariant?.expiryDate
+            ? new Date(
+                `${selectedVariant.expiryDate}T00:00:00`
+              ).toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+              })
+            : 'N/A'}
+        </span>
 
-            <div className="flex justify-between border-b py-2">
+      </div>
+    )}
 
-              <b>Category</b>
+    {/* VARIANT OPTIONS */}
+    {selectedVariant?.options?.map(opt => (
 
-              <span>
-                {product.categoryName || 'N/A'}
-              </span>
+      <div
+        key={opt.optionId}
+        className="flex justify-between border-b py-2"
+      >
 
-            </div>
+        <b>{opt.variationName}</b>
 
+        <span>{opt.value}</span>
 
-            <div className="flex justify-between border-b py-2">
+      </div>
 
-              <b>SKU</b>
+    ))}
 
-              <span>
-                {selectedVariant?.sku || 'N/A'}
-              </span>
+  </div>
 
-            </div>
+  {/* CLICKABLE TAGS */}
+  {product.tags?.length > 0 && (
 
+    <>
 
-            {selectedVariant?.options?.map(opt => (
+      <h2 className="text-lg font-bold mb-2">
+        Tags
+      </h2>
 
-              <div
-                key={opt.optionId}
-                className="flex justify-between border-b py-2"
-              >
+      <div className="flex flex-wrap gap-2">
 
-                <b>
-                  {opt.variationName}
-                </b>
+        {product.tags.map(tag => (
 
-                <span>
-                  {opt.value}
-                </span>
+          <button
+            key={tag}
+            type="button"
+            onClick={() => handleTagClick(tag)}
+            className={`px-3 py-1.5 border rounded text-xs font-semibold cursor-pointer transition ${
+              selectedTag === tag
+                ? 'bg-primary text-white border-primary'
+                : 'bg-[#F8F6F1] border-border-subtle text-text-main hover:bg-primary hover:text-white hover:border-primary'
+            }`}
+          >
+            {tag}
+          </button>
 
-              </div>
+        ))}
 
-            ))}
+      </div>
 
-          </div>
+    </>
 
+  )}
 
-          {/* =========================
-              CLICKABLE TAGS
-          ========================= */}
+</section>
 
-          {product.tags?.length > 0 && (
-
-            <>
-
-              <h2 className="text-lg font-bold mb-2">
-                Tags
-              </h2>
-
-
-              <div className="flex flex-wrap gap-2">
-
-                {product.tags.map(tag => (
-
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() =>
-                      handleTagClick(tag)
-                    }
-                    className={`px-3 py-1.5 border rounded text-xs font-semibold cursor-pointer transition ${
-                      selectedTag === tag
-                        ? 'bg-primary text-white border-primary'
-                        : 'bg-[#F8F6F1] border-border-subtle text-text-main hover:bg-primary hover:text-white hover:border-primary'
-                    }`}
-                  >
-
-                    {tag}
-
-                  </button>
-
-                ))}
-
-              </div>
-
-            </>
-
-          )}
-
-        </section>
 
 
         {/* =========================

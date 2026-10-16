@@ -1,3 +1,4 @@
+
 export interface ProductListResponse {
   productId: number;
   productName: string;
@@ -38,6 +39,9 @@ export interface ProductVariantResponse {
   availableQuantity: number;
   stockStatus: string;
   options: VariantOptionResponse[];
+
+  // NEW: Expiry date from inventory
+  expiryDate: string | null;
 }
 
 export interface ProductDetailResponse {
@@ -51,6 +55,9 @@ export interface ProductDetailResponse {
   images: ProductImageResponse[];
   variants: ProductVariantResponse[];
   tags: string[];
+
+  // NEW: Whether the product is perishable
+  isPerishable: boolean;
 }
 
 export interface CategoryNodeResponse {
@@ -83,4 +90,3 @@ export interface PopularSearchResponse {
   keyword: string;
   totalCount: number;
 }
-
