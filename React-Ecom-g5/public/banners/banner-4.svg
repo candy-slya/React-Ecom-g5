@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b" />
+      <stop offset="50%" stop-color="#3730a3" />
+      <stop offset="100%" stop-color="#4f46e5" />
+    </linearGradient>
+    <linearGradient id="coralGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fb923c" />
+      <stop offset="100%" stop-color="#f97316" />
+    </linearGradient>
+    <filter id="glow4" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="30" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <rect width="1200" height="480" fill="url(#bg4)" rx="24" />
+
+  <circle cx="950" cy="220" r="190" fill="#818cf8" opacity="0.3" filter="url(#glow4)" />
+  <circle cx="800" cy="380" r="130" fill="#fb923c" opacity="0.25" filter="url(#glow4)" />
+  <circle cx="150" cy="150" r="140" fill="#6366f1" opacity="0.3" filter="url(#glow4)" />
+
+  <!-- Concentric Rings Accent -->
+  <circle cx="920" cy="240" r="170" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="8 8" opacity="0.15" />
+  <circle cx="920" cy="240" r="220" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="10 10" opacity="0.1" />
+
+  <!-- Left Content -->
+  <g transform="translate(80, 110)">
+    <rect x="0" y="0" width="180" height="34" rx="17" fill="url(#coralGrad)" />
+    <text x="90" y="22" fill="#ffffff" font-size="12" font-weight="900" letter-spacing="1.5" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif">MODERN LIVING</text>
+
+    <text x="0" y="85" fill="#ffffff" font-size="44" font-weight="900" font-family="system-ui, -apple-system, sans-serif">Home Essentials</text>
+    <text x="0" y="135" fill="url(#coralGrad)" font-size="44" font-weight="900" font-family="system-ui, -apple-system, sans-serif">&amp; Smart Comfort</text>
+
+    <text x="0" y="180" fill="#e0e7ff" font-size="16" font-family="system-ui, -apple-system, sans-serif">Transform your personal space with modern aesthetics and practical utilities.</text>
+
+    <rect x="0" y="215" width="165" height="46" rx="8" fill="#ffffff" />
+    <text x="82" y="244" fill="#312e81" font-size="14" font-weight="800" letter-spacing="1" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif">EXPLORE HOME →</text>
+  </g>
+
+  <!-- Right Visual Graphics -->
+  <g transform="translate(900, 240)">
+    <!-- Modern Lamp & Couch silhouette -->
+    <path d="M -70 80 L 70 80 C 70 80, 80 50, 70 30 L -70 30 C -80 50, -70 80, -70 80 Z" fill="#e0e7ff" opacity="0.9" />
+    <rect x="-60" y="-10" width="120" height="40" rx="10" fill="#c7d2fe" />
+    <!-- Pillow -->
+    <rect x="-40" y="5" width="35" height="25" rx="6" fill="#fb923c" />
+    <!-- Floating Star -->
+    <g transform="translate(65, -60)">
+      <circle cx="0" cy="0" r="40" fill="url(#coralGrad)" />
+      <text x="0" y="-4" fill="#ffffff" font-size="12" font-weight="900" text-anchor="middle" font-family="sans-serif">BEST</text>
+      <text x="0" y="14" fill="#ffffff" font-size="14" font-weight="900" text-anchor="middle" font-family="sans-serif">CHOICE</text>
+    </g>
+  </g>
+</svg>
