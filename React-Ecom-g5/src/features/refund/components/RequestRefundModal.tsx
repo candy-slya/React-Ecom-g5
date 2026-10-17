@@ -7,6 +7,11 @@ interface RequestRefundModalProps {
   productName: string;
   orderedQuantity: number;
   remainingRefundableQuantity: number;
+  deliveryInfo?: {
+    isDelivered: boolean;
+    isExpired: boolean;
+    ineligibleReason?: string;
+  };
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
@@ -26,6 +31,7 @@ export const RequestRefundModal: React.FC<RequestRefundModalProps> = ({
   productName,
   orderedQuantity,
   remainingRefundableQuantity,
+  deliveryInfo,
   isOpen,
   onClose,
   onSuccess,
@@ -37,8 +43,20 @@ export const RequestRefundModal: React.FC<RequestRefundModalProps> = ({
 
   if (!isOpen) return null;
 
+  const isBlocked = deliveryInfo ? (!deliveryInfo.isDelivered || deliveryInfo.isExpired) : false;
+  const blockedMessage = deliveryInfo?.ineligibleReason || 
+    (!deliveryInfo?.isDelivered 
+      ? 'Delivered ပြီးမှသာ Refund တောင်းဆိုနိုင်ပါသည်။ (Order must be delivered before refund)' 
+      : 'Refund တောင်းဆိုနိုင်သည့် ကာလ (၇ ရက်) ကျော်လွန်သွားပါပြီ။ (Refund period of 7 days has expired)');
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isBlocked) {
+      setError(blockedMessage);
+      return;
+    }
+
     if (quantity < 1 || quantity > remainingRefundableQuantity) {
       setError('Invalid quantity.');
       return;
@@ -74,6 +92,17 @@ export const RequestRefundModal: React.FC<RequestRefundModalProps> = ({
         </div>
         
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="p-3 bg-primary/5 text-text-main rounded-md text-xs border border-primary/20 space-y-0.5">
+            <span className="font-semibold text-primary">Refund Policy: </span>
+            <span className="text-text-muted">Refunds can only be requested after the order has been delivered, and must be submitted within 7 days of delivery.</span>
+          </div>
+
+          {isBlocked && (
+            <div className="p-3 bg-[#B42318]/10 text-[#B42318] rounded-md text-sm border border-[#B42318]/20 font-medium">
+              ⛔ {blockedMessage}
+            </div>
+          )}
+
           {error && (
             <div className="p-3 bg-[#B42318]/10 text-[#B42318] rounded-md text-sm border border-[#B42318]/20">
               {error}
@@ -108,8 +137,8 @@ export const RequestRefundModal: React.FC<RequestRefundModalProps> = ({
               value={quantity}
               onChange={(e) => setQuantity(Number(e.target.value))}
               required
-              disabled={loading}
-              className="w-full px-3 py-2 border border-border-subtle rounded-md focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+              disabled={loading || isBlocked}
+              className="w-full px-3 py-2 border border-border-subtle rounded-md focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary disabled:opacity-50"
             />
           </div>
 
@@ -122,8 +151,8 @@ export const RequestRefundModal: React.FC<RequestRefundModalProps> = ({
               value={reason}
               onChange={(e) => setReason(e.target.value as RefundReason)}
               required
-              disabled={loading}
-              className="w-full px-3 py-2 border border-border-subtle rounded-md focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+              disabled={loading || isBlocked}
+              className="w-full px-3 py-2 border border-border-subtle rounded-md focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary disabled:opacity-50"
             >
               {(Object.keys(REASON_LABELS) as RefundReason[]).map((r) => (
                 <option key={r} value={r}>
@@ -144,10 +173,10 @@ export const RequestRefundModal: React.FC<RequestRefundModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={loading}
-              className="px-4 py-2 bg-primary text-white font-bold rounded-md hover:bg-primary-hover transition-colors disabled:opacity-50 shadow-sm"
+              disabled={loading || isBlocked || remainingRefundableQuantity <= 0}
+              className="px-4 py-2 bg-primary text-white font-bold rounded-md hover:bg-primary-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
             >
-              {loading ? 'Submitting...' : 'Submit Request'}
+              {loading ? 'Submitting...' : isBlocked ? 'Refund Blocked' : 'Submit Request'}
             </button>
           </div>
         </form>

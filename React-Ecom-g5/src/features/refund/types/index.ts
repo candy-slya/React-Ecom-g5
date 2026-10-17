@@ -34,4 +34,6 @@ export interface RefundEligibilityDto {
   alreadyReservedRefundQuantity: number;
   remainingRefundableQuantity: number;
   canRequestRefund: boolean;
+  ineligibleReason?: string;
+  daysRemaining?: number;
 }
