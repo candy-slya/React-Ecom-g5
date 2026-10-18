@@ -7,29 +7,41 @@ import { GeometricPatternBanner } from '../../../components/common/GeometricPatt
 
 const BrandGridItem: React.FC<{ brand: BrandResponse; onClick: () => void }> = ({ brand, onClick }) => {
   const [hasError, setHasError] = useState(false);
+  const [isWide, setIsWide] = useState(false);
   const logoUrl = getAssetUrl(brand.brandLogoUrl);
   const showImage = Boolean(logoUrl) && !hasError;
+
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const { naturalWidth, naturalHeight } = e.currentTarget;
+    if (naturalWidth && naturalHeight) {
+      const ratio = naturalWidth / naturalHeight;
+      setIsWide(ratio > 1.35 || ratio < 0.65);
+    }
+  };
 
   return (
     <div
       onClick={onClick}
-      className="bg-white border border-border-subtle p-5 text-center cursor-pointer hover:-translate-y-[3px] hover:border-primary hover:shadow-[0_8px_20px_#0000000d] transition-all"
+      className="bg-white border border-border-subtle rounded-xl p-4 sm:p-5 text-center cursor-pointer hover:-translate-y-1 hover:border-primary hover:shadow-md transition-all flex flex-col items-center justify-between"
     >
-      <div className="w-[76px] h-[76px] mx-auto border border-border-subtle bg-accent-soft rounded-full flex items-center justify-center font-black text-xs mb-3 overflow-hidden p-2">
+      <div className={`w-24 h-24 sm:w-28 sm:h-28 mx-auto border-2 border-border-subtle bg-white rounded-full flex items-center justify-center font-black text-xs mb-3 overflow-hidden shadow-xs ${isWide ? 'p-2.5' : 'p-0'}`}>
         {showImage ? (
           <img
             src={logoUrl}
-            className="w-full h-full object-contain"
+            className={`w-full h-full rounded-full transition-all ${
+              isWide ? 'object-contain' : 'object-cover'
+            }`}
             alt={brand.brandName}
+            onLoad={handleImageLoad}
             onError={() => setHasError(true)}
           />
         ) : (
-          <span className="text-xs font-black text-text-main uppercase tracking-wider text-center line-clamp-2 px-1">
+          <span className="text-xs sm:text-sm font-black text-text-main uppercase tracking-wider text-center line-clamp-2 px-1">
             {brand.brandName}
           </span>
         )}
       </div>
-      <b className="text-sm block text-text-main">{brand.brandName}</b>
+      <b className="text-sm sm:text-base block text-text-main font-bold tracking-tight mt-1">{brand.brandName}</b>
     </div>
   );
 };
@@ -39,15 +51,31 @@ export const BrandListPage: React.FC = () => {
   const [brands, setBrands] = useState<BrandResponse[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Pagination States
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9; // တစ်မျက်နှာလျှင် ၉ ခု (၃ ခုတန်း ၃ တန်း)
+
   useEffect(() => {
     productApi.getActiveBrands().then(res => {
-      setBrands(res);
+      const sorted = [...res].sort((a, b) =>
+        (a.brandName || '').localeCompare(b.brandName || '', undefined, { sensitivity: 'base' })
+      );
+      setBrands(sorted);
       setLoading(false);
     }).catch((e: any) => {
       console.error(e);
       setLoading(false);
     });
   }, []);
+
+  const totalPages = Math.ceil(brands.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentBrands = brands.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="min-h-screen bg-page pb-12">
@@ -82,15 +110,58 @@ export const BrandListPage: React.FC = () => {
             No brands available.
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {brands.map(b => (
-              <BrandGridItem
-                key={b.brandId}
-                brand={b}
-                onClick={() => navigate(`/brands/${b.brandId}`)}
-              />
-            ))}
-          </div>
+          <>
+            {/* ၃ ခုတန်းစီ ပြရန် Grid ကို grid-cols-2 sm:grid-cols-3 သို့ ပြင်ဆင်ထားသည် */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6 lg:max-w-4xl lg:mx-auto">
+              {currentBrands.map(b => (
+                <BrandGridItem
+                  key={b.brandId}
+                  brand={b}
+                  onClick={() => navigate(`/brands/${b.brandId}`)}
+                />
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-12 flex items-center justify-center space-x-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 rounded-lg border border-border-subtle bg-white text-sm font-semibold text-text-main hover:bg-page hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  Previous
+                </button>
+                
+                <div className="flex space-x-1">
+                  {Array.from({ length: totalPages }).map((_, idx) => {
+                    const pageNum = idx + 1;
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => handlePageChange(pageNum)}
+                        className={`w-10 h-10 rounded-lg text-sm font-bold transition-colors ${
+                          currentPage === pageNum
+                            ? 'bg-primary text-white shadow-sm'
+                            : 'bg-white text-text-main border border-border-subtle hover:bg-page hover:text-primary'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 rounded-lg border border-border-subtle bg-white text-sm font-semibold text-text-main hover:bg-page hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

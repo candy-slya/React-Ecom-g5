@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#042f2e" />
+      <stop offset="50%" stop-color="#115e59" />
+      <stop offset="100%" stop-color="#0f766e" />
+    </linearGradient>
+    <linearGradient id="mintGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a7f3d0" />
+      <stop offset="50%" stop-color="#6ee7b7" />
+      <stop offset="100%" stop-color="#34d399" />
+    </linearGradient>
+    <filter id="glow3" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="30" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <rect width="1200" height="480" fill="url(#bg3)" rx="24" />
+
+  <circle cx="980" cy="190" r="180" fill="#2dd4bf" opacity="0.3" filter="url(#glow3)" />
+  <circle cx="780" cy="360" r="150" fill="#34d399" opacity="0.25" filter="url(#glow3)" />
+  <circle cx="200" cy="400" r="140" fill="#0d9488" opacity="0.4" filter="url(#glow3)" />
+
+  <!-- Botanical Leaf Background Motif -->
+  <g opacity="0.08" fill="#ffffff">
+    <ellipse cx="650" cy="100" rx="90" ry="160" transform="rotate(35 650 100)" />
+    <ellipse cx="780" cy="80" rx="80" ry="140" transform="rotate(-25 780 80)" />
+    <ellipse cx="1120" cy="380" rx="100" ry="170" transform="rotate(-40 1120 380)" />
+  </g>
+
+  <!-- Left Content -->
+  <g transform="translate(80, 110)">
+    <rect x="0" y="0" width="180" height="34" rx="17" fill="url(#mintGrad)" />
+    <text x="90" y="22" fill="#042f2e" font-size="12" font-weight="900" letter-spacing="1.5" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif">ORGANIC &amp; GLOW</text>
+
+    <text x="0" y="85" fill="#ffffff" font-size="44" font-weight="900" font-family="system-ui, -apple-system, sans-serif">Pure Beauty Care</text>
+    <text x="0" y="135" fill="url(#mintGrad)" font-size="44" font-weight="900" font-family="system-ui, -apple-system, sans-serif">&amp; Skin Essentials</text>
+
+    <text x="0" y="180" fill="#ccfbf1" font-size="16" font-family="system-ui, -apple-system, sans-serif">100% genuine skincare, cosmetics and gentle daily wellness brands.</text>
+
+    <rect x="0" y="215" width="165" height="46" rx="8" fill="#ffffff" />
+    <text x="82" y="244" fill="#0f766e" font-size="14" font-weight="800" letter-spacing="1" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif">DISCOVER MORE →</text>
+  </g>
+
+  <!-- Right Visual Graphics -->
+  <g transform="translate(880, 240)">
+    <!-- Serum / Lotion bottle silhouette -->
+    <rect x="-40" y="-80" width="80" height="150" rx="20" fill="#f0fdfa" opacity="0.9" />
+    <!-- Cap -->
+    <rect x="-20" y="-115" width="40" height="35" rx="6" fill="#14b8a6" />
+    <rect x="-10" y="-130" width="20" height="15" rx="3" fill="#0d9488" />
+    <!-- Droplet on bottle -->
+    <path d="M 0 -20 C 18 5, 20 25, 0 32 C -20 25, -18 5, 0 -20 Z" fill="#2dd4bf" opacity="0.75" />
+
+    <!-- Glow rings -->
+    <circle cx="0" cy="0" r="130" fill="none" stroke="#5eead4" stroke-width="2" stroke-dasharray="6 6" opacity="0.5" />
+
+    <!-- Eco Leaf Badge -->
+    <g transform="translate(75, -50)">
+      <circle cx="0" cy="0" r="38" fill="url(#mintGrad)" />
+      <text x="0" y="-2" fill="#042f2e" font-size="12" font-weight="900" text-anchor="middle" font-family="sans-serif">100%</text>
+      <text x="0" y="15" fill="#042f2e" font-size="13" font-weight="900" text-anchor="middle" font-family="sans-serif">PURE</text>
+    </g>
+  </g>
+</svg>

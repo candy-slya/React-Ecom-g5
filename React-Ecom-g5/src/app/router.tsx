@@ -23,6 +23,25 @@ import { RefundHistoryPage } from "../features/refund/pages/RefundHistoryPage";
 import { PolicyPage } from "../features/policy/pages/PolicyPage";
 
 export const router = createBrowserRouter([
+  /* ================================================================ */
+  /*  AUTH ROUTES — StorefrontLayout အပြင်ဘက် (Header/Footer မပါ)       */
+  /* ================================================================ */
+  {
+    path: "/login",
+    element: <LoginPage />,
+  },
+  {
+    path: "/register",
+    element: <RegisterPage />,
+  },
+  {
+    path: "/forgot-password",
+    element: <ForgotPasswordPage />,
+  },
+
+  /* ================================================================ */
+  /*  MAIN APP — StorefrontLayout အတွင်း (Header + Footer ပါ)          */
+  /* ================================================================ */
   {
     path: "/",
     element: <StorefrontLayout />,
@@ -88,18 +107,6 @@ export const router = createBrowserRouter([
         element: <RefundHistoryPage />,
       },
       {
-        path: "login",
-        element: <LoginPage />,
-      },
-      {
-        path: "register",
-        element: <RegisterPage />,
-      },
-      {
-        path: "forgot-password",
-        element: <ForgotPasswordPage />,
-      },
-      {
         path: "privacy-policy",
         element: <PolicyPage />,
       },
@@ -109,6 +116,10 @@ export const router = createBrowserRouter([
       },
     ],
   },
+
+  /* ================================================================ */
+  /*  MOCK / EXTERNAL PAGES — Layout မပါ                               */
+  /* ================================================================ */
   {
     path: "/mock-g3/:transactionRef",
     element: <MockG3Page />,

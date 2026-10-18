@@ -12,6 +12,10 @@ export const CategoryListPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedParentId, setSelectedParentId] = useState<number | 'ALL'>('ALL');
 
+  // --- Pagination States ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9; // တစ်မျက်နှာလျှင် ၉ ခုသာပြရန်
+
   useEffect(() => {
     productApi.getCategoryTree().then(res => {
       setCategories(res);
@@ -21,6 +25,11 @@ export const CategoryListPage: React.FC = () => {
       setLoading(false);
     });
   }, []);
+
+  // Search သို့မဟုတ် Category Filter ပြောင်းတိုင်း Page 1 သို့ ပြန်သွားရန်
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedParentId]);
 
   // Flatten categories into an organized list with parent information
   const flattenedCategories = useMemo(() => {
@@ -53,6 +62,14 @@ export const CategoryListPage: React.FC = () => {
       return matchesSearch && matchesParent;
     });
   }, [flattenedCategories, searchQuery, selectedParentId]);
+
+  // --- Pagination Logic ---
+  const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
+  
+  const paginatedCategories = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredCategories.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredCategories, currentPage]);
 
   return (
     <div className="min-h-screen bg-page pb-16">
@@ -155,16 +172,71 @@ export const CategoryListPage: React.FC = () => {
             <p className="text-xs text-slate-400 mt-1">Try searching with a different keyword or filter.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {filteredCategories.map(({ category, parentName }) => (
-              <CategoryCard
-                key={category.categoryId}
-                category={category}
-                parentCategoryName={parentName}
-                onClick={() => navigate(`/categories/${category.categoryId}`)}
-              />
-            ))}
-          </div>
+          <>
+            {/* Grid layout updated to show only 3 cards per row (md:grid-cols-3) */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
+              {paginatedCategories.map(({ category, parentName }) => (
+                <CategoryCard
+                  key={category.categoryId}
+                  category={category}
+                  parentCategoryName={parentName}
+                  onClick={() => navigate(`/categories/${category.categoryId}`)}
+                />
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-12 flex items-center justify-center space-x-2">
+                <button
+                  type="button"
+                  disabled={currentPage === 1}
+                  onClick={() => {
+                    setCurrentPage(prev => Math.max(prev - 1, 1));
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-4 py-2 rounded-lg border border-border-subtle bg-white text-sm font-semibold text-text-main hover:bg-page hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  Previous
+                </button>
+                
+                <div className="flex space-x-1">
+                  {Array.from({ length: totalPages }).map((_, idx) => {
+                    const pageNum = idx + 1;
+                    return (
+                      <button
+                        key={pageNum}
+                        type="button"
+                        onClick={() => {
+                          setCurrentPage(pageNum);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className={`w-10 h-10 rounded-lg text-sm font-bold transition-colors ${
+                          currentPage === pageNum
+                            ? 'bg-primary text-white shadow-sm'
+                            : 'bg-white text-text-main border border-border-subtle hover:bg-page hover:text-primary'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  type="button"
+                  disabled={currentPage === totalPages}
+                  onClick={() => {
+                    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-4 py-2 rounded-lg border border-border-subtle bg-white text-sm font-semibold text-text-main hover:bg-page hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

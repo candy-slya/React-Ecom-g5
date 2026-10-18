@@ -12,7 +12,7 @@ interface AddressFormModalProps {
 }
 
 export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onClose, onSubmit, initialData, title, showToast }) => {
-  const { regions = [], getCitiesForRegion, getTownshipsForCity, getZoneForLocation, loading: zonesLoading } = useDeliveryLocations();
+  const { regions = [], getCitiesForRegion, getTownshipsForCity, loading: zonesLoading } = useDeliveryLocations();
 
   const [formData, setFormData] = useState({
     label: '',
@@ -76,22 +76,33 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
     setFormData(prev => ({ ...prev, township: e.target.value }));
   };
 
+  const containsTownship = (text: string) => {
+    if (!text) return false;
+    return /\b(township|tsp)\b|မြို့နယ်/i.test(text);
+  };
+
+  const isLine1Invalid = containsTownship(formData.addressLine1);
+  const isLine2Invalid = containsTownship(formData.addressLine2);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // ဂဏန်း ၁၁ လုံးတိတိ ဟုတ်မဟုတ် စစ်ဆေးခြင်း
     if (!/^\d{11}$/.test(formData.phoneNumber)) {
       showToast("Phone number must be exactly 11 digits.", "error");
       return;
     }
 
-    setIsSubmitting(true);
-    
-    if (!getZoneForLocation(formData.city, formData.township)) {
-      showToast("Please select a currently supported Region, City and Township.", "error");
-      setIsSubmitting(false);
+    if (!formData.regionOrState || !formData.city || !formData.township) {
+      showToast("Please select Region, City and Township.", "error");
       return;
     }
+
+    if (isLine1Invalid || isLine2Invalid) {
+      showToast("Please do not include 'Township' or 'Tsp' in Address Line 1 or 2.", "error");
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
       await onSubmit(formData);
@@ -132,17 +143,17 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-sm font-medium text-text-main">Label (e.g. Home)*</label>
+                  <label className="block text-sm font-medium text-text-main">Label</label>
                   <input required type="text" name="label" value={formData.label} onChange={handleChange} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-sm font-medium text-text-main">Recipient Name*</label>
+                  <label className="block text-sm font-medium text-text-main">Recipient Name</label>
                   <input required type="text" name="recipientName" value={formData.recipientName} onChange={handleChange} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-text-main">Phone Number (11 Digits)*</label>
+                <label className="block text-sm font-medium text-text-main">Phone Number</label>
                 <input 
                   required 
                   type="text" 
@@ -150,23 +161,47 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
                   value={formData.phoneNumber} 
                   onChange={handlePhoneChange} 
                   placeholder="e.g. 09123456789" 
+                  maxLength={11}
                   className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" 
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-text-main">Address Line 1*</label>
-                <input required type="text" name="addressLine1" value={formData.addressLine1} onChange={handleChange} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
+                <label className="block text-sm font-medium text-text-main">Address Line 1</label>
+                <input 
+                  required 
+                  type="text" 
+                  name="addressLine1" 
+                  value={formData.addressLine1} 
+                  onChange={handleChange} 
+                  className={`mt-1 block w-full rounded-md border ${isLine1Invalid ? 'border-[#B42318] focus:border-[#B42318]' : 'border-border-subtle focus:border-primary'} bg-page px-3 py-2 text-sm focus:outline-none`} 
+                />
+                {isLine1Invalid && (
+                  <p className="text-xs text-[#B42318] mt-1 font-medium">
+                    Township is not allowed here. Please select it from the dropdown below.
+                  </p>
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-text-main">Address Line 2</label>
-                <input type="text" name="addressLine2" value={formData.addressLine2} onChange={handleChange} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" />
+                <input 
+                  type="text" 
+                  name="addressLine2" 
+                  value={formData.addressLine2} 
+                  onChange={handleChange} 
+                  className={`mt-1 block w-full rounded-md border ${isLine2Invalid ? 'border-[#B42318] focus:border-[#B42318]' : 'border-border-subtle focus:border-primary'} bg-page px-3 py-2 text-sm focus:outline-none`} 
+                />
+                {isLine2Invalid && (
+                  <p className="text-xs text-[#B42318] mt-1 font-medium">
+                    Township is not allowed here. Please select it from the dropdown below.
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-sm font-medium text-text-main">Region/State*</label>
+                  <label className="block text-sm font-medium text-text-main">Region/State</label>
                   <select required name="regionOrState" value={formData.regionOrState} onChange={handleRegionChange} disabled={zonesLoading || availableRegions.length === 0} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50">
                     <option value="" disabled>Select Region/State</option>
                     {availableRegions.map(region => (
@@ -178,7 +213,7 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
                 </div>
                 
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-sm font-medium text-text-main">City/District*</label>
+                  <label className="block text-sm font-medium text-text-main">City/District</label>
                   <select required name="city" value={formData.city} onChange={handleCityChange} disabled={zonesLoading || !formData.regionOrState || availableCities.length === 0} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50">
                     <option value="" disabled>Select City</option>
                     {availableCities.map(city => (
@@ -191,7 +226,7 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-text-main">Township*</label>
+                <label className="block text-sm font-medium text-text-main">Township</label>
                 <select required name="township" value={formData.township} onChange={handleTownshipChange} disabled={zonesLoading || !formData.city || availableTownships.length === 0} className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50">
                   <option value="" disabled>Select Township</option>
                   {availableTownships.map(township => (
