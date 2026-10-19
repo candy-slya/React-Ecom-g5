@@ -29,5 +29,26 @@ export const orderApi = {
 
     const response = await axiosClient.get(`/v1/orders?${query.toString()}`);
     return response.data;
+  },
+
+  downloadInvoicePdf: async (orderId: number | string): Promise<Blob> => {
+    const response = await axiosClient.get(`/v1/orders/${orderId}/invoice/pdf`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  downloadOrderHistoryPdf: async (params: GetMyOrdersParams = {}): Promise<Blob> => {
+    const { startDate, endDate, orderStatus, orderNo } = params;
+    const query = new URLSearchParams();
+    if (startDate) query.append('startDate', startDate);
+    if (endDate) query.append('endDate', endDate);
+    if (orderStatus) query.append('orderStatus', orderStatus);
+    if (orderNo) query.append('orderNo', orderNo);
+
+    const response = await axiosClient.get(`/v1/orders/report/pdf?${query.toString()}`, {
+      responseType: 'blob',
+    });
+    return response.data;
   }
 };

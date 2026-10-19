@@ -19,6 +19,7 @@ export const OrderHistoryPage: React.FC = () => {
 
   // Currently applied filters (for API calls and pagination)
   const [appliedFilters, setAppliedFilters] = useState<GetMyOrdersParams>({});
+  const [downloadingReport, setDownloadingReport] = useState(false);
 
   const navigate = useNavigate();
 
@@ -64,6 +65,38 @@ export const OrderHistoryPage: React.FC = () => {
     setDateError('');
     setAppliedFilters({});
     setCurrentPage(0);
+  };
+
+  const handleDownloadReportPdf = async () => {
+    try {
+      setDownloadingReport(true);
+      const blob = await orderApi.downloadOrderHistoryPdf(appliedFilters);
+      const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `order-history-report.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      console.error('Failed to download order history report PDF:', err);
+      let errMsg = 'Failed to download report PDF. Please try again.';
+      if (err?.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const parsed = JSON.parse(text);
+          errMsg = parsed.message || parsed.error || text;
+        } catch {
+          // not JSON
+        }
+      } else if (err?.response?.data?.message) {
+        errMsg = err.response.data.message;
+      }
+      alert(errMsg);
+    } finally {
+      setDownloadingReport(false);
+    }
   };
 
   const formatPrice = (amount: number) => {
@@ -166,13 +199,26 @@ export const OrderHistoryPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 print:mb-4">
           <h1 className="text-3xl font-bold tracking-tight text-text-main print:text-2xl">Customer Order History</h1>
           <button
-            onClick={() => window.print()}
-            className="mt-4 sm:mt-0 inline-flex items-center rounded-md bg-accent text-slate-950 px-4 py-2 text-sm font-bold shadow-sm hover:bg-accent-hover transition-colors print:hidden"
+            onClick={handleDownloadReportPdf}
+            disabled={downloadingReport}
+            className="mt-4 sm:mt-0 inline-flex items-center rounded-md bg-accent text-slate-950 px-4 py-2 text-sm font-bold shadow-sm hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed print:hidden cursor-pointer"
           >
-            <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-            </svg>
-            Print / Save PDF
+            {downloadingReport ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-slate-950" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                Downloading PDF...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                Print / Save PDF
+              </>
+            )}
           </button>
         </div>
 

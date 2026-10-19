@@ -22,6 +22,7 @@ export const ReceiptPage: React.FC = () => {
   const [order, setOrder] = useState<OrderDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -42,6 +43,39 @@ export const ReceiptPage: React.FC = () => {
 
     fetchOrder();
   }, [orderId]);
+
+  const handleDownloadPdf = async () => {
+    if (!orderId) return;
+    try {
+      setDownloading(true);
+      const blob = await orderApi.downloadInvoicePdf(orderId);
+      const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `invoice-${order?.orderNo || orderId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      console.error('Failed to download invoice PDF:', err);
+      let errMsg = 'Failed to download invoice PDF. Please try again.';
+      if (err.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const parsed = JSON.parse(text);
+          errMsg = parsed.message || parsed.error || text;
+        } catch {
+          // not json
+        }
+      } else if (err.response?.data?.message) {
+        errMsg = err.response.data.message;
+      }
+      alert(errMsg);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -85,10 +119,6 @@ export const ReceiptPage: React.FC = () => {
     );
   }
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   return (
     <div className="min-h-screen bg-page py-8 print:bg-white print:py-0 print:min-h-0 print:m-0">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 print:px-0 print:max-w-none">
@@ -106,13 +136,26 @@ export const ReceiptPage: React.FC = () => {
           </button>
           
           <button
-            onClick={handlePrint}
-            className="flex items-center px-4 py-2 bg-accent text-slate-950 font-bold rounded shadow-sm hover:bg-accent-hover transition-colors"
+            onClick={handleDownloadPdf}
+            disabled={downloading}
+            className="flex items-center px-4 py-2 bg-accent text-slate-950 font-bold rounded shadow-sm hover:bg-accent-hover transition-colors disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
           >
-            <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-            </svg>
-            Print Receipt
+            {downloading ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-slate-950" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Downloading...
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download Receipt
+              </>
+            )}
           </button>
         </div>
 
@@ -229,15 +272,8 @@ export const ReceiptPage: React.FC = () => {
                     </div>
                     
                     <div className="sm:col-span-2 text-right text-sm font-medium text-text-main flex justify-between sm:block">
-                      <span className="sm:hidden text-text-muted font-normal">Subtotal:</span>
-                      <div>
-                        {item.discountAmount > 0 && (
-                          <div className="text-xs text-[#B42318] mb-0.5 font-normal">
-                            -{formatPrice(item.discountAmount)}
-                          </div>
-                        )}
-                        <span>{formatPrice(item.subtotal)}</span>
-                      </div>
+                      <span className="sm:hidden text-text-muted font-normal">Total:</span>
+                      <span>{formatPrice(item.subtotal)}</span>
                     </div>
                     
                   </div>
@@ -252,18 +288,6 @@ export const ReceiptPage: React.FC = () => {
                 <div className="flex justify-between">
                   <span className="text-text-muted">Subtotal</span>
                   <span className="font-medium">{formatPrice(order.subtotalAmount)}</span>
-                </div>
-                
-                {order.discountAmount > 0 && (
-                  <div className="flex justify-between text-[#B42318]">
-                    <span>Discount</span>
-                    <span>-{formatPrice(order.discountAmount)}</span>
-                  </div>
-                )}
-                
-                <div className="flex justify-between">
-                  <span className="text-text-muted">Tax</span>
-                  <span className="font-medium">{formatPrice(order.taxAmount)}</span>
                 </div>
                 
                 <div className="flex justify-between">

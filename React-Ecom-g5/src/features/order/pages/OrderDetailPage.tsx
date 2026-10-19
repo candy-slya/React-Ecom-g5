@@ -10,13 +10,95 @@ import { refundApi } from '../../refund/api/refundApi';
 import type { RefundEligibilityDto } from '../../refund/types';
 import { RequestRefundModal } from '../../refund/components/RequestRefundModal';
 
-const OrderItemRow: React.FC<{ item: any, orderPaymentStatus: string }> = ({ item, orderPaymentStatus }) => {
+export interface OrderDeliveryInfo {
+  isDelivered: boolean;
+  deliveredAt: string | null;
+  isExpired: boolean;
+  daysRemaining: number;
+  ineligibleReason?: string;
+}
+
+const computeDeliveryInfo = (order: OrderDetailResponse | null): OrderDeliveryInfo => {
+  if (!order) {
+    return {
+      isDelivered: false,
+      deliveredAt: null,
+      isExpired: false,
+      daysRemaining: 0,
+      ineligibleReason: 'Order not found.',
+    };
+  }
+
+  // 1. Check if delivered
+  const orderIsDelivered = order.orderStatus === 'DELIVERED';
+  const deliveredShipment = order.shipments?.find(s => s.shipmentStatus === 'DELIVERED');
+  const hasDeliveredShipment = Boolean(deliveredShipment);
+
+  if (!orderIsDelivered && !hasDeliveredShipment) {
+    return {
+      isDelivered: false,
+      deliveredAt: null,
+      isExpired: false,
+      daysRemaining: 0,
+      ineligibleReason: 'Delivered ပြီးမှသာ Refund တောင်းဆိုနိုင်ပါသည်။ (Refund available after delivery)',
+    };
+  }
+
+  // 2. Resolve delivery timestamp
+  let deliveredAt: string | null = deliveredShipment?.deliveredAt || null;
+
+  if (!deliveredAt && order.statusHistory) {
+    const historyDelivered = [...order.statusHistory]
+      .reverse()
+      .find(h => h.newStatus === 'DELIVERED');
+    if (historyDelivered?.changedAt) {
+      deliveredAt = historyDelivered.changedAt;
+    }
+  }
+
+  if (!deliveredAt) {
+    deliveredAt = order.createdAt;
+  }
+
+  const deliveredDate = new Date(deliveredAt);
+  const now = new Date();
+  const diffTime = now.getTime() - deliveredDate.getTime();
+  const diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+  if (diffDays > 7) {
+    return {
+      isDelivered: true,
+      deliveredAt,
+      isExpired: true,
+      daysRemaining: 0,
+      ineligibleReason: 'Refund ကာလ (၇ ရက်) ကျော်လွန်သွားပါပြီ။ (Refund period of 7 days has expired)',
+    };
+  }
+
+  const remainingDays = Math.max(1, Math.ceil(7 - diffDays));
+
+  return {
+    isDelivered: true,
+    deliveredAt,
+    isExpired: false,
+    daysRemaining: remainingDays,
+  };
+};
+
+const OrderItemRow: React.FC<{
+  item: any;
+  orderPaymentStatus: string;
+  deliveryInfo: OrderDeliveryInfo;
+}> = ({ item, orderPaymentStatus, deliveryInfo }) => {
   const [eligibility, setEligibility] = useState<RefundEligibilityDto | null>(null);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
   const fetchEligibility = async () => {
-    if (orderPaymentStatus !== 'SUCCESS') return; // only fetch if eligible
+    // Only query backend if paid, delivered, and not expired
+    if (orderPaymentStatus !== 'SUCCESS' || !deliveryInfo.isDelivered || deliveryInfo.isExpired) {
+      return;
+    }
     setLoading(true);
     try {
       const data = await refundApi.getRefundEligibility(item.orderItemId);
@@ -30,7 +112,15 @@ const OrderItemRow: React.FC<{ item: any, orderPaymentStatus: string }> = ({ ite
 
   useEffect(() => {
     fetchEligibility();
-  }, [item.orderItemId, orderPaymentStatus]);
+  }, [item.orderItemId, orderPaymentStatus, deliveryInfo.isDelivered, deliveryInfo.isExpired]);
+
+  // Strict check: Refund can ONLY be requested if paid, delivered, within 7 days, and has remaining refundable quantity
+  const isAllowedToRefund = 
+    orderPaymentStatus === 'SUCCESS' &&
+    deliveryInfo.isDelivered &&
+    !deliveryInfo.isExpired &&
+    (eligibility ? eligibility.canRequestRefund : true) &&
+    (eligibility ? eligibility.remainingRefundableQuantity > 0 : true);
 
   return (
     <div className="flex flex-col sm:flex-row justify-between py-4 border-b border-gray-100 last:border-0 last:pb-0">
@@ -46,23 +136,41 @@ const OrderItemRow: React.FC<{ item: any, orderPaymentStatus: string }> = ({ ite
         </span>
         
         {/* Refund Status Display */}
-        {!loading && eligibility && (
-          <div className="mt-2 text-sm">
-            {eligibility.alreadyReservedRefundQuantity > 0 && (
-              <span className="text-[#B7791F] mr-3">
-                Refund Requested: {eligibility.alreadyReservedRefundQuantity}
-              </span>
-            )}
-            {eligibility.canRequestRefund && (
+        <div className="mt-2 text-sm flex flex-wrap items-center gap-2">
+          {eligibility && eligibility.alreadyReservedRefundQuantity > 0 && (
+            <span className="text-[#B7791F] font-medium mr-1">
+              Refund Requested: {eligibility.alreadyReservedRefundQuantity}
+            </span>
+          )}
+
+          {isAllowedToRefund ? (
+            <div className="inline-flex items-center gap-2">
               <button 
                 onClick={() => setModalOpen(true)}
-                className="text-primary hover:text-primary-hover font-medium underline underline-offset-2 transition-colors"
+                className="text-primary hover:text-primary-hover font-medium underline underline-offset-2 transition-colors cursor-pointer"
               >
-                Request Refund ({eligibility.remainingRefundableQuantity} available)
+                Request Refund ({eligibility?.remainingRefundableQuantity ?? item.qty} available)
               </button>
-            )}
-          </div>
-        )}
+              <span className="text-xs bg-primary/10 text-primary font-medium px-2 py-0.5 rounded-full">
+                {deliveryInfo.daysRemaining} {deliveryInfo.daysRemaining === 1 ? 'day' : 'days'} left
+              </span>
+            </div>
+          ) : (
+            <span className={`text-xs px-2.5 py-1 rounded-md border inline-flex items-center gap-1 font-medium ${
+              !deliveryInfo.isDelivered 
+                ? 'bg-amber-50 text-amber-800 border-amber-200' 
+                : deliveryInfo.isExpired 
+                ? 'bg-red-50 text-red-800 border-red-200'
+                : 'bg-page text-text-muted border-border-subtle'
+            }`}>
+              {!deliveryInfo.isDelivered
+                ? '⏳ Delivered ပြီးမှသာ Refund တောင်းဆိုနိုင်ပါသည်'
+                : deliveryInfo.isExpired
+                ? '⛔ Refund ကာလ (၇ ရက်) ကျော်လွန်သွားပါပြီ'
+                : eligibility?.ineligibleReason || 'Refund မရနိုင်ပါ'}
+            </span>
+          )}
+        </div>
       </div>
       
       <div className="sm:text-right mt-2 sm:mt-0 flex flex-col justify-end">
@@ -74,19 +182,22 @@ const OrderItemRow: React.FC<{ item: any, orderPaymentStatus: string }> = ({ ite
         <p className="font-bold text-text-main">{formatPrice(item.subtotal)}</p>
       </div>
 
-      {eligibility && (
-        <RequestRefundModal
-          orderItemId={item.orderItemId}
-          productName={item.productName}
-          orderedQuantity={item.qty}
-          remainingRefundableQuantity={eligibility.remainingRefundableQuantity}
-          isOpen={modalOpen}
-          onClose={() => setModalOpen(false)}
-          onSuccess={() => {
-            fetchEligibility();
-          }}
-        />
-      )}
+      <RequestRefundModal
+        orderItemId={item.orderItemId}
+        productName={item.productName}
+        orderedQuantity={item.qty}
+        remainingRefundableQuantity={eligibility?.remainingRefundableQuantity ?? item.qty}
+        deliveryInfo={{
+          isDelivered: deliveryInfo.isDelivered,
+          isExpired: deliveryInfo.isExpired,
+          ineligibleReason: deliveryInfo.ineligibleReason,
+        }}
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSuccess={() => {
+          fetchEligibility();
+        }}
+      />
     </div>
   );
 };
@@ -155,6 +266,8 @@ export const OrderDetailPage: React.FC = () => {
     );
   }
 
+  const deliveryInfo = computeDeliveryInfo(order);
+
   return (
     <div className="bg-page min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl">
@@ -213,6 +326,39 @@ export const OrderDetailPage: React.FC = () => {
             <ShipmentInformation shipments={order.shipments} />
           )}
 
+          {/* Refund Policy Status Alert */}
+          {!deliveryInfo.isDelivered ? (
+            <div className="p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg text-sm flex items-start gap-3 shadow-sm">
+              <span className="text-xl">📦</span>
+              <div>
+                <p className="font-bold text-amber-900">Refund မရရှိနိုင်သေးပါ (Refund Not Eligible)</p>
+                <p className="text-xs mt-1 text-amber-800 leading-relaxed">
+                  ဤအော်ဒါသည် Delivered မဖြစ်သေးသဖြင့် Refund တောင်းဆိုခွင့် မရရှိသေးပါ။ ပစ္စည်းရောက်ရှိပြီးမှသာ (၇) ရက်အတွင်း Refund စတင်တောင်းဆိုနိုင်မည်ဖြစ်ပါသည်။
+                </p>
+              </div>
+            </div>
+          ) : deliveryInfo.isExpired ? (
+            <div className="p-4 bg-red-50 border border-red-200 text-red-900 rounded-lg text-sm flex items-start gap-3 shadow-sm">
+              <span className="text-xl">⏰</span>
+              <div>
+                <p className="font-bold text-red-900">Refund ကာလ ကုန်ဆုံးသွားပါပြီ (Refund Period Expired)</p>
+                <p className="text-xs mt-1 text-red-800 leading-relaxed">
+                  ပစ္စည်းပို့ဆောင်ပြီးစီးသည့်နေ့မှစ၍ (၇) ရက် ကျော်လွန်သွားပြီဖြစ်သောကြောင့် ဤအော်ဒါအတွက် Refund တောင်းဆိုခွင့် ကုန်ဆုံးသွားပါပြီ။
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-lg text-sm flex items-start gap-3 shadow-sm">
+              <span className="text-xl">✅</span>
+              <div>
+                <p className="font-bold text-emerald-900">Refund တောင်းဆိုနိုင်ပါသည် ({deliveryInfo.daysRemaining} ရက် ကျန်ရှိ)</p>
+                <p className="text-xs mt-1 text-emerald-800 leading-relaxed">
+                  ပစ္စည်းရောက်ရှိပြီး (၇) ရက်အတွင်း အောက်ပါ item များအတွက် Refund တောင်းဆိုခွင့်ရှိပါသည်။
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Items Section */}
           <div className="rounded-lg border border-border-subtle bg-surface shadow-sm overflow-hidden">
             <div className="px-4 py-5 sm:px-6 border-b border-border-subtle">
@@ -221,7 +367,12 @@ export const OrderDetailPage: React.FC = () => {
             <div className="px-4 py-5 sm:p-6">
               <div className="space-y-4">
                 {order.items?.map((item) => (
-                  <OrderItemRow key={item.orderItemId} item={item} orderPaymentStatus={order.paymentStatus} />
+                  <OrderItemRow 
+                    key={item.orderItemId} 
+                    item={item} 
+                    orderPaymentStatus={order.paymentStatus} 
+                    deliveryInfo={deliveryInfo} 
+                  />
                 ))}
               </div>
             </div>

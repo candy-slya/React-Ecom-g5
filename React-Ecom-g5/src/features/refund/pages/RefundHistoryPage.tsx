@@ -63,9 +63,15 @@ export const RefundHistoryPage: React.FC = () => {
   return (
     <div className="bg-page min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl">
-        <h1 className="text-3xl font-bold tracking-tight text-text-main mb-8">
-          My Refunds
-        </h1>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+          <h1 className="text-3xl font-bold tracking-tight text-text-main">
+            My Refunds
+          </h1>
+          <div className="bg-primary/5 border border-primary/20 text-xs px-3 py-2 rounded-lg text-text-muted">
+            <span className="font-semibold text-primary">Policy Notice: </span>
+            Delivered ပြီးမှ (၇) ရက်အတွင်းသာ Refund တောင်းဆိုခွင့်ရှိပါသည်။
+          </div>
+        </div>
         
         {refunds.length === 0 ? (
           <div className="text-center py-12 bg-surface rounded-lg border border-border-subtle shadow-sm">
