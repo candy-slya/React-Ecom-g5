@@ -95,8 +95,8 @@ const OrderItemRow: React.FC<{
   const [modalOpen, setModalOpen] = useState(false);
 
   const fetchEligibility = async () => {
-    // Only query backend if paid, delivered, and not expired
-    if (orderPaymentStatus !== 'SUCCESS' || !deliveryInfo.isDelivered || deliveryInfo.isExpired) {
+    // Query backend if paid and delivered so we can show current refund status/quantities
+    if (orderPaymentStatus !== 'SUCCESS' || !deliveryInfo.isDelivered) {
       return;
     }
     setLoading(true);
@@ -112,7 +112,7 @@ const OrderItemRow: React.FC<{
 
   useEffect(() => {
     fetchEligibility();
-  }, [item.orderItemId, orderPaymentStatus, deliveryInfo.isDelivered, deliveryInfo.isExpired]);
+  }, [item.orderItemId, orderPaymentStatus, deliveryInfo.isDelivered]);
 
   // Strict check: Refund can ONLY be requested if paid, delivered, within 7 days, and has remaining refundable quantity
   const isAllowedToRefund = 
@@ -136,18 +136,48 @@ const OrderItemRow: React.FC<{
         </span>
         
         {/* Refund Status Display */}
-        <div className="mt-2 text-sm flex flex-wrap items-center gap-2">
-          {eligibility && eligibility.alreadyReservedRefundQuantity > 0 && (
-            <span className="text-[#B7791F] font-medium mr-1">
-              Refund Requested: {eligibility.alreadyReservedRefundQuantity}
-            </span>
+        <div className="mt-2 text-sm flex flex-col items-start gap-1.5">
+          {eligibility && (eligibility.alreadyReservedRefundQuantity > 0 || eligibility.refundStatus) && (
+            <div className="flex flex-col items-start gap-1">
+              {eligibility.alreadyReservedRefundQuantity > 0 && (
+                <span className="text-[#B7791F] font-semibold text-sm">
+                  Refund Requested: {eligibility.alreadyReservedRefundQuantity}
+                </span>
+              )}
+              {eligibility.refundStatus && (
+                <div>
+                  {eligibility.refundStatus === 'PENDING' && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-300">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                      Pending
+                    </span>
+                  )}
+                  {eligibility.refundStatus === 'APPROVED' && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Approved
+                    </span>
+                  )}
+                  {eligibility.refundStatus === 'REJECTED' && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-300">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      Rejected
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
           )}
 
-          {isAllowedToRefund ? (
-            <div className="inline-flex items-center gap-2">
+          {isAllowedToRefund && (
+            <div className="inline-flex items-center gap-2 mt-0.5">
               <button 
                 onClick={() => setModalOpen(true)}
-                className="text-primary hover:text-primary-hover font-medium underline underline-offset-2 transition-colors cursor-pointer"
+                className="text-primary hover:text-primary-hover font-medium underline underline-offset-2 transition-colors cursor-pointer text-sm"
               >
                 Request Refund ({eligibility?.remainingRefundableQuantity ?? item.qty} available)
               </button>
@@ -155,7 +185,9 @@ const OrderItemRow: React.FC<{
                 {deliveryInfo.daysRemaining} {deliveryInfo.daysRemaining === 1 ? 'day' : 'days'} left
               </span>
             </div>
-          ) : (
+          )}
+
+          {!isAllowedToRefund && (!eligibility || eligibility.alreadyReservedRefundQuantity === 0) && (
             <span className={`text-xs px-2.5 py-1 rounded-md border inline-flex items-center gap-1 font-medium ${
               !deliveryInfo.isDelivered 
                 ? 'bg-amber-50 text-amber-800 border-amber-200' 

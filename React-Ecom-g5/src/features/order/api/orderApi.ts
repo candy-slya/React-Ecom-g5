@@ -22,6 +22,7 @@ export const orderApi = {
     const query = new URLSearchParams();
     query.append('page', page.toString());
     query.append('size', size.toString());
+    query.append('sort', 'createdAt,desc');
     if (startDate) query.append('startDate', startDate);
     if (endDate) query.append('endDate', endDate);
     if (orderStatus) query.append('orderStatus', orderStatus);
