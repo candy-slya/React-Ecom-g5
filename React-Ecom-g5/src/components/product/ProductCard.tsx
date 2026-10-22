@@ -69,22 +69,31 @@ export const ProductCard = ({ product }: { product: ProductListResponse }) => {
         </h3>
         
         {/* Price & Stock Status (Bottom Layout) */}
-        <div className="flex items-end justify-between mt-auto">
-  <div>
-    <div className="text-[11px] text-slate-400 mb-0.5 font-medium">Price</div>
-    <div className="text-red-600 font-bold text-[17px]">
-      {product.startingPrice ? `${formattedPrice} MMK` : 'Price Varies'}
-    </div>
-  </div>
-  
-  <span className={`text-[10px] text-white font-bold px-2.5 py-1 rounded-full transition-colors ${
-    product.stockStatus === 'IN_STOCK' 
-      ? 'bg-emerald-500' 
-      : 'bg-rose-500'
-  }`}>
-    {product.stockStatus === 'IN_STOCK' ? 'In Stock' : 'Sold Out'}
-  </span>
-</div>
+        <div className="flex items-end justify-between mt-auto gap-2">
+          <div>
+            <div className="text-[11px] text-slate-400 mb-0.5 font-medium">Price</div>
+            {product.startingPrice ? (
+              <div className="flex flex-col">
+                <span className="text-red-600 font-bold text-[17px] leading-tight">
+                  {formattedPrice}
+                </span>
+                <span className="text-red-600 font-bold text-[12px] leading-tight">
+                  MMK
+                </span>
+              </div>
+            ) : (
+              <div className="text-red-600 font-bold text-[15px]">Price Varies</div>
+            )}
+          </div>
+          
+          <span className={`text-[10px] text-white font-bold px-2.5 py-1 rounded-full whitespace-nowrap shrink-0 transition-colors ${
+            product.stockStatus === 'IN_STOCK' 
+              ? 'bg-emerald-500' 
+              : 'bg-rose-500'
+          }`}>
+            {product.stockStatus === 'IN_STOCK' ? 'In Stock' : 'Sold Out'}
+          </span>
+        </div>
       </div>
     </article>
   );
