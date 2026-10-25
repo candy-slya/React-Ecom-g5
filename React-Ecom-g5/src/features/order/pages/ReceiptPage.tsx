@@ -24,12 +24,25 @@ export const ReceiptPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
 
+  const MAX_POLL_RETRIES = 5;
+  const [retries, setRetries] = useState(0);
+
   useEffect(() => {
+    let timerId: ReturnType<typeof setTimeout>;
+
     const fetchOrder = async () => {
       try {
         if (!orderId) return;
         const data = await orderApi.getOrderById(Number(orderId));
-        setOrder(data as unknown as OrderDetailResponse);
+        const orderData = data as unknown as OrderDetailResponse;
+        setOrder(orderData);
+
+        // If order is still PENDING, auto-retry every 2 seconds up to MAX_POLL_RETRIES
+        if (orderData.paymentStatus === 'PENDING' && retries < MAX_POLL_RETRIES) {
+          timerId = setTimeout(() => {
+            setRetries(prev => prev + 1);
+          }, 2000);
+        }
       } catch (err: any) {
         if (err?.response?.status === 404 || err?.response?.status === 401 || err?.response?.status === 403) {
           setError('Order not found or you do not have permission to view it.');
@@ -42,7 +55,11 @@ export const ReceiptPage: React.FC = () => {
     };
 
     fetchOrder();
-  }, [orderId]);
+
+    return () => {
+      if (timerId) clearTimeout(timerId);
+    };
+  }, [orderId, retries]);
 
   const handleDownloadPdf = async () => {
     if (!orderId) return;
@@ -77,7 +94,7 @@ export const ReceiptPage: React.FC = () => {
     }
   };
 
-  if (loading) {
+  if (loading && !order) {
     return (
       <div className="flex justify-center items-center min-h-[60vh] print:hidden">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -99,6 +116,47 @@ export const ReceiptPage: React.FC = () => {
     );
   }
 
+  // 1. While order payment is still PENDING and we are actively polling, show a smooth verifying indicator
+  if (order && order.paymentStatus === 'PENDING' && retries < MAX_POLL_RETRIES) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] print:hidden space-y-4">
+        <div className="text-center p-8 bg-surface rounded-lg border border-border-subtle shadow-sm max-w-md w-full">
+          <div className="flex justify-center mb-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+          <h2 className="text-xl font-bold text-text-main">Finalizing Payment...</h2>
+          <p className="mt-2 text-text-muted text-sm">
+            Confirming your transaction with the payment gateway. Your receipt will appear automatically.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. If polling timed out and status is still PENDING (rare delay)
+  if (order && order.paymentStatus === 'PENDING') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] print:hidden space-y-4">
+        <div className="text-center p-8 bg-surface rounded-lg border border-border-subtle shadow-sm max-w-md w-full">
+          <svg className="mx-auto h-12 w-12 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h2 className="mt-4 text-xl font-bold text-text-main">Payment Still Processing</h2>
+          <p className="mt-2 text-text-muted text-sm">
+            Payment confirmation is taking longer than usual. Please check your order details or refresh in a moment.
+          </p>
+          <button 
+            onClick={() => navigate(`/orders/${orderId}`)}
+            className="mt-6 w-full px-4 py-2 bg-primary text-white font-bold rounded shadow-sm hover:bg-primary-hover transition-colors"
+          >
+            Back to Order Details
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. For orders that are truly not paid/failed
   if (!order || (order.paymentStatus !== 'SUCCESS' && order.paymentStatus !== 'REFUNDED' && order.paymentStatus !== 'PARTIALLY_REFUNDED')) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] print:hidden space-y-4">
