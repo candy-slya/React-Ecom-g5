@@ -40,9 +40,20 @@ export interface ProductVariantResponse {
   stockStatus: string;
   options: VariantOptionResponse[];
 
-  // NEW: Expiry date from inventory
+  //Expiry date from inventory
   expiryDate: string | null;
+
+  //Images from product_variant_image table
+  images?: ProductVariantImageResponse[];
 }
+
+
+export interface ProductVariantImageResponse {
+  imageId: number;
+  imageUrl: string;
+  isPrimary: boolean;
+}
+
 
 export interface ProductDetailResponse {
   productId: number;

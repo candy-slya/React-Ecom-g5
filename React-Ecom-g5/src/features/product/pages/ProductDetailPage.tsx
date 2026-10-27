@@ -46,6 +46,8 @@ export const ProductDetailPage: React.FC = () => {
   const [activeImage, setActiveImage] =
     useState<string | null>(null);
 
+  const [showVariantImages, setShowVariantImages] = useState(false);
+
   const [quantity, setQuantity] = useState(1);
 
   const [toastMsg, setToastMsg] = useState('');
@@ -73,6 +75,7 @@ export const ProductDetailPage: React.FC = () => {
       .then(res => {
 
         setProduct(res);
+        setShowVariantImages(false);
 
         setSelectedVariant(
           res.variants[0] || null
@@ -214,6 +217,12 @@ export const ProductDetailPage: React.FC = () => {
 
   }
 
+
+  // Show original images until a variant is clicked.
+  const galleryImages =
+    showVariantImages && selectedVariant?.images?.length
+      ? selectedVariant.images
+      : product.images;
 
   /* =========================
      QUANTITY
@@ -425,7 +434,7 @@ export const ProductDetailPage: React.FC = () => {
 
             <div className="flex sm:flex-col gap-2 overflow-auto sm:w-20">
 
-              {product.images.map(img => {
+              {galleryImages.map(img => {
 
                 const fullUrl =
                   getAssetUrl(img.imageUrl);
@@ -615,6 +624,13 @@ export const ProductDetailPage: React.FC = () => {
 
                     setSelectedVariant(v);
                     setQuantity(1);
+                    setShowVariantImages(true);
+
+                    const images = v.images?.length
+                      ? v.images
+                      : product.images;
+                    const primaryImage = images.find(img => img.isPrimary) ?? images[0];
+                    setActiveImage(primaryImage ? getAssetUrl(primaryImage.imageUrl) : null);
 
                   }}
                   className={`border px-3 py-2 text-sm cursor-pointer ${
