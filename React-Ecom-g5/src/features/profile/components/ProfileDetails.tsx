@@ -21,35 +21,60 @@ export const ProfileDetails: React.FC<ProfileDetailsProps> = ({
   
   const [fullName, setFullName] = useState(initialFullName);
   const [phone, setPhone] = useState(initialPhone || '');
+  const [phoneTouched, setPhoneTouched] = useState(false);
 
   useEffect(() => {
     setFullName(initialFullName);
     setPhone(initialPhone || '');
+    setPhoneTouched(false);
   }, [initialFullName, initialPhone]);
 
   // ဂဏန်းသီးသန့်သာ လက်ခံမည့် Function
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const onlyNums = e.target.value.replace(/[^0-9]/g, '');
+    const onlyNums = e.target.value.replace(/[^0-9]/g, '').slice(0, 15);
     setPhone(onlyNums);
   };
 
   const handleStartEdit = () => {
     setFullName(initialFullName);
     setPhone(initialPhone || '');
+    setPhoneTouched(false);
     setIsEditing(true);
   };
 
   const handleCancel = () => {
     setFullName(initialFullName);
     setPhone(initialPhone || '');
+    setPhoneTouched(false);
     setIsEditing(false);
   };
+
+  const getPhoneError = () => {
+    const cleanPhone = phone.trim();
+    if (!cleanPhone) {
+      return phoneTouched ? 'ဖုန်းနံပတ် ထည့်ရန် လိုအပ်ပါသည်' : '';
+    }
+    if (cleanPhone.length < 11) {
+      return 'ဖုန်းနံပတ် ၁၁ လုံး မပြည့်သေးပါ';
+    }
+    if (cleanPhone.length > 11) {
+      return 'ဖုန်းနံပတ် ၁၁ လုံး ကျော်နေပါတယ်';
+    }
+    return '';
+  };
+
+  const phoneError = getPhoneError();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!/^\d{11}$/.test(phone)) {
-      showToast("Phone number must be exactly 11 digits.", "error");
+      setPhoneTouched(true);
+      if (phone.trim().length < 11) {
+        showToast("ဖုန်းနံပတ် ၁၁ လုံး မပြည့်သေးပါ။", "error");
+      } else {
+        showToast("ဖုန်းနံပတ် ၁၁ လုံး ကျော်နေပါသည်။", "error");
+      }
       return;
     }
 
@@ -112,9 +137,18 @@ export const ProfileDetails: React.FC<ProfileDetailsProps> = ({
             type="text" 
             value={phone} 
             onChange={handlePhoneChange} 
-            className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" 
-            placeholder="e.g. 09*********" 
+            onBlur={() => setPhoneTouched(true)}
+            maxLength={15}
+            className={`mt-1 block w-full rounded-md border ${
+              phoneError ? 'border-[#B42318] focus:border-[#B42318]' : 'border-border-subtle focus:border-primary'
+            } bg-page px-3 py-2 text-sm focus:outline-none`} 
+            placeholder="e.g. 09123456789" 
           />
+          {phoneError && (
+            <p className="text-xs text-[#B42318] mt-1 font-medium">
+              {phoneError}
+            </p>
+          )}
         </div>
         
         <div className="pt-4 flex justify-end gap-3 border-t border-border-subtle mt-6 pt-6">
