@@ -1,6 +1,6 @@
 import { BrandLogo } from './BrandLogo';
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link, useLocation } from 'react-router-dom';
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { logout } from '../../features/auth/store/authSlice';
@@ -13,6 +13,8 @@ import { getAssetUrl } from '../../utils/assetUtils';
 export const StorefrontHeader: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const pathname = location.pathname;
   const dispatch = useAppDispatch();
 
   const { isAuthenticated, customer } = useAppSelector((state) => state.auth);
@@ -264,6 +266,13 @@ export const StorefrontHeader: React.FC = () => {
     );
   };
 
+  const navItems = [
+    { label: 'HOME', to: '/', isActive: pathname === '/' },
+    { label: 'PRODUCTS', to: '/products', isActive: pathname.startsWith('/products') },
+    { label: 'CATEGORIES', to: '/categories', isActive: pathname.startsWith('/categories') },
+    { label: 'BRANDS', to: '/brands', isActive: pathname.startsWith('/brands') },
+  ];
+
   const handleLogout = () => {
     dispatch(logout());
     setIsAccountMenuOpen(false);
@@ -277,7 +286,11 @@ export const StorefrontHeader: React.FC = () => {
 
         <div className="flex items-center justify-between gap-4 md:gap-8 mb-4">
           <div className="flex-shrink-0">
-            <Link to="/" className="block focus:outline-none focus:ring-2 focus:ring-primary rounded" aria-label="6Sync Home">
+            <Link
+              to="/"
+              className="block outline-none focus:outline-none focus:ring-0 active:outline-none rounded-full"
+              aria-label="6Sync Home"
+            >
               <BrandLogo theme="light" />
             </Link>
           </div>
@@ -389,30 +402,28 @@ export const StorefrontHeader: React.FC = () => {
             {/* border border-[#EF4444] ထည့်သွင်းပြီး အနီရောင်ဘောင်သတ်မှတ်ထားပါသည် */}
             <div className="bg-[#FFFFFF] border border-[#EF4444] text-[#1E293B] rounded-lg shadow-sm">
               <ul className="flex h-10 justify-center items-center gap-6 px-4 text-sm font-bold tracking-wider">
-                <li>
-                  <Link to="/" className="relative px-5 py-2.5 rounded-full overflow-hidden group transition-all duration-200 active:scale-95 block">
-                    <span className="relative z-10 group-hover:text-[#FFFFFF]">HOME</span>
-                    <span className="absolute inset-0 bg-[#1589FF] rounded-full scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 ease-out z-0"></span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/products" className="relative px-5 py-2.5 rounded-full overflow-hidden group transition-all duration-200 active:scale-95 block">
-                    <span className="relative z-10 group-hover:text-[#FFFFFF]">PRODUCTS</span>
-                    <span className="absolute inset-0 bg-[#1589FF] rounded-full scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 ease-out z-0"></span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/categories" className="relative px-5 py-2.5 rounded-full overflow-hidden group transition-all duration-200 active:scale-95 block">
-                    <span className="relative z-10 group-hover:text-[#FFFFFF]">CATEGORIES</span>
-                    <span className="absolute inset-0 bg-[#1589FF] rounded-full scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 ease-out z-0"></span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/brands" className="relative px-5 py-2.5 rounded-full overflow-hidden group transition-all duration-200 active:scale-95 block">
-                    <span className="relative z-10 group-hover:text-[#FFFFFF]">BRANDS</span>
-                    <span className="absolute inset-0 bg-[#1589FF] rounded-full scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 ease-out z-0"></span>
-                  </Link>
-                </li>
+                {navItems.map((item) => (
+                  <li key={item.label}>
+                    <Link
+                      to={item.to}
+                      className={`relative px-5 py-1.5 rounded-full overflow-hidden group transition-all duration-200 active:scale-95 block outline-none focus:outline-none ${
+                        item.isActive
+                         ? 'bg-[#0A39A6] hover:bg-[#082d85] text-white shadow-xs' : 'text-[#1E293B]'
+                      }`}
+                    >
+                      <span
+                        className={`relative z-10 transition-colors duration-200 ${
+                          item.isActive ? 'text-white' : 'group-hover:text-white'
+                        }`}
+                      >
+                        {item.label}
+                      </span>
+                      {!item.isActive && (
+                        <span className="absolute inset-0 bg-[#1589FF] rounded-full scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 ease-out z-0"></span>
+                      )}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>

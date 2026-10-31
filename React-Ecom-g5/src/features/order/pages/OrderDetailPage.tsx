@@ -7,8 +7,8 @@ import { getOrderStatusBadge, getPaymentStatusBadge } from '../../../utils/statu
 import { OrderTimeline } from '../components/OrderTimeline';
 import { ShipmentInformation } from '../components/ShipmentInformation';
 import { refundApi } from '../../refund/api/refundApi';
-import type { RefundEligibilityDto } from '../../refund/types';
-import { RequestRefundModal } from '../../refund/components/RequestRefundModal';
+import type { RefundEligibilityDto, RefundResponseDto } from '../../refund/types';
+import { RequestRefundModal, type RefundableItemData } from '../../refund/components/RequestRefundModal';
 
 export interface OrderDeliveryInfo {
   isDelivered: boolean;
@@ -29,8 +29,9 @@ const computeDeliveryInfo = (order: OrderDetailResponse | null): OrderDeliveryIn
     };
   }
 
-  // 1. Check if delivered
-  const orderIsDelivered = order.orderStatus === 'DELIVERED';
+  // 1. Check if delivered (checks status, status history, shipments, and refunded state)
+  const hasDeliveredHistory = order.statusHistory?.some(h => h.newStatus === 'DELIVERED') ?? false;
+  const orderIsDelivered = order.orderStatus === 'DELIVERED' || order.orderStatus === 'REFUNDED' || hasDeliveredHistory;
   const deliveredShipment = order.shipments?.find(s => s.shipmentStatus === 'DELIVERED');
   const hasDeliveredShipment = Boolean(deliveredShipment);
 
@@ -87,40 +88,12 @@ const computeDeliveryInfo = (order: OrderDetailResponse | null): OrderDeliveryIn
 
 const OrderItemRow: React.FC<{
   item: any;
-  orderPaymentStatus: string;
-  deliveryInfo: OrderDeliveryInfo;
-}> = ({ item, orderPaymentStatus, deliveryInfo }) => {
-  const [eligibility, setEligibility] = useState<RefundEligibilityDto | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
-
-  const fetchEligibility = async () => {
-    // Query backend if paid and delivered so we can show current refund status/quantities
-    if (orderPaymentStatus !== 'SUCCESS' || !deliveryInfo.isDelivered) {
-      return;
-    }
-    setLoading(true);
-    try {
-      const data = await refundApi.getRefundEligibility(item.orderItemId);
-      setEligibility(data);
-    } catch (e) {
-      // fail safely
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchEligibility();
-  }, [item.orderItemId, orderPaymentStatus, deliveryInfo.isDelivered]);
-
-  // Strict check: Refund can ONLY be requested if paid, delivered, within 7 days, and has remaining refundable quantity
-  const isAllowedToRefund = 
-    orderPaymentStatus === 'SUCCESS' &&
-    deliveryInfo.isDelivered &&
-    !deliveryInfo.isExpired &&
-    (eligibility ? eligibility.canRequestRefund : true) &&
-    (eligibility ? eligibility.remainingRefundableQuantity > 0 : true);
+  eligibility?: RefundEligibilityDto;
+  existingRefund?: RefundResponseDto;
+}> = ({ item, eligibility, existingRefund }) => {
+  // Merge status and quantities from eligibility or existingRefund
+  const effectiveStatus = eligibility?.refundStatus || existingRefund?.status || null;
+  const effectiveReservedQty = eligibility?.alreadyReservedRefundQuantity ?? existingRefund?.requestedRefundQuantity ?? 0;
 
   return (
     <div className="flex flex-col sm:flex-row justify-between py-4 border-b border-gray-100 last:border-0 last:pb-0">
@@ -136,73 +109,43 @@ const OrderItemRow: React.FC<{
         </span>
         
         {/* Refund Status Display */}
-        <div className="mt-2 text-sm flex flex-col items-start gap-1.5">
-          {eligibility && (eligibility.alreadyReservedRefundQuantity > 0 || eligibility.refundStatus) && (
-            <div className="flex flex-col items-start gap-1">
-              {eligibility.alreadyReservedRefundQuantity > 0 && (
-                <span className="text-[#B7791F] font-semibold text-sm">
-                  Refund Requested: {eligibility.alreadyReservedRefundQuantity}
-                </span>
-              )}
-              {eligibility.refundStatus && (
-                <div>
-                  {eligibility.refundStatus === 'PENDING' && (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-300">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                      Pending
-                    </span>
-                  )}
-                  {eligibility.refundStatus === 'APPROVED' && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                      </svg>
-                      Approved
-                    </span>
-                  )}
-                  {eligibility.refundStatus === 'REJECTED' && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-300">
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                      Rejected
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {isAllowedToRefund && (
-            <div className="inline-flex items-center gap-2 mt-0.5">
-              <button 
-                onClick={() => setModalOpen(true)}
-                className="text-primary hover:text-primary-hover font-medium underline underline-offset-2 transition-colors cursor-pointer text-sm"
-              >
-                Request Refund ({eligibility?.remainingRefundableQuantity ?? item.qty} available)
-              </button>
-              <span className="text-xs bg-primary/10 text-primary font-medium px-2 py-0.5 rounded-full">
-                {deliveryInfo.daysRemaining} {deliveryInfo.daysRemaining === 1 ? 'day' : 'days'} left
+        {(effectiveReservedQty > 0 || effectiveStatus) && (
+          <div className="mt-2 text-sm flex flex-col items-start gap-1">
+            {effectiveReservedQty > 0 && (
+              <span className={`font-semibold text-sm ${effectiveStatus === 'APPROVED' ? 'text-emerald-700' : 'text-[#B7791F]'}`}>
+                {effectiveStatus === 'APPROVED'
+                  ? `Refund Approved: ${effectiveReservedQty}`
+                  : `Refund Requested: ${effectiveReservedQty}`}
               </span>
-            </div>
-          )}
-
-          {!isAllowedToRefund && (!eligibility || eligibility.alreadyReservedRefundQuantity === 0) && (
-            <span className={`text-xs px-2.5 py-1 rounded-md border inline-flex items-center gap-1 font-medium ${
-              !deliveryInfo.isDelivered 
-                ? 'bg-amber-50 text-amber-800 border-amber-200' 
-                : deliveryInfo.isExpired 
-                ? 'bg-red-50 text-red-800 border-red-200'
-                : 'bg-page text-text-muted border-border-subtle'
-            }`}>
-              {!deliveryInfo.isDelivered
-                ? '⏳ Delivered ပြီးမှသာ Refund တောင်းဆိုနိုင်ပါသည်'
-                : deliveryInfo.isExpired
-                ? '⛔ Refund ကာလ (၇ ရက်) ကျော်လွန်သွားပါပြီ'
-                : eligibility?.ineligibleReason || 'Refund မရနိုင်ပါ'}
-            </span>
-          )}
-        </div>
+            )}
+            {effectiveStatus && (
+              <div>
+                {effectiveStatus === 'PENDING' && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-300">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    Pending
+                  </span>
+                )}
+                {effectiveStatus === 'APPROVED' && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Approved
+                  </span>
+                )}
+                {effectiveStatus === 'REJECTED' && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-300">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Rejected
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
       
       <div className="sm:text-right mt-2 sm:mt-0 flex flex-col justify-end">
@@ -213,23 +156,6 @@ const OrderItemRow: React.FC<{
         )}
         <p className="font-bold text-text-main">{formatPrice(item.subtotal)}</p>
       </div>
-
-      <RequestRefundModal
-        orderItemId={item.orderItemId}
-        productName={item.productName}
-        orderedQuantity={item.qty}
-        remainingRefundableQuantity={eligibility?.remainingRefundableQuantity ?? item.qty}
-        deliveryInfo={{
-          isDelivered: deliveryInfo.isDelivered,
-          isExpired: deliveryInfo.isExpired,
-          ineligibleReason: deliveryInfo.ineligibleReason,
-        }}
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSuccess={() => {
-          fetchEligibility();
-        }}
-      />
     </div>
   );
 };
@@ -238,31 +164,55 @@ export const OrderDetailPage: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
   const [order, setOrder] = useState<OrderDetailResponse | null>(null);
+  const [myRefunds, setMyRefunds] = useState<RefundResponseDto[]>([]);
+  const [eligibilities, setEligibilities] = useState<Record<number, RefundEligibilityDto>>({});
+  const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchOrder = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        if (!orderId) throw new Error("Order ID is missing");
-        
-        // This will call the upgraded GET /v1/orders/{orderId} returning OrderDetailResponse
-        const data = await orderApi.getOrderById(orderId);
-        setOrder(data as unknown as OrderDetailResponse);
-      } catch (err: any) {
-        if (err?.response?.status === 404 || err?.response?.status === 401 || err?.response?.status === 403) {
-          setError('Order not found or you do not have permission to view it.');
-        } else {
-          setError(err?.response?.data?.message || 'Failed to fetch order details.');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchOrderAndRefunds = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      if (!orderId) throw new Error("Order ID is missing");
+      
+      // Load both order detail and customer refunds
+      const [orderData, refundsData] = await Promise.all([
+        orderApi.getOrderById(orderId),
+        refundApi.getMyRefunds().catch(() => [] as RefundResponseDto[])
+      ]);
+      const typedOrder = orderData as unknown as OrderDetailResponse;
+      setOrder(typedOrder);
+      setMyRefunds(refundsData);
 
-    fetchOrder();
+      // Fetch refund eligibility for all items in order
+      const eligMap: Record<number, RefundEligibilityDto> = {};
+      if (typedOrder.items && typedOrder.items.length > 0) {
+        await Promise.all(
+          typedOrder.items.map(async (item) => {
+            try {
+              const elig = await refundApi.getRefundEligibility(item.orderItemId);
+              eligMap[item.orderItemId] = elig;
+            } catch (e) {
+              // fallback gracefully
+            }
+          })
+        );
+      }
+      setEligibilities(eligMap);
+    } catch (err: any) {
+      if (err?.response?.status === 404 || err?.response?.status === 401 || err?.response?.status === 403) {
+        setError('Order not found or you do not have permission to view it.');
+      } else {
+        setError(err?.response?.data?.message || 'Failed to fetch order details.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrderAndRefunds();
   }, [orderId]);
 
   if (loading) {
@@ -299,6 +249,36 @@ export const OrderDetailPage: React.FC = () => {
   }
 
   const deliveryInfo = computeDeliveryInfo(order);
+  const hasApprovedRefunds = myRefunds.some(r => 
+    order.items?.some(i => i.orderItemId === r.orderItemId) && r.status === 'APPROVED'
+  );
+
+  // Compute refundable items
+  const isPaidForRefund = ['SUCCESS', 'PARTIALLY_REFUNDED'].includes(order.paymentStatus);
+  const refundableItems: RefundableItemData[] = (order.items || [])
+    .map((item) => {
+      const elig = eligibilities[item.orderItemId];
+      const existingRefund = myRefunds.find((r) => r.orderItemId === item.orderItemId);
+      const reservedQty = elig?.alreadyReservedRefundQuantity ?? existingRefund?.requestedRefundQuantity ?? 0;
+      const remainingRefundableQuantity = elig 
+        ? elig.remainingRefundableQuantity 
+        : Math.max(0, item.qty - reservedQty);
+
+      return {
+        orderItemId: item.orderItemId,
+        productName: item.productName,
+        variantAttributes: item.variantAttributes,
+        orderedQuantity: item.qty,
+        remainingRefundableQuantity,
+      };
+    })
+    .filter((item) => item.remainingRefundableQuantity > 0);
+
+  const canRequestRefund = 
+    isPaidForRefund &&
+    deliveryInfo.isDelivered &&
+    !deliveryInfo.isExpired &&
+    refundableItems.length > 0;
 
   return (
     <div className="bg-page min-h-screen py-12 px-4 sm:px-6 lg:px-8">
@@ -309,7 +289,7 @@ export const OrderDetailPage: React.FC = () => {
           <div>
             <button
               onClick={() => navigate('/orders')}
-              className="text-text-muted hover:text-primary transition-colors flex items-center mb-4 text-sm font-medium"
+              className="text-text-muted hover:text-primary transition-colors flex items-center mb-4 text-sm font-medium cursor-pointer"
             >
               <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -335,7 +315,7 @@ export const OrderDetailPage: React.FC = () => {
             {(order.paymentStatus === 'SUCCESS' || order.paymentStatus === 'REFUNDED' || order.paymentStatus === 'PARTIALLY_REFUNDED') && (
               <button
                 onClick={() => navigate(`/orders/${order.orderId}/receipt`)}
-                className="mt-2 inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-bold rounded shadow-sm hover:bg-primary-hover transition-colors"
+                className="mt-2 inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-bold rounded shadow-sm hover:bg-primary-hover transition-colors cursor-pointer"
               >
                 <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -359,7 +339,17 @@ export const OrderDetailPage: React.FC = () => {
           )}
 
           {/* Refund Policy Status Alert */}
-          {!deliveryInfo.isDelivered ? (
+          {hasApprovedRefunds ? (
+            <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-lg text-sm flex items-start gap-3 shadow-sm">
+              <span className="text-xl">🎉</span>
+              <div>
+                <p className="font-bold text-emerald-900">Refund အတည်ပြုပြီးပါပြီ (Refund Approved)</p>
+                <p className="text-xs mt-1 text-emerald-800 leading-relaxed">
+                  ဤအော်ဒါအတွက် Refund တောင်းဆိုမှုကို Admin မှ အတည်ပြု (Approved) ပေးထားပြီးဖြစ်ပါသည်။
+                </p>
+              </div>
+            </div>
+          ) : !deliveryInfo.isDelivered ? (
             <div className="p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg text-sm flex items-start gap-3 shadow-sm">
               <span className="text-xl">📦</span>
               <div>
@@ -393,8 +383,20 @@ export const OrderDetailPage: React.FC = () => {
 
           {/* Items Section */}
           <div className="rounded-lg border border-border-subtle bg-surface shadow-sm overflow-hidden">
-            <div className="px-4 py-5 sm:px-6 border-b border-border-subtle">
+            <div className="px-4 py-4 sm:px-6 border-b border-border-subtle flex items-center justify-between">
               <h3 className="text-lg font-bold text-text-main">Order Items</h3>
+              {canRequestRefund && (
+                <button
+                  type="button"
+                  onClick={() => setIsRefundModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#FF2D55] hover:bg-[#E11D48] text-white text-xs sm:text-sm font-semibold rounded-md shadow-sm transition-colors cursor-pointer"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
+                  </svg>
+                  Request Refund
+                </button>
+              )}
             </div>
             <div className="px-4 py-5 sm:p-6">
               <div className="space-y-4">
@@ -402,8 +404,8 @@ export const OrderDetailPage: React.FC = () => {
                   <OrderItemRow 
                     key={item.orderItemId} 
                     item={item} 
-                    orderPaymentStatus={order.paymentStatus} 
-                    deliveryInfo={deliveryInfo} 
+                    eligibility={eligibilities[item.orderItemId]}
+                    existingRefund={myRefunds.find(r => r.orderItemId === item.orderItemId)}
                   />
                 ))}
               </div>
@@ -509,6 +511,21 @@ export const OrderDetailPage: React.FC = () => {
 
         </div>
       </div>
+
+      {/* Global Request Refund Modal for Order Items */}
+      <RequestRefundModal
+        items={refundableItems}
+        deliveryInfo={{
+          isDelivered: deliveryInfo.isDelivered,
+          isExpired: deliveryInfo.isExpired,
+          ineligibleReason: deliveryInfo.ineligibleReason,
+        }}
+        isOpen={isRefundModalOpen}
+        onClose={() => setIsRefundModalOpen(false)}
+        onSuccess={() => {
+          fetchOrderAndRefunds();
+        }}
+      />
     </div>
   );
 };

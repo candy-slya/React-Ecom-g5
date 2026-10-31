@@ -361,6 +361,7 @@ const handleSelectVariant = (
 
   const handleBuyNow = async () => {
 
+
   if (!selectedVariant) {
     alert("Please select a variant before buying.");
     return;
@@ -374,37 +375,51 @@ const handleSelectVariant = (
   if (isBuyingNow) return;
 
   const req = {
-    variantId: selectedVariant.variantId,
-    quantity
-  };
+  variantId: selectedVariant.variantId,
+  quantity
+};
+
+await dispatch(
+  addAuthenticatedCartItem(req)
+).unwrap();
 
   // Your existing checkout logic stays here
+
+
+    if (
+      !selectedVariant ||
+      selectedVariant.availableQuantity <= 0 ||
+      isBuyingNow ||
+      quantity <= 0
+    ) return;
+
 
     try {
 
       setIsBuyingNow(true);
 
+      const buyNowUrl = `/checkout?mode=buy_now&variantId=${selectedVariant.variantId}&qty=${quantity}`;
+      const navigationState = {
+        checkoutMode: 'BUY_NOW',
+        buyNowItem: {
+          variantId: selectedVariant.variantId,
+          quantity
+        }
+      };
+
       if (isAuthenticated) {
 
-        await dispatch(
-          addAuthenticatedCartItem(req)
-        ).unwrap();
-
-        await dispatch(
-          fetchAuthenticatedCart()
-        );
-
-        navigate('/checkout');
+        navigate(buyNowUrl, {
+          state: navigationState
+        });
 
       } else {
 
-        dispatch(
-          addGuestItem(req)
-        );
-
-        navigate(
-          '/login?redirect=/checkout'
-        );
+        // For guest users, pass the BUY_NOW intent via navigation state and encoded URL to login.
+        // Guest cart is NOT polluted.
+        navigate(`/login?redirect=${encodeURIComponent(buyNowUrl)}`, {
+          state: navigationState
+        });
 
       }
 
