@@ -37,6 +37,7 @@ export const CheckoutPage: React.FC = () => {
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   
   const [addressMode, setAddressMode] = useState<'saved' | 'custom'>('saved');
+  const [phoneTouched, setPhoneTouched] = useState<boolean>(false);
   const [customAddress, setCustomAddress] = useState<CustomShippingAddressRequest>({
     recipientName: '',
     phoneNumber: '',
@@ -147,7 +148,7 @@ export const CheckoutPage: React.FC = () => {
   const handleCustomAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (name === 'phoneNumber') {
-      const onlyNums = value.replace(/[^0-9]/g, '').slice(0, 11);
+      const onlyNums = value.replace(/[^0-9]/g, '').slice(0, 15);
       setCustomAddress(prev => ({ ...prev, phoneNumber: onlyNums }));
       return;
     }
@@ -254,6 +255,22 @@ export const CheckoutPage: React.FC = () => {
   const isCustomLine1Invalid = containsTownship(customAddress.addressLine1);
   const isCustomLine2Invalid = containsTownship(customAddress.addressLine2);
 
+  const getPhoneError = () => {
+    const phone = customAddress.phoneNumber.trim();
+    if (!phone) {
+      return phoneTouched ? 'You need to enter your phone number' : '';
+    }
+    if (phone.length < 11) {
+      return 'The phone number is not complete with 11 digits yet';
+    }
+    if (phone.length > 11) {
+      return 'The phone bill has gone over 11 numbers.';
+    }
+    return '';
+  };
+
+  const phoneError = getPhoneError();
+
   const handlePlaceOrder = async () => {
     setOrderError(null);
 
@@ -264,6 +281,16 @@ export const CheckoutPage: React.FC = () => {
 
     if (addressMode === 'custom' && (isCustomLine1Invalid || isCustomLine2Invalid)) {
       setOrderError("Please do not include 'Township' or 'Tsp' in Address Line 1 or 2.");
+      return;
+    }
+
+    if (addressMode === 'custom' && !/^\d{11}$/.test(customAddress.phoneNumber.trim())) {
+      setPhoneTouched(true);
+      if (customAddress.phoneNumber.trim().length < 11) {
+        setOrderError("ဖုန်းနံပတ် ၁၁ လုံး မပြည့်သေးပါ");
+      } else {
+        setOrderError("ဖုန်းနံပတ် ၁၁ လုံး ကျော်နေပါတယ်");
+      }
       return;
     }
 
@@ -336,12 +363,12 @@ export const CheckoutPage: React.FC = () => {
                             !!customAddress.city.trim() &&
                             !!customAddress.township.trim();
   const isPlaceOrderDisabled = isSubmitting || 
-                               (addressMode === 'saved' && !selectedAddressId) || 
-                               (addressMode === 'custom' && (!isCustomFormValid || !quotedCustomLocation)) ||
-                               shippingLoading || 
-                               !!shippingError || 
-                               !shippingQuote || 
-                               currentCartItems.length === 0;
+                                (addressMode === 'saved' && !selectedAddressId) || 
+                                (addressMode === 'custom' && (!isCustomFormValid || !quotedCustomLocation)) ||
+                                shippingLoading || 
+                                !!shippingError || 
+                                !shippingQuote || 
+                                currentCartItems.length === 0;
 
   return (
     <div className="bg-page py-12">
@@ -418,10 +445,18 @@ export const CheckoutPage: React.FC = () => {
                           name="phoneNumber"
                           value={customAddress.phoneNumber}
                           onChange={handleCustomAddressChange}
+                          onBlur={() => setPhoneTouched(true)}
                           placeholder="e.g. 09123456789"
-                          maxLength={11}
-                          className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                          maxLength={15}
+                          className={`mt-1 block w-full rounded-md border ${
+                            phoneError ? 'border-[#B42318] focus:border-[#B42318]' : 'border-border-subtle focus:border-primary'
+                          } bg-page px-3 py-2 text-sm focus:outline-none`}
                         />
+                        {phoneError && (
+                          <p className="text-xs text-[#B42318] mt-1 font-medium">
+                            {phoneError}
+                          </p>
+                        )}
                       </div>
 
                       <div className="sm:col-span-2">
