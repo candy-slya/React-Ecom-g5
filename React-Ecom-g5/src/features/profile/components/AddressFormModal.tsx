@@ -27,9 +27,11 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
     isDefault: false
   });
   
+  const [phoneTouched, setPhoneTouched] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    setPhoneTouched(false);
     if (isOpen && initialData) {
       setFormData({
         label: initialData.label || '',
@@ -60,7 +62,7 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
 
   // ဂဏန်းသီးသန့်သာ လက်ခံမည့် Function
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const onlyNums = e.target.value.replace(/[^0-9]/g, '');
+    const onlyNums = e.target.value.replace(/[^0-9]/g, '').slice(0, 15);
     setFormData(prev => ({ ...prev, phoneNumber: onlyNums }));
   };
 
@@ -84,11 +86,32 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
   const isLine1Invalid = containsTownship(formData.addressLine1);
   const isLine2Invalid = containsTownship(formData.addressLine2);
 
+  const getPhoneError = () => {
+    const phone = formData.phoneNumber.trim();
+    if (!phone) {
+      return phoneTouched ? 'ဖုန်းနံပတ် ထည့်ရန် လိုအပ်ပါသည်' : '';
+    }
+    if (phone.length < 11) {
+      return 'ဖုန်းနံပတ် ၁၁ လုံး မပြည့်သေးပါ';
+    }
+    if (phone.length > 11) {
+      return 'ဖုန်းနံပတ် ၁၁ လုံး ကျော်နေပါတယ်';
+    }
+    return '';
+  };
+
+  const phoneError = getPhoneError();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!/^\d{11}$/.test(formData.phoneNumber)) {
-      showToast("Phone number must be exactly 11 digits.", "error");
+      setPhoneTouched(true);
+      if (formData.phoneNumber.trim().length < 11) {
+        showToast("ဖုန်းနံပတ် ၁၁ လုံး မပြည့်သေးပါ။", "error");
+      } else {
+        showToast("ဖုန်းနံပတ် ၁၁ လုံး ကျော်နေပါသည်။", "error");
+      }
       return;
     }
 
@@ -160,10 +183,18 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
                   name="phoneNumber" 
                   value={formData.phoneNumber} 
                   onChange={handlePhoneChange} 
+                  onBlur={() => setPhoneTouched(true)}
                   placeholder="e.g. 09123456789" 
-                  maxLength={11}
-                  className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none" 
+                  maxLength={15}
+                  className={`mt-1 block w-full rounded-md border ${
+                    phoneError ? 'border-[#B42318] focus:border-[#B42318]' : 'border-border-subtle focus:border-primary'
+                  } bg-page px-3 py-2 text-sm focus:outline-none`} 
                 />
+                {phoneError && (
+                  <p className="text-xs text-[#B42318] mt-1 font-medium">
+                    {phoneError}
+                  </p>
+                )}
               </div>
 
               <div>
