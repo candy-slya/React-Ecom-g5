@@ -321,39 +321,36 @@ export const ProductDetailPage: React.FC = () => {
     if (
       !selectedVariant ||
       selectedVariant.availableQuantity <= 0 ||
-      isBuyingNow
+      isBuyingNow ||
+      quantity <= 0
     ) return;
-
-    const req = {
-      variantId: selectedVariant.variantId,
-      quantity
-    };
 
     try {
 
       setIsBuyingNow(true);
 
+      const buyNowUrl = `/checkout?mode=buy_now&variantId=${selectedVariant.variantId}&qty=${quantity}`;
+      const navigationState = {
+        checkoutMode: 'BUY_NOW',
+        buyNowItem: {
+          variantId: selectedVariant.variantId,
+          quantity
+        }
+      };
+
       if (isAuthenticated) {
 
-        await dispatch(
-          addAuthenticatedCartItem(req)
-        ).unwrap();
-
-        await dispatch(
-          fetchAuthenticatedCart()
-        );
-
-        navigate('/checkout');
+        navigate(buyNowUrl, {
+          state: navigationState
+        });
 
       } else {
 
-        dispatch(
-          addGuestItem(req)
-        );
-
-        navigate(
-          '/login?redirect=/checkout'
-        );
+        // For guest users, pass the BUY_NOW intent via navigation state and encoded URL to login.
+        // Guest cart is NOT polluted.
+        navigate(`/login?redirect=${encodeURIComponent(buyNowUrl)}`, {
+          state: navigationState
+        });
 
       }
 
