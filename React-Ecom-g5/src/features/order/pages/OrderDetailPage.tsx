@@ -112,9 +112,17 @@ const OrderItemRow: React.FC<{
         {(effectiveReservedQty > 0 || effectiveStatus) && (
           <div className="mt-2 text-sm flex flex-col items-start gap-1">
             {effectiveReservedQty > 0 && (
-              <span className={`font-semibold text-sm ${effectiveStatus === 'APPROVED' ? 'text-emerald-700' : 'text-[#B7791F]'}`}>
+              <span className={`font-semibold text-sm ${
+                effectiveStatus === 'APPROVED' 
+                  ? 'text-emerald-700' 
+                  : effectiveStatus === 'REJECTED'
+                  ? 'text-red-700'
+                  : 'text-[#B7791F]'
+              }`}>
                 {effectiveStatus === 'APPROVED'
                   ? `Refund Approved: ${effectiveReservedQty}`
+                  : effectiveStatus === 'REJECTED'
+                  ? `Refund Rejected: ${effectiveReservedQty}`
                   : `Refund Requested: ${effectiveReservedQty}`}
               </span>
             )}
@@ -252,6 +260,12 @@ export const OrderDetailPage: React.FC = () => {
   const hasApprovedRefunds = myRefunds.some(r => 
     order.items?.some(i => i.orderItemId === r.orderItemId) && r.status === 'APPROVED'
   );
+  const hasRejectedRefunds = myRefunds.some(r => 
+    order.items?.some(i => i.orderItemId === r.orderItemId) && r.status === 'REJECTED'
+  );
+  const hasPendingRefunds = myRefunds.some(r => 
+    order.items?.some(i => i.orderItemId === r.orderItemId) && r.status === 'PENDING'
+  );
 
   // Compute refundable items
   const isPaidForRefund = ['SUCCESS', 'PARTIALLY_REFUNDED'].includes(order.paymentStatus);
@@ -259,10 +273,19 @@ export const OrderDetailPage: React.FC = () => {
     .map((item) => {
       const elig = eligibilities[item.orderItemId];
       const existingRefund = myRefunds.find((r) => r.orderItemId === item.orderItemId);
+      const isRejected = elig?.refundStatus === 'REJECTED' || existingRefund?.status === 'REJECTED';
+      const isApproved = elig?.refundStatus === 'APPROVED' || existingRefund?.status === 'APPROVED';
+      const isPending = elig?.refundStatus === 'PENDING' || existingRefund?.status === 'PENDING';
+
       const reservedQty = elig?.alreadyReservedRefundQuantity ?? existingRefund?.requestedRefundQuantity ?? 0;
-      const remainingRefundableQuantity = elig 
+      let remainingRefundableQuantity = elig 
         ? elig.remainingRefundableQuantity 
         : Math.max(0, item.qty - reservedQty);
+
+      // If rejected, approved, pending, or ineligible: do not allow requesting refund again
+      if (isRejected || isApproved || isPending || (elig && !elig.canRequestRefund)) {
+        remainingRefundableQuantity = 0;
+      }
 
       return {
         orderItemId: item.orderItemId,
@@ -346,6 +369,26 @@ export const OrderDetailPage: React.FC = () => {
                 <p className="font-bold text-emerald-900">Refund အတည်ပြုပြီးပါပြီ (Refund Approved)</p>
                 <p className="text-xs mt-1 text-emerald-800 leading-relaxed">
                   ဤအော်ဒါအတွက် Refund တောင်းဆိုမှုကို Admin မှ အတည်ပြု (Approved) ပေးထားပြီးဖြစ်ပါသည်။
+                </p>
+              </div>
+            </div>
+          ) : (refundableItems.length === 0 && hasRejectedRefunds) ? (
+            <div className="p-4 bg-red-50 border border-red-200 text-red-900 rounded-lg text-sm flex items-start gap-3 shadow-sm">
+              <span className="text-xl">❌</span>
+              <div>
+                <p className="font-bold text-red-900">Refund ပယ်ချထားပါသည် (Refund Rejected)</p>
+                <p className="text-xs mt-1 text-red-800 leading-relaxed">
+                  ဤအော်ဒါအတွက် Refund တောင်းဆိုမှုကို Admin/Inventory မှ ပယ်ချ (Rejected) ထားပြီးဖြစ်သဖြင့် ထပ်မံ၍ Refund တောင်းဆို၍ မရနိုင်တော့ပါ။
+                </p>
+              </div>
+            </div>
+          ) : (refundableItems.length === 0 && hasPendingRefunds) ? (
+            <div className="p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg text-sm flex items-start gap-3 shadow-sm">
+              <span className="text-xl">⏳</span>
+              <div>
+                <p className="font-bold text-amber-900">Refund စိစစ်ဆဲဖြစ်ပါသည် (Refund Under Review)</p>
+                <p className="text-xs mt-1 text-amber-800 leading-relaxed">
+                  ဤအော်ဒါအတွက် Refund တောင်းဆိုထားမှုကို Admin/Inventory မှ စိစစ်လျက်ရှိပါသည်။
                 </p>
               </div>
             </div>
