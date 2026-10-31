@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAppDispatch } from "../../../hooks/useAppDispatch";
 import { useAppSelector } from "../../../hooks/useAppSelector";
 import { login, clearError } from "../store/authSlice";
@@ -162,17 +162,103 @@ export const LoginPage: React.FC = () => {
   const [mergeWarning, setMergeWarning] = useState("");
 
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useAppDispatch();
   const { isAuthenticated, loading, error, isInitializing } = useAppSelector(
     (state) => state.auth,
   );
   const { guestItems } = useAppSelector((state) => state.cart);
 
+  const handlePostLoginNavigation = useCallback(() => {
+    const params = new URLSearchParams(location.search);
+    const redirect = params.get("redirect");
+    const isSafe =
+      redirect &&
+      redirect.startsWith("/") &&
+      !redirect.startsWith("//") &&
+      !redirect.includes(":") &&
+      !redirect.includes("\\");
+
+    const state = location.state as {
+      checkoutMode?: string;
+      buyNowItem?: { variantId?: number; quantity?: number };
+    } | null;
+
+    if (isSafe && redirect) {
+      try {
+        const dummyBase = "http://localhost";
+        const parsed = new URL(redirect, dummyBase);
+
+        // Case 1: URL contains BUY_NOW query parameters
+        if (parsed.pathname === "/checkout" && parsed.searchParams.get("mode") === "buy_now") {
+          const varId = Number(parsed.searchParams.get("variantId"));
+          const qty = Number(parsed.searchParams.get("qty"));
+          const hasValidParams = Number.isInteger(varId) && varId > 0 && Number.isInteger(qty) && qty > 0;
+
+          const forwardState = (
+            state?.checkoutMode === "BUY_NOW" &&
+            typeof state.buyNowItem?.variantId === "number" &&
+            state.buyNowItem.variantId > 0 &&
+            typeof state.buyNowItem?.quantity === "number" &&
+            state.buyNowItem.quantity > 0
+          ) ? {
+            checkoutMode: "BUY_NOW",
+            buyNowItem: {
+              variantId: state.buyNowItem.variantId,
+              quantity: state.buyNowItem.quantity,
+            },
+          } : hasValidParams ? {
+            checkoutMode: "BUY_NOW",
+            buyNowItem: {
+              variantId: varId,
+              quantity: qty,
+            },
+          } : undefined;
+
+          navigate(redirect, { replace: true, state: forwardState });
+          return;
+        }
+
+        // Case 2: Legacy state-only BUY_NOW redirect (/checkout with state)
+        if (
+          parsed.pathname === "/checkout" &&
+          state?.checkoutMode === "BUY_NOW" &&
+          typeof state.buyNowItem?.variantId === "number" &&
+          state.buyNowItem.variantId > 0 &&
+          typeof state.buyNowItem?.quantity === "number" &&
+          state.buyNowItem.quantity > 0
+        ) {
+          const upgradedUrl = `/checkout?mode=buy_now&variantId=${state.buyNowItem.variantId}&qty=${state.buyNowItem.quantity}`;
+          navigate(upgradedUrl, {
+            replace: true,
+            state: {
+              checkoutMode: "BUY_NOW",
+              buyNowItem: {
+                variantId: state.buyNowItem.variantId,
+                quantity: state.buyNowItem.quantity,
+              },
+            },
+          });
+          return;
+        }
+
+        // Case 3: Other safe internal redirect
+        navigate(redirect, { replace: true });
+        return;
+      } catch {
+        navigate(redirect, { replace: true });
+        return;
+      }
+    }
+
+    navigate("/products", { replace: true });
+  }, [location.search, location.state, navigate]);
+
   useEffect(() => {
     if (!isInitializing && isAuthenticated) {
-      navigate("/products", { replace: true });
+      handlePostLoginNavigation();
     }
-  }, [isInitializing, isAuthenticated, navigate]);
+  }, [isInitializing, isAuthenticated, handlePostLoginNavigation]);
 
   useEffect(() => {
     return () => {
@@ -224,7 +310,7 @@ export const LoginPage: React.FC = () => {
         dispatch(fetchAuthenticatedCart());
       }
 
-      navigate("/products");
+      handlePostLoginNavigation();
     } catch (err) {
       // login rejected
     }

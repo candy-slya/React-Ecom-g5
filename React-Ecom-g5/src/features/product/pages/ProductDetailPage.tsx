@@ -46,7 +46,7 @@ export const ProductDetailPage: React.FC = () => {
   const [activeImage, setActiveImage] =
     useState<string | null>(null);
 
-  const [showVariantImages, setShowVariantImages] = useState(false);
+  
 
   const [quantity, setQuantity] = useState(1);
 
@@ -73,27 +73,24 @@ export const ProductDetailPage: React.FC = () => {
     productApi
       .getProductDetail(Number(productId))
       .then(res => {
+  setProduct(res);
 
-        setProduct(res);
-        setShowVariantImages(false);
+  // Default product images mode
+  setSelectedVariant(null);
 
-        setSelectedVariant(
-          res.variants[0] || null
-        );
+  const primaryImage =
+    res.images.find(img => img.isPrimary) ??
+    res.images[0];
 
-        const rawImg =
-          res.images.find(img => img.isPrimary)?.imageUrl ||
-          res.images[0]?.imageUrl ||
-          null;
+  setActiveImage(
+    primaryImage
+      ? getAssetUrl(primaryImage.imageUrl)
+      : null
+  );
 
-        setActiveImage(
-          rawImg ? getAssetUrl(rawImg) : null
-        );
-
-        setQuantity(1);
-        setLoading(false);
-
-      })
+  setQuantity(1);
+  setLoading(false);
+})
       .catch(e => {
 
         console.error(e);
@@ -218,12 +215,50 @@ export const ProductDetailPage: React.FC = () => {
   }
 
 
-  // Show original images until a variant is clicked.
-  const galleryImages =
-    showVariantImages && selectedVariant?.images?.length
-      ? selectedVariant.images
+ // Original product images when no variant is selected
+const galleryImages =
+  selectedVariant?.images?.length
+    ? selectedVariant.images
+    : product.images;
+
+// Return to original product images
+const handleShowOriginalImages = () => {
+  setSelectedVariant(null);
+  setQuantity(1);
+
+  const primaryImage =
+    product.images.find(img => img.isPrimary) ??
+    product.images[0];
+
+  setActiveImage(
+    primaryImage
+      ? getAssetUrl(primaryImage.imageUrl)
+      : null
+  );
+};
+
+// Select variant and change gallery
+const handleSelectVariant = (
+  variant: ProductVariantResponse
+) => {
+  setSelectedVariant(variant);
+  setQuantity(1);
+
+  const images =
+    variant.images?.length
+      ? variant.images
       : product.images;
 
+  const primaryImage =
+    images.find(img => img.isPrimary) ??
+    images[0];
+
+  setActiveImage(
+    primaryImage
+      ? getAssetUrl(primaryImage.imageUrl)
+      : null
+  );
+};
   /* =========================
      QUANTITY
   ========================= */
@@ -251,18 +286,26 @@ export const ProductDetailPage: React.FC = () => {
      ADD TO CART
   ========================= */
 
-  const handleAddToCart = async () => {
+ const handleAddToCart = async () => {
 
-    if (
-      !selectedVariant ||
-      selectedVariant.availableQuantity <= 0 ||
-      isAddingCart
-    ) return;
+  if (!selectedVariant) {
+    alert("Please select a variant before adding to cart.");
+    return;
+  }
 
-    const req = {
-      variantId: selectedVariant.variantId,
-      quantity
-    };
+  if (selectedVariant.availableQuantity <= 0) {
+    alert("This variant is currently out of stock.");
+    return;
+  }
+
+  if (isAddingCart) return;
+
+  const req = {
+    variantId: selectedVariant.variantId,
+    quantity
+  };
+
+  // Your existing try/catch and Redux code stays here
 
     try {
 
@@ -318,42 +361,65 @@ export const ProductDetailPage: React.FC = () => {
 
   const handleBuyNow = async () => {
 
+
+  if (!selectedVariant) {
+    alert("Please select a variant before buying.");
+    return;
+  }
+
+  if (selectedVariant.availableQuantity <= 0) {
+    alert("This variant is currently out of stock.");
+    return;
+  }
+
+  if (isBuyingNow) return;
+
+  const req = {
+  variantId: selectedVariant.variantId,
+  quantity
+};
+
+await dispatch(
+  addAuthenticatedCartItem(req)
+).unwrap();
+
+  // Your existing checkout logic stays here
+
+
     if (
       !selectedVariant ||
       selectedVariant.availableQuantity <= 0 ||
-      isBuyingNow
+      isBuyingNow ||
+      quantity <= 0
     ) return;
 
-    const req = {
-      variantId: selectedVariant.variantId,
-      quantity
-    };
 
     try {
 
       setIsBuyingNow(true);
 
+      const buyNowUrl = `/checkout?mode=buy_now&variantId=${selectedVariant.variantId}&qty=${quantity}`;
+      const navigationState = {
+        checkoutMode: 'BUY_NOW',
+        buyNowItem: {
+          variantId: selectedVariant.variantId,
+          quantity
+        }
+      };
+
       if (isAuthenticated) {
 
-        await dispatch(
-          addAuthenticatedCartItem(req)
-        ).unwrap();
-
-        await dispatch(
-          fetchAuthenticatedCart()
-        );
-
-        navigate('/checkout');
+        navigate(buyNowUrl, {
+          state: navigationState
+        });
 
       } else {
 
-        dispatch(
-          addGuestItem(req)
-        );
-
-        navigate(
-          '/login?redirect=/checkout'
-        );
+        // For guest users, pass the BUY_NOW intent via navigation state and encoded URL to login.
+        // Guest cart is NOT polluted.
+        navigate(`/login?redirect=${encodeURIComponent(buyNowUrl)}`, {
+          state: navigationState
+        });
 
       }
 
@@ -374,13 +440,37 @@ export const ProductDetailPage: React.FC = () => {
   };
 
 
-  const effectivePrice =
-    selectedVariant
-      ? (
-          selectedVariant.discountPrice ??
-          selectedVariant.sellingPrice
-        )
-      : null;
+      const variantPrices = product.variants
+  .map(v => Number(v.discountPrice ?? v.sellingPrice))
+  .filter(price => Number.isFinite(price) && price >= 0);
+
+const minPrice = variantPrices.length
+  ? Math.min(...variantPrices)
+  : null;
+
+const maxPrice = variantPrices.length
+  ? Math.max(...variantPrices)
+  : null;
+
+const formatPrice = (price: number) =>
+  price.toLocaleString('en-US');
+
+const displayPrice = selectedVariant
+  ? `${formatPrice(
+      Number(selectedVariant.discountPrice ?? selectedVariant.sellingPrice)
+    )} MMK`
+  : minPrice !== null && maxPrice !== null
+    ? minPrice === maxPrice
+      ? `${formatPrice(minPrice)} MMK`
+      : `${formatPrice(minPrice)} – ${formatPrice(maxPrice)} MMK`
+    : 'Price unavailable';
+
+      // Expiry date for perishable products
+const displayExpiryDate = product.isPerishable
+  ? selectedVariant
+    ? selectedVariant.expiryDate
+    : product.variants.find(v => v.expiryDate)?.expiryDate
+  : null;
 
 
   const inStock =
@@ -423,101 +513,102 @@ export const ProductDetailPage: React.FC = () => {
         <div className="flex flex-col lg:flex-row gap-8 bg-white border p-6 rounded mb-8">
 
 
-          {/* =========================
-              GALLERY
-          ========================= */}
+                    
+{/* =========================
+    GALLERY
+========================= */}
 
-          <div className="flex flex-col sm:flex-row gap-4 lg:w-1/2">
+<div className="flex flex-col gap-3 lg:w-1/2 min-w-0">
 
+  {/* Gallery Header */}
+  <div className="flex flex-wrap items-center justify-between gap-2">
 
-            {/* Thumbnails */}
+    <span className="text-sm font-semibold text-slate-700">
+      {selectedVariant
+        ? "Selected Variant Images"
+        : "Original Product Images"}
+    </span>
 
-            <div className="flex sm:flex-col gap-2 overflow-auto sm:w-20">
+    
 
-              {galleryImages.map(img => {
+  </div>
 
-                const fullUrl =
-                  getAssetUrl(img.imageUrl);
+  <div className="flex flex-col sm:flex-row gap-4">
 
-                return (
+    {/* Thumbnails */}
+    <div className="flex sm:flex-col gap-2 overflow-auto sm:w-20">
 
-                  <div
-                    key={img.imageId}
-                    onClick={() =>
-                      setActiveImage(fullUrl)
-                    }
-                    className={`w-16 h-16 border cursor-pointer overflow-hidden flex items-center justify-center bg-gray-50 ${
-                      activeImage === fullUrl
-                        ? 'border-primary border-2'
-                        : ''
-                    }`}
-                  >
+      {galleryImages.map((img, index) => {
 
-                    <img
-                      src={fullUrl}
-                      alt=""
-                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                      onError={e => {
-                        e.currentTarget.style.display =
-                          'none';
-                      }}
-                    />
+        const fullUrl = getAssetUrl(img.imageUrl);
 
-                  </div>
+        return (
+          <button
+            type="button"
+            key={`${selectedVariant?.variantId ?? "original"}-${index}`}
+            onClick={() => setActiveImage(fullUrl)}
+            aria-label={`View product image ${index + 1}`}
+            aria-pressed={activeImage === fullUrl}
+            className={`w-16 h-16 shrink-0 border-2 cursor-pointer
+              overflow-hidden flex items-center justify-center
+              bg-gray-50 rounded-lg transition-all duration-200
+              ${
+                activeImage === fullUrl
+                  ? "border-primary shadow-sm"
+                  : "border-gray-200 hover:border-primary/60"
+              }`}
+          >
+            <img
+              src={fullUrl}
+              alt={`${product.productName} ${index + 1}`}
+              className="w-full h-full object-contain
+                transition-transform duration-300 hover:scale-105"
+              onError={e => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          </button>
+        );
+      })}
 
-                );
+    </div>
 
-              })}
+    
+{/* Main Image */}
 
-            </div>
+<div className="relative flex-1 min-w-0 bg-gray-100 aspect-square flex items-center justify-center overflow-hidden">
 
+  {/* Return to Original Images */}
+  {selectedVariant && (
+    <button
+      type="button"
+      onClick={handleShowOriginalImages}
+      className="absolute top-3 right-3 z-10 bg-white/95 border border-gray-200 text-primary px-3 py-2 rounded-lg text-xs font-semibold shadow-sm hover:bg-gray-50 transition-colors"
+    >
+      View Original Images
+    </button>
+  )}
 
-            {/* Main Image */}
+  {activeImage ? (
+    <img
+      src={activeImage}
+      alt={product.productName}
+      className="w-full h-full object-contain"
+      onError={() => setActiveImage(null)}
+    />
+  ) : (
+    <div className="flex flex-col items-center justify-center text-gray-400 opacity-60">
+      <span className="text-xs font-bold uppercase tracking-wider">
+        No Image
+      </span>
+    </div>
+  )}
 
-            <div className="flex-1 bg-gray-100 aspect-square flex items-center justify-center overflow-hidden">
+</div>
 
-              {activeImage ? (
+</div>
 
-                <img
-                  src={activeImage}
-                  alt={product.productName}
-                  className="w-full h-full object-contain"
-                  onError={() =>
-                    setActiveImage(null)
-                  }
-                />
-
-              ) : (
-
-                <div className="flex flex-col items-center justify-center text-gray-400 opacity-60">
-
-                  <svg
-                    className="w-16 h-16"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-
-                  </svg>
-
-                  <span className="text-xs mt-2 font-bold uppercase tracking-wider">
-                    No Image
-                  </span>
-
-                </div>
-
-              )}
-
-            </div>
-
-          </div>
+</div>
 
 
           {/* =========================
@@ -543,13 +634,8 @@ export const ProductDetailPage: React.FC = () => {
 
 
             <h2 className="text-2xl text-primary font-black mb-4">
-
-              {effectivePrice
-                ? `${effectivePrice} MMK`
-                : 'N/A'
-              }
-
-            </h2>
+  {displayPrice}
+</h2>
 
 
             <p className="text-gray-600 text-sm leading-relaxed mb-6">
@@ -567,94 +653,136 @@ export const ProductDetailPage: React.FC = () => {
 
                 <br />
 
-                <b>
-                  {selectedVariant?.sku}
-                </b>
+                <b className={selectedVariant ? 'text-slate-800' : 'text-slate-500'}>
+  {selectedVariant?.sku ?? 'Select a variant'}
+</b>
 
               </div>
 
 
-              <div className="bg-page p-3 text-sm">
+              
+{/* Available Stock */}
+<div className="bg-page p-3 text-sm">
 
-                Available Stock
+  Available Stock
 
-                <br />
+  <br />
 
-                <b
-                  className={
-                    inStock
-                      ? 'text-emerald-900 bg-accent-soft px-2 py-0.5 rounded'
-                      : 'text-red-800 bg-red-100 px-2 py-0.5 rounded'
-                  }
-                >
+  <b
+    className={
+      !selectedVariant
+        ? 'text-slate-500 bg-slate-100 px-2 py-0.5 rounded'
+        : inStock
+          ? 'text-emerald-900 bg-accent-soft px-2 py-0.5 rounded'
+          : 'text-red-800 bg-red-100 px-2 py-0.5 rounded'
+    }
+  >
+    {selectedVariant
+      ? inStock
+        ? `${selectedVariant.availableQuantity} available`
+        : 'Sold Out'
+      : 'Select a variant'}
+  </b>
 
-                  {selectedVariant
-                    ? (
-                        inStock
-                          ? `${selectedVariant.availableQuantity} available`
-                          : 'Sold Out'
-                      )
-                    : 'N/A'
-                  }
+</div>
 
-                </b>
-
-              </div>
 
             </div>
 
 
-            {/* =========================
-                VARIANT
-            ========================= */}
+                
+{/* =========================
+    VARIANT SELECTION
+========================= */}
 
-            <b className="mb-2 block text-sm">
-              Select Variant
-            </b>
+<div className="mb-6">
 
+  <div className="flex items-center justify-between mb-3">
 
-            <div className="flex flex-wrap gap-2 mb-6">
+    <b className="text-sm text-slate-800">
+      Select Variant
+    </b>
 
-              {product.variants.map(v => (
+    {selectedVariant ? (
+      <span className="text-xs font-semibold text-green-700">
+        ✓ Variant Selected
+      </span>
+    ) : (
+      <span className="text-xs font-semibold text-amber-600">
+        Please select a variant
+      </span>
+    )}
 
-                <button
-                  key={v.variantId}
-                  type="button"
-                  onClick={() => {
+  </div>
 
-                    setSelectedVariant(v);
-                    setQuantity(1);
-                    setShowVariantImages(true);
+  <div className="flex flex-wrap gap-3">
 
-                    const images = v.images?.length
-                      ? v.images
-                      : product.images;
-                    const primaryImage = images.find(img => img.isPrimary) ?? images[0];
-                    setActiveImage(primaryImage ? getAssetUrl(primaryImage.imageUrl) : null);
+    {product.variants.map(v => {
 
-                  }}
-                  className={`border px-3 py-2 text-sm cursor-pointer ${
-                    selectedVariant?.variantId === v.variantId
-                      ? 'border-green-600 bg-green-50 font-bold border-2'
-                      : 'bg-white'
-                  }`}
-                >
+      const isSelected =
+        selectedVariant?.variantId === v.variantId;
 
-                  {v.options
-                    .slice(0, 2)
-                    .map(o => o.value)
-                    .join(' / ')
-                    ||
-                    'Default'
-                  }
+      const isOutOfStock =
+        v.availableQuantity <= 0;
 
-                </button>
+      return (
+        <button
+          key={v.variantId}
+          type="button"
+          onClick={() => handleSelectVariant(v)}
+          aria-pressed={isSelected}
+          title={
+            isSelected
+              ? "Currently selected variant"
+              : isOutOfStock
+                ? "Out of stock"
+                : "Click to select this variant"
+          }
+          className={`
+            relative border-2 px-4 py-3 rounded-xl
+            text-sm font-semibold cursor-pointer
+            transition-all duration-200
+            hover:-translate-y-0.5 hover:shadow-md
 
-              ))}
+            ${
+              isSelected
+                ? "border-green-600 bg-green-50 text-green-800 shadow-sm"
+                : "border-gray-200 bg-white text-gray-700 hover:border-green-400 hover:bg-green-50/50"
+            }
 
-            </div>
+            ${isOutOfStock ? "opacity-65" : ""}
+          `}
+        >
 
+          {isSelected && (
+            <span className="absolute -top-2 -right-2
+              bg-green-600 text-white rounded-full
+              w-5 h-5 flex items-center justify-center
+              text-[11px] shadow-sm">
+              ✓
+            </span>
+          )}
 
+          <span>
+            {v.options
+              .slice(0, 2)
+              .map(o => o.value)
+              .join(" / ") || v.sku}
+          </span>
+
+          {isOutOfStock && (
+            <span className="block text-[10px] text-red-600 mt-1">
+              Sold Out
+            </span>
+          )}
+
+        </button>
+      );
+    })}
+
+  </div>
+
+</div>
             {/* =========================
                 QUANTITY + ACTIONS
             ========================= */}
@@ -706,105 +834,92 @@ export const ProductDetailPage: React.FC = () => {
               </div>
 
 
-              {/* Buttons */}
+                  
+              
+{/* Buttons */}
 
-              <div className="flex-1 flex flex-col sm:flex-row gap-3">
+<div className="flex-1 flex flex-col sm:flex-row gap-3">
 
+  {/* Add To Cart */}
 
-                {/* Add To Cart */}
+  <button
+    type="button"
+    disabled={
+      isAddingCart ||
+      (selectedVariant !== null && !inStock)
+    }
+    onClick={handleAddToCart}
+    className="flex-1 bg-primary text-white h-12 font-bold rounded-xl shadow-md hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-xs sm:text-sm tracking-wide active:scale-[0.99] cursor-pointer"
+  >
 
-                <button
-                  disabled={
-                    !inStock ||
-                    isAddingCart
-                  }
-                  onClick={
-                    handleAddToCart
-                  }
-                  className="flex-1 bg-primary text-white h-12 font-bold rounded-xl shadow-md hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-xs sm:text-sm tracking-wide active:scale-[0.99] cursor-pointer"
-                >
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+      />
+    </svg>
 
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
+    {isAddingCart
+      ? 'ADDING...'
+      : selectedVariant && !inStock
+        ? 'SOLD OUT'
+        : 'ADD TO CART'
+    }
 
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                    />
+  </button>
 
-                  </svg>
+  {/* Buy Now */}
 
+  <button
+    type="button"
+    disabled={
+      isBuyingNow ||
+      (selectedVariant !== null && !inStock)
+    }
+    onClick={handleBuyNow}
+    className="flex-1 bg-[#0F172A] hover:bg-[#1E293B] text-white h-12 font-bold rounded-xl shadow-md hover:shadow-lg border border-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-xs sm:text-sm tracking-wide active:scale-[0.99] cursor-pointer group"
+  >
 
-                  {inStock
-                    ? (
-                        isAddingCart
-                          ? 'ADDING...'
-                          : 'ADD TO CART'
-                      )
-                    : 'SOLD OUT'
-                  }
+    {isBuyingNow ? (
 
-                </button>
+      <span className="flex items-center gap-2">
+        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        Processing...
+      </span>
 
+    ) : (
 
-                {/* Buy Now */}
+      <>
+        <svg
+          className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M13 10V3L4 14h7v7l9-11h-7z"
+          />
+        </svg>
 
-                <button
-                  disabled={
-                    !inStock ||
-                    isBuyingNow
-                  }
-                  onClick={
-                    handleBuyNow
-                  }
-                  className="flex-1 bg-[#0F172A] hover:bg-[#1E293B] text-white h-12 font-bold rounded-xl shadow-md hover:shadow-lg border border-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-xs sm:text-sm tracking-wide active:scale-[0.99] cursor-pointer group"
-                >
+        BUY NOW
+      </>
 
-                  {isBuyingNow ? (
+    )}
 
-                    <span className="flex items-center gap-2">
+  </button>
 
-                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+</div>
 
-                      Processing...
-
-                    </span>
-
-                  ) : (
-
-                    <>
-
-                      <svg
-                        className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M13 10V3L4 14h7v7l9-11h-7z"
-                        />
-
-                      </svg>
-
-                      BUY NOW
-
-                    </>
-
-                  )}
-
-                </button>
-
-              </div>
 
             </div>
 
@@ -846,46 +961,31 @@ export const ProductDetailPage: React.FC = () => {
     <div className="flex justify-between border-b py-2">
       <b>SKU</b>
       <span>
-        {selectedVariant?.sku || 'N/A'}
+        {selectedVariant?.sku ?? 'Select a variant'}
       </span>
     </div>
 
-    {/* EXPIRY DATE - ONLY FOR PERISHABLE PRODUCTS */}
-    {product.isPerishable && (
-      <div className="flex justify-between border-b py-2">
+    {/* EXPIRY DATE - PERISHABLE PRODUCTS ONLY */}
+{product.isPerishable && displayExpiryDate && (
+  <div className="flex justify-between border-b py-2">
 
-        <b>Expiry Date</b>
+    <b>Expiry Date</b>
 
-        <span className="font-semibold text-red-600">
-          {selectedVariant?.expiryDate
-            ? new Date(
-                `${selectedVariant.expiryDate}T00:00:00`
-              ).toLocaleDateString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
-              })
-            : 'N/A'}
-        </span>
+    <span className="font-semibold text-red-600">
+      {new Date(
+        `${displayExpiryDate}T00:00:00`
+      ).toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      })}
+    </span>
 
-      </div>
-    )}
+  </div>
+)}
 
-    {/* VARIANT OPTIONS */}
-    {selectedVariant?.options?.map(opt => (
 
-      <div
-        key={opt.optionId}
-        className="flex justify-between border-b py-2"
-      >
 
-        <b>{opt.variationName}</b>
-
-        <span>{opt.value}</span>
-
-      </div>
-
-    ))}
 
   </div>
 
