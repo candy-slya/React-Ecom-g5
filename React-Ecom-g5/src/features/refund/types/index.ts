@@ -26,6 +26,7 @@ export interface RefundResponseDto {
   refundAmount: number;
   status: RefundStatus;
   requestedAt: string;
+  remark?: string | null;
 }
 
 export interface RefundEligibilityDto {
@@ -37,4 +38,5 @@ export interface RefundEligibilityDto {
   ineligibleReason?: string;
   daysRemaining?: number;
   refundStatus?: RefundStatus | null;
+  remark?: string | null;
 }

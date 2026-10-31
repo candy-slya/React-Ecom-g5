@@ -91,9 +91,10 @@ const OrderItemRow: React.FC<{
   eligibility?: RefundEligibilityDto;
   existingRefund?: RefundResponseDto;
 }> = ({ item, eligibility, existingRefund }) => {
-  // Merge status and quantities from eligibility or existingRefund
+  // Merge status, quantities and rejection remark from eligibility or existingRefund
   const effectiveStatus = eligibility?.refundStatus || existingRefund?.status || null;
   const effectiveReservedQty = eligibility?.alreadyReservedRefundQuantity ?? existingRefund?.requestedRefundQuantity ?? 0;
+  const effectiveRemark = eligibility?.remark || existingRefund?.remark || null;
 
   return (
     <div className="flex flex-col sm:flex-row justify-between py-4 border-b border-gray-100 last:border-0 last:pb-0">
@@ -143,12 +144,20 @@ const OrderItemRow: React.FC<{
                   </span>
                 )}
                 {effectiveStatus === 'REJECTED' && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-300">
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    Rejected
-                  </span>
+                  <div className="flex flex-col items-start gap-1.5">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-300">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      Rejected
+                    </span>
+                    {effectiveRemark && (
+                      <div className="px-2.5 py-1.5 bg-red-50 border border-red-200/90 rounded-md text-xs text-red-800 max-w-md shadow-xs">
+                        <span className="font-semibold text-red-900 mr-1">Rejection Reason:</span>
+                        <span className="text-red-700 italic">"{effectiveRemark}"</span>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             )}
@@ -267,6 +276,14 @@ export const OrderDetailPage: React.FC = () => {
     order.items?.some(i => i.orderItemId === r.orderItemId) && r.status === 'PENDING'
   );
 
+  const rejectedRemarks = Array.from(
+    new Set(
+      order.items
+        ?.map((item) => eligibilities[item.orderItemId]?.remark || myRefunds.find((r) => r.orderItemId === item.orderItemId)?.remark)
+        .filter((rem): rem is string => Boolean(rem && rem.trim())) || []
+    )
+  );
+
   // Compute refundable items
   const isPaidForRefund = ['SUCCESS', 'PARTIALLY_REFUNDED'].includes(order.paymentStatus);
   const refundableItems: RefundableItemData[] = (order.items || [])
@@ -375,11 +392,21 @@ export const OrderDetailPage: React.FC = () => {
           ) : (refundableItems.length === 0 && hasRejectedRefunds) ? (
             <div className="p-4 bg-red-50 border border-red-200 text-red-900 rounded-lg text-sm flex items-start gap-3 shadow-sm">
               <span className="text-xl">❌</span>
-              <div>
+              <div className="space-y-1">
                 <p className="font-bold text-red-900">Refund ပယ်ချထားပါသည် (Refund Rejected)</p>
-                <p className="text-xs mt-1 text-red-800 leading-relaxed">
+                <p className="text-xs text-red-800 leading-relaxed">
                   ဤအော်ဒါအတွက် Refund တောင်းဆိုမှုကို Admin/Inventory မှ ပယ်ချ (Rejected) ထားပြီးဖြစ်သဖြင့် ထပ်မံ၍ Refund တောင်းဆို၍ မရနိုင်တော့ပါ။
                 </p>
+                {rejectedRemarks.length > 0 && (
+                  <div className="mt-2 text-xs text-red-900 bg-white/90 p-2.5 rounded-md border border-red-200 shadow-xs">
+                    <span className="font-semibold text-red-900">ပယ်ချရသည့် အကြောင်းအရင်း (Rejection Reason): </span>
+                    <ul className="mt-1 list-disc list-inside space-y-0.5">
+                      {rejectedRemarks.map((rem, idx) => (
+                        <li key={idx} className="font-medium text-red-800">{rem}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           ) : (refundableItems.length === 0 && hasPendingRefunds) ? (
