@@ -8,7 +8,14 @@ export interface CustomShippingAddressRequest {
   regionOrState?: string;
 }
 
+export interface BuyNowItemRequest {
+  variantId: number;
+  quantity: number;
+}
+
 export interface CreateOrderRequest {
+  checkoutType?: 'CART' | 'BUY_NOW' | string;
+  buyNowItem?: BuyNowItemRequest | null;
   savedAddressId?: number | null;
   shippingAddress?: CustomShippingAddressRequest | null;
 }
@@ -24,6 +31,7 @@ export interface OrderResponse {
   orderStatus: string;
   paymentStatus: string;
   createdAt: string;
+  checkoutType?: string;
 }
 
 export interface CustomerAddressResponse {

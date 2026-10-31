@@ -212,7 +212,7 @@ export const PaymentPage: React.FC = () => {
                     </div>
                   )}
 
-                  {order.paymentStatus === 'PENDING' && latestPayment?.paymentStatus === 'FAILED' && (
+                  {(order.paymentStatus === 'FAILED' || order.paymentStatus === 'PENDING') && latestPayment?.paymentStatus === 'FAILED' && (
                     <div className="rounded-md bg-[#FEF3F2] p-4 border border-[#FEE4E2] mb-4 text-center">
                       <h3 className="text-lg font-bold text-[#B42318] mb-1">Payment Failed</h3>
                       <p className="text-sm text-[#B42318]">Your payment was not completed. You can try again.</p>
