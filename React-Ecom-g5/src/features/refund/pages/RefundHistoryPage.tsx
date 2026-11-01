@@ -119,6 +119,14 @@ export const RefundHistoryPage: React.FC = () => {
                           </div>
                         )}
                       </div>
+
+                      {/* Inventory Rejection Reason Display */}
+                      {refund.status === 'REJECTED' && refund.remark && (
+                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md text-xs sm:text-sm text-red-900 flex items-start gap-2 shadow-xs">
+                          <span className="font-semibold text-red-800 shrink-0">Rejection Reason:</span>
+                          <span className="text-red-700 italic">"{refund.remark}"</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </li>
