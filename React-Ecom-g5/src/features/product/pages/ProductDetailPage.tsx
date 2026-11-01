@@ -617,9 +617,9 @@ const displayExpiryDate = product.isPerishable
           <div className="lg:w-1/2 flex flex-col">
 
            <div className="text-[10px] text-text-muted uppercase">
-  {product.brand?.brandName?.trim() || 'Unbranded'}
+  {product.brand?.brandName?.trim() || ' -- '}
   {' · '}
-  {product.categoryName?.trim() || 'Uncategorized'}
+  {product.categoryName?.trim() || ' -- '}
 </div>
 
 
@@ -944,7 +944,7 @@ const displayExpiryDate = product.isPerishable
       ? 'text-slate-800'
       : 'text-slate-400'
   }>
-    {product.brand?.brandName?.trim() || 'Unbranded'}
+    {product.brand?.brandName?.trim() || ' -- '}
   </span>
 </div>
 
@@ -956,7 +956,7 @@ const displayExpiryDate = product.isPerishable
       ? 'text-slate-800'
       : 'text-slate-400'
   }>
-    {product.categoryName?.trim() || 'Uncategorized'}
+    {product.categoryName?.trim() || ' -- '}
   </span>
 </div>
 
@@ -1235,9 +1235,9 @@ const ProductCard = ({
       <div className="p-4 flex-1 flex flex-col">
 
        <div className="text-[10px] text-text-muted uppercase">
-  {product.brandName?.trim() || 'Unbranded'}
+  {product.brandName?.trim() || ' -- '}
   {' · '}
-  {product.categoryName?.trim() || 'Uncategorized'}
+  {product.categoryName?.trim() || ' -- '}
 </div>
 
 
