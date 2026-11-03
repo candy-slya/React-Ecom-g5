@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams, Link, useLocation } from 'react-router-do
 import { useAppDispatch } from '../../hooks/useAppDispatch';
 import { useAppSelector } from '../../hooks/useAppSelector';
 import { logout } from '../../features/auth/store/authSlice';
+import { fetchAuthenticatedCart } from '../../features/cart/store/cartSlice';
 import { useProductSearch } from '../../features/product/hooks/useProductSearch';
 import { searchHistoryApi } from '../../features/product/api/searchHistoryApi';
 import { productApi } from '../../features/product/api/productApi';
@@ -18,8 +19,14 @@ export const StorefrontHeader: React.FC = () => {
   const dispatch = useAppDispatch();
 
   const { isAuthenticated, customer } = useAppSelector((state) => state.auth);
-  const { authenticatedCart, guestItems } = useAppSelector((state) => state.cart);
+  const { authenticatedCart, guestItems, loading: isCartLoading } = useAppSelector((state) => state.cart);
   const cartCount = isAuthenticated ? (authenticatedCart?.totalQuantity || 0) : guestItems.reduce((acc, item) => acc + item.quantity, 0);
+
+  useEffect(() => {
+    if (isAuthenticated && authenticatedCart === null && !isCartLoading) {
+      dispatch(fetchAuthenticatedCart());
+    }
+  }, [isAuthenticated, authenticatedCart, isCartLoading, dispatch]);
 
   const urlSearch = searchParams.get('search') || '';
 
