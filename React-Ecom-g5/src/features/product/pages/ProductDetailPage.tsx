@@ -75,10 +75,21 @@ export const ProductDetailPage: React.FC = () => {
       .then(res => {
   setProduct(res);
 
-  // Default product images mode
-  setSelectedVariant(null);
+  // Auto-select first in-stock variant (or first variant) so users can Add to Cart / Buy Now immediately
+  const defaultVariant =
+    res.variants.find(v => v.availableQuantity > 0) ||
+    res.variants[0] ||
+    null;
+
+  setSelectedVariant(defaultVariant);
+
+  const images = defaultVariant?.images?.length
+    ? defaultVariant.images
+    : res.images;
 
   const primaryImage =
+    images.find(img => img.isPrimary) ??
+    images[0] ??
     res.images.find(img => img.isPrimary) ??
     res.images[0];
 
@@ -748,10 +759,11 @@ const displayExpiryDate = product.isPerishable
           )}
 
           <span>
-            {v.options
-              .slice(0, 2)
-              .map(o => o.value)
-              .join(" / ") || v.sku}
+            {(v.options && v.options.length > 0)
+              ? v.options.slice(0, 2).map(o => o.value).join(" / ")
+              : (v as any).attributes && typeof (v as any).attributes === 'object'
+                ? Object.values((v as any).attributes).join(" / ")
+                : v.sku}
           </span>
 
           {isOutOfStock && (
