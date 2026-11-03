@@ -374,23 +374,12 @@ const handleSelectVariant = (
 
   if (isBuyingNow) return;
 
-  const req = {
-  variantId: selectedVariant.variantId,
-  quantity
-};
-
-await dispatch(
-  addAuthenticatedCartItem(req)
-).unwrap();
-
- 
-
-    if (
-      !selectedVariant ||
-      selectedVariant.availableQuantity <= 0 ||
-      isBuyingNow ||
-      quantity <= 0
-    ) return;
+  if (
+    !selectedVariant ||
+    selectedVariant.availableQuantity <= 0 ||
+    isBuyingNow ||
+    quantity <= 0
+  ) return;
 
 
     try {
