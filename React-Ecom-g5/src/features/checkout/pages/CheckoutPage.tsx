@@ -11,6 +11,7 @@ import { isAxiosError } from 'axios';
 import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import { fetchAuthenticatedCart } from '../../cart/store/cartSlice';
+import { pendingCartOrderStorage } from '../../cart/utils/pendingCartOrderStorage';
 import { useDeliveryLocations } from '../../../hooks/useDeliveryLocations';
 
 const extractErrorMessage = (error: unknown): string => {
@@ -760,6 +761,16 @@ export const CheckoutPage: React.FC = () => {
     try {
       setIsSubmitting(true);
       const response = await checkoutApi.createOrder(requestPayload);
+      if (
+        (response.checkoutType === 'CART' || mode === 'CART') &&
+        (response.paymentStatus === 'PENDING' || response.orderStatus === 'PENDING')
+      ) {
+        pendingCartOrderStorage.set({
+          orderId: response.orderId,
+          orderNo: response.orderNo,
+          checkoutType: 'CART',
+        });
+      }
       navigate(`/payment/${response.orderId}`, { state: { order: response } });
     } catch (err) {
       setOrderError(extractErrorMessage(err));

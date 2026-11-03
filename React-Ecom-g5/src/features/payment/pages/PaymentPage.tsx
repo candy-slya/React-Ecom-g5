@@ -5,6 +5,7 @@ import { orderApi } from '../../order/api/orderApi';
 import { paymentApi } from '../api/paymentApi';
 import type { PaymentDetailResponse } from '../api/paymentApi';
 import { isAxiosError } from 'axios';
+import { pendingCartOrderStorage } from '../../cart/utils/pendingCartOrderStorage';
 
 export const PaymentPage: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
@@ -34,11 +35,17 @@ export const PaymentPage: React.FC = () => {
       try {
         const fetchedOrder = await orderApi.getOrderById(orderId);
         setOrder(fetchedOrder);
+        if (fetchedOrder.paymentStatus === 'SUCCESS' || fetchedOrder.orderStatus === 'PAID') {
+          pendingCartOrderStorage.clear();
+        }
         
         try {
           const fetchedPayment = await paymentApi.getLatestPayment(orderId);
           // Handle 204 No Content (axios might return empty string or null)
           setLatestPayment(fetchedPayment ? fetchedPayment : null);
+          if (fetchedPayment?.paymentStatus === 'SUCCESS') {
+            pendingCartOrderStorage.clear();
+          }
         } catch (paymentErr) {
           if (isAxiosError(paymentErr) && (paymentErr.response?.status === 404 || paymentErr.response?.status === 204)) {
             // No payment exists yet, normal unpaid state

@@ -13,6 +13,7 @@ import {
   addAuthenticatedCartItem,
   fetchAuthenticatedCart
 } from '../../cart/store/cartSlice';
+import { usePendingCartPayment } from '../../cart/hooks/usePendingCartPayment';
 
 import { useAppSelector } from '../../../hooks/useAppSelector';
 import type { AppDispatch } from '../../../app/store';
@@ -24,6 +25,8 @@ export const ProductDetailPage: React.FC = () => {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
+
+  const { isPending: isCartPaymentPending } = usePendingCartPayment();
 
   const { isAuthenticated } = useAppSelector(
     (state: any) => state.auth
@@ -298,6 +301,11 @@ const handleSelectVariant = (
   ========================= */
 
  const handleAddToCart = async () => {
+
+  if (isCartPaymentPending) {
+    alert("A cart payment is currently processing. Cart modifications are locked until the payment resolves.");
+    return;
+  }
 
   if (!selectedVariant) {
     alert("Please select a variant before adding to cart.");
@@ -842,7 +850,8 @@ const displayExpiryDate = product.isPerishable
     type="button"
     disabled={
       isAddingCart ||
-      (selectedVariant !== null && !inStock)
+      (selectedVariant !== null && !inStock) ||
+      isCartPaymentPending
     }
     onClick={handleAddToCart}
     className="flex-1 bg-primary text-white h-12 font-bold rounded-xl shadow-md hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-xs sm:text-sm tracking-wide active:scale-[0.99] cursor-pointer"
@@ -862,11 +871,13 @@ const displayExpiryDate = product.isPerishable
       />
     </svg>
 
-    {isAddingCart
-      ? 'ADDING...'
-      : selectedVariant && !inStock
-        ? 'SOLD OUT'
-        : 'ADD TO CART'
+    {isCartPaymentPending
+      ? 'PAYMENT PROCESSING...'
+      : isAddingCart
+        ? 'ADDING...'
+        : selectedVariant && !inStock
+          ? 'SOLD OUT'
+          : 'ADD TO CART'
     }
 
   </button>
@@ -915,6 +926,18 @@ const displayExpiryDate = product.isPerishable
   </button>
 
 </div>
+
+{isCartPaymentPending && (
+  <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 flex items-center gap-2">
+    <svg className="w-4 h-4 text-amber-600 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+    <span>
+      A cart payment is currently processing. Adding items to cart is locked until resolved. Buy Now is still available.
+    </span>
+  </div>
+)}
 
 
             </div>
