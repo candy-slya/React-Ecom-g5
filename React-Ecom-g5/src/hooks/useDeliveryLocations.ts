@@ -61,9 +61,14 @@ export const useDeliveryLocations = () => {
 
   // မူလအတိုင်း မြို့အားလုံးကို ဆွဲထုတ်ခြင်း
   const cities = useMemo(() => {
-    const list = masterLocations
-      .map((loc) => loc.city?.trim())
-      .filter(Boolean);
+    const list: string[] = [];
+    masterLocations.forEach((loc) => {
+      if (Array.isArray(loc.cities)) {
+        loc.cities.forEach((c) => {
+          if (c.cityName?.trim()) list.push(c.cityName.trim());
+        });
+      }
+    });
     return Array.from(new Set(list)).sort((a, b) => a.localeCompare(b));
   }, [masterLocations]);
 
@@ -71,10 +76,11 @@ export const useDeliveryLocations = () => {
   const getCitiesForRegion = (region: string): string[] => {
     if (!region) return [];
     const norm = region.trim().toLowerCase();
-    const matched = masterLocations.filter(
+    const matched = masterLocations.find(
       (loc) => (loc.regionOrState || '').trim().toLowerCase() === norm
     );
-    const cityList = matched.map((loc) => loc.city?.trim()).filter(Boolean);
+    if (!matched || !Array.isArray(matched.cities)) return [];
+    const cityList = matched.cities.map((c) => c.cityName?.trim()).filter(Boolean);
     return Array.from(new Set(cityList)).sort((a, b) => a.localeCompare(b));
   };
 
@@ -84,42 +90,67 @@ export const useDeliveryLocations = () => {
     const normCity = city.trim().toLowerCase();
     const normRegion = region ? region.trim().toLowerCase() : null;
 
-    const matched = masterLocations.find((loc) => {
-      const cityMatches = (loc.city || '').trim().toLowerCase() === normCity;
-      if (normRegion) {
-        return cityMatches && (loc.regionOrState || '').trim().toLowerCase() === normRegion;
+    if (normRegion) {
+      const matchedRegion = masterLocations.find(
+        (loc) => (loc.regionOrState || '').trim().toLowerCase() === normRegion
+      );
+      if (matchedRegion && Array.isArray(matchedRegion.cities)) {
+        const matchedCity = matchedRegion.cities.find(
+          (c) => (c.cityName || '').trim().toLowerCase() === normCity
+        );
+        if (matchedCity && Array.isArray(matchedCity.townships)) {
+          return [...matchedCity.townships].sort((a, b) => a.localeCompare(b));
+        }
       }
-      return cityMatches;
-    });
+    }
 
-    if (matched && Array.isArray(matched.townships)) {
-      return [...matched.townships].sort((a, b) => a.localeCompare(b));
+    for (const loc of masterLocations) {
+      if (Array.isArray(loc.cities)) {
+        const matchedCity = loc.cities.find(
+          (c) => (c.cityName || '').trim().toLowerCase() === normCity
+        );
+        if (matchedCity && Array.isArray(matchedCity.townships)) {
+          return [...matchedCity.townships].sort((a, b) => a.localeCompare(b));
+        }
+      }
     }
     return [];
   };
 
   // ၄။ သတ်မှတ်ထားသော Delivery Zone ရှာဖွေခြင်း
   const getZoneForLocation = (city?: string, township?: string): DeliveryZoneResponse | undefined => {
-    if (!city) return undefined;
-    const normCity = city.trim().toLowerCase();
+    if (!city && !township) return undefined;
+    const normCity = (city || '').trim().toLowerCase();
+    const altCity = normCity.replace(/ city$/, '');
     const normTownship = (township || '').trim().toLowerCase();
 
     // Specific township match first
     if (normTownship) {
       const exact = zones.find(
         (z) =>
-          (z.city || '').trim().toLowerCase() === normCity &&
+          ((z.city || '').trim().toLowerCase() === normCity ||
+           (z.city || '').trim().toLowerCase() === altCity) &&
           (z.township || '').trim().toLowerCase() === normTownship
       );
       if (exact) return exact;
+
+      const townshipMatch = zones.find(
+        (z) => (z.township || '').trim().toLowerCase() === normTownship
+      );
+      if (townshipMatch) return townshipMatch;
     }
 
     // Default city zone match (township is null or empty)
-    return zones.find(
-      (z) =>
-        (z.city || '').trim().toLowerCase() === normCity &&
-        (!z.township || z.township.trim() === '')
-    );
+    if (normCity) {
+      return zones.find(
+        (z) =>
+          ((z.city || '').trim().toLowerCase() === normCity ||
+           (z.city || '').trim().toLowerCase() === altCity) &&
+          (!z.township || z.township.trim() === '')
+      );
+    }
+
+    return undefined;
   };
 
   return {

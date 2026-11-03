@@ -75,10 +75,21 @@ export const ProductDetailPage: React.FC = () => {
       .then(res => {
   setProduct(res);
 
-  // Default product images mode
-  setSelectedVariant(null);
+  // Auto-select first in-stock variant (or first variant) so users can Add to Cart / Buy Now immediately
+  const defaultVariant =
+    res.variants.find(v => v.availableQuantity > 0) ||
+    res.variants[0] ||
+    null;
+
+  setSelectedVariant(defaultVariant);
+
+  const images = defaultVariant?.images?.length
+    ? defaultVariant.images
+    : res.images;
 
   const primaryImage =
+    images.find(img => img.isPrimary) ??
+    images[0] ??
     res.images.find(img => img.isPrimary) ??
     res.images[0];
 
@@ -305,7 +316,7 @@ const handleSelectVariant = (
     quantity
   };
 
-  // Your existing try/catch and Redux code stays here
+  
 
     try {
 
@@ -374,24 +385,12 @@ const handleSelectVariant = (
 
   if (isBuyingNow) return;
 
-  const req = {
-  variantId: selectedVariant.variantId,
-  quantity
-};
-
-await dispatch(
-  addAuthenticatedCartItem(req)
-).unwrap();
-
-  // Your existing checkout logic stays here
-
-
-    if (
-      !selectedVariant ||
-      selectedVariant.availableQuantity <= 0 ||
-      isBuyingNow ||
-      quantity <= 0
-    ) return;
+  if (
+    !selectedVariant ||
+    selectedVariant.availableQuantity <= 0 ||
+    isBuyingNow ||
+    quantity <= 0
+  ) return;
 
 
     try {
@@ -617,15 +616,11 @@ const displayExpiryDate = product.isPerishable
 
           <div className="lg:w-1/2 flex flex-col">
 
-            <div className="text-[10px] text-text-muted uppercase">
-
-              {product.brand?.brandName}
-
-              {' · '}
-
-              {product.categoryName}
-
-            </div>
+           <div className="text-[10px] text-text-muted uppercase">
+  {product.brand?.brandName?.trim() || ' -- '}
+  {' · '}
+  {product.categoryName?.trim() || ' -- '}
+</div>
 
 
             <h1 className="text-3xl font-bold my-2">
@@ -764,10 +759,11 @@ const displayExpiryDate = product.isPerishable
           )}
 
           <span>
-            {v.options
-              .slice(0, 2)
-              .map(o => o.value)
-              .join(" / ") || v.sku}
+            {(v.options && v.options.length > 0)
+              ? v.options.slice(0, 2).map(o => o.value).join(" / ")
+              : (v as any).attributes && typeof (v as any).attributes === 'object'
+                ? Object.values((v as any).attributes).join(" / ")
+                : v.sku}
           </span>
 
           {isOutOfStock && (
@@ -942,20 +938,28 @@ const displayExpiryDate = product.isPerishable
   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm mb-6">
 
     {/* BRAND */}
-    <div className="flex justify-between border-b py-2">
-      <b>Brand</b>
-      <span>
-        {product.brand?.brandName || 'N/A'}
-      </span>
-    </div>
+<div className="flex justify-between border-b py-2">
+  <b>Brand</b>
+  <span className={
+    product.brand?.brandName?.trim()
+      ? 'text-slate-800'
+      : 'text-slate-400'
+  }>
+    {product.brand?.brandName?.trim() || ' -- '}
+  </span>
+</div>
 
     {/* CATEGORY */}
-    <div className="flex justify-between border-b py-2">
-      <b>Category</b>
-      <span>
-        {product.categoryName || 'N/A'}
-      </span>
-    </div>
+<div className="flex justify-between border-b py-2">
+  <b>Category</b>
+  <span className={
+    product.categoryName?.trim()
+      ? 'text-slate-800'
+      : 'text-slate-400'
+  }>
+    {product.categoryName?.trim() || ' -- '}
+  </span>
+</div>
 
     {/* SKU */}
     <div className="flex justify-between border-b py-2">
@@ -1231,15 +1235,11 @@ const ProductCard = ({
 
       <div className="p-4 flex-1 flex flex-col">
 
-        <div className="text-[10px] text-text-muted uppercase">
-
-          {product.brandName}
-
-          {' · '}
-
-          {product.categoryName}
-
-        </div>
+       <div className="text-[10px] text-text-muted uppercase">
+  {product.brandName?.trim() || ' -- '}
+  {' · '}
+  {product.categoryName?.trim() || ' -- '}
+</div>
 
 
         <div className="font-bold text-sm my-1 flex-1">

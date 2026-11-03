@@ -26,6 +26,62 @@ const extractErrorMessage = (error: unknown): string => {
   return 'An unexpected error occurred';
 };
 
+const ToastItem = ({
+  message,
+  type,
+}: {
+  message: string;
+  type: 'success' | 'error';
+}) => {
+  const [progress, setProgress] = useState(100);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setProgress(0), 50);
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <div className="animate-drop-down relative overflow-hidden rounded-xl shadow-2xl px-6 py-5 min-w-[380px] max-w-lg flex items-center gap-4 bg-surface border border-border-subtle bg-opacity-100">
+      {type === 'success' ? (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-8 w-8 text-[#10B981] flex-shrink-0"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2.5}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      ) : (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-8 w-8 text-[#EF4444] flex-shrink-0"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2.5}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      )}
+      <span className="text-text-main text-base font-semibold">{message}</span>
+      <div
+        className={`absolute bottom-0 left-0 h-1.5 transition-all ease-linear ${type === 'success' ? 'bg-[#10B981]' : 'bg-[#EF4444]'}`}
+        style={{ width: `${progress}%`, transitionDuration: '2.95s' }}
+      />
+    </div>
+  );
+};
+
 type CheckoutMode = 'CART' | 'BUY_NOW';
 
 interface ValidatedBuyNowItem {
@@ -286,6 +342,15 @@ export const CheckoutPage: React.FC = () => {
   
   const [addressMode, setAddressMode] = useState<'saved' | 'custom'>('saved');
   const [phoneTouched, setPhoneTouched] = useState<boolean>(false);
+  const [toasts, setToasts] = useState<{ id: number; message: string; type: 'success' | 'error' }[]>([]);
+
+  const showToast = useCallback((message: string, type: 'success' | 'error' = 'error') => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 3000);
+  }, []);
   const [customAddress, setCustomAddress] = useState<CustomShippingAddressRequest>({
     recipientName: '',
     phoneNumber: '',
@@ -426,10 +491,19 @@ export const CheckoutPage: React.FC = () => {
         }
       } catch (err: unknown) {
         if (active) {
-          setShippingQuote(null);
-          setShippingError(
-            extractErrorMessage(err) || 'Delivery is currently unavailable for this address.'
-          );
+          const selectedAddr = addresses.find((a) => a.addressId === selectedAddressId);
+          // Default price fallback for addresses outside standard delivery zones
+          setShippingQuote({
+            shippingRateId: 0,
+            zoneId: 0,
+            zoneCode: 'DEFAULT_ZONE',
+            zoneName: 'Standard Delivery',
+            city: selectedAddr?.city || '',
+            township: selectedAddr?.township || '',
+            shippingFee: 5000,
+            estimatedDays: 3,
+          });
+          setShippingError(null);
         }
       } finally {
         if (active) {
@@ -497,6 +571,17 @@ export const CheckoutPage: React.FC = () => {
   const handleCheckCustomDelivery = async () => {
     if (!customAddress.city.trim() || !customAddress.township.trim()) return;
 
+    if (customAddress.phoneNumber.trim()) {
+      const phone = customAddress.phoneNumber.trim();
+      if (phone.length < 11) {
+        setPhoneTouched(true);
+        showToast("The phone number is not complete with 11 digits yet.", "error");
+      } else if (phone.length > 11) {
+        setPhoneTouched(true);
+        showToast("Phone number cannot exceed 11 digits.", "error");
+      }
+    }
+
     const city = customAddress.city.trim();
     const township = customAddress.township.trim();
 
@@ -510,11 +595,20 @@ export const CheckoutPage: React.FC = () => {
       setShippingQuote(quote);
       setQuotedCustomLocation({ city, township });
     } catch (err: unknown) {
-      setShippingQuote(null);
-      setQuotedCustomLocation(null);
-      setShippingError(
-        extractErrorMessage(err) || 'Delivery is currently unavailable for the specified location.'
-      );
+      // Default price for locations outside standard delivery zones
+      const defaultQuote: ShippingQuoteResponse = {
+        shippingRateId: 0,
+        zoneId: 0,
+        zoneCode: 'DEFAULT_ZONE',
+        zoneName: 'Standard Delivery',
+        city,
+        township,
+        shippingFee: 5000,
+        estimatedDays: 3,
+      };
+      setShippingQuote(defaultQuote);
+      setQuotedCustomLocation({ city, township });
+      setShippingError(null);
     } finally {
       setShippingLoading(false);
     }
@@ -539,6 +633,18 @@ export const CheckoutPage: React.FC = () => {
   const isCustomLine1Invalid = containsTownship(customAddress.addressLine1);
   const isCustomLine2Invalid = containsTownship(customAddress.addressLine2);
 
+  const handleCustomPhoneBlur = () => {
+    setPhoneTouched(true);
+    const phone = customAddress.phoneNumber.trim();
+    if (!phone) {
+      showToast("You need to enter your phone number.", "error");
+    } else if (phone.length < 11) {
+      showToast("The phone number is not complete with 11 digits yet.", "error");
+    } else if (phone.length > 11) {
+      showToast("Phone number cannot exceed 11 digits.", "error");
+    }
+  };
+
   const getPhoneError = () => {
     const phone = customAddress.phoneNumber.trim();
     if (!phone) {
@@ -548,7 +654,7 @@ export const CheckoutPage: React.FC = () => {
       return 'The phone number is not complete with 11 digits yet';
     }
     if (phone.length > 11) {
-      return 'The phone bill has gone over 11 numbers.';
+      return 'Phone number cannot exceed 11 digits';
     }
     return '';
   };
@@ -559,6 +665,25 @@ export const CheckoutPage: React.FC = () => {
     if (isSubmitting) return;
 
     setOrderError(null);
+
+    if (addressMode === 'custom') {
+      const phone = customAddress.phoneNumber.trim();
+      if (!phone) {
+        setPhoneTouched(true);
+        showToast("You need to enter your phone number.", "error");
+        return;
+      }
+      if (phone.length < 11) {
+        setPhoneTouched(true);
+        showToast("The phone number is not complete with 11 digits yet.", "error");
+        return;
+      }
+      if (phone.length > 11) {
+        setPhoneTouched(true);
+        showToast("Phone number cannot exceed 11 digits.", "error");
+        return;
+      }
+    }
 
     if (shippingError || !shippingQuote) {
       setOrderError("Delivery is currently unavailable for this location.");
@@ -769,7 +894,25 @@ export const CheckoutPage: React.FC = () => {
                                !shippingQuote;
 
   return (
-    <div className="bg-page py-12">
+    <div className="bg-page py-12 relative">
+      <style>
+        {`
+          @keyframes dropDown {
+            0% { transform: translateY(-30px) scale(0.95); opacity: 0; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+          }
+          .animate-drop-down {
+            animation: dropDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          }
+        `}
+      </style>
+
+      {/* Global Toast Container */}
+      <div className="fixed top-8 left-1/2 transform -translate-x-1/2 z-[9999] flex flex-col gap-4 pointer-events-none items-center w-full px-4">
+        {toasts.map((toast) => (
+          <ToastItem key={toast.id} message={toast.message} type={toast.type} />
+        ))}
+      </div>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <h1 className="mb-8 text-3xl font-bold tracking-tight text-text-main sm:text-4xl">
           {mode === 'BUY_NOW' ? 'Direct Buy Now Checkout' : 'Checkout'}
@@ -845,7 +988,7 @@ export const CheckoutPage: React.FC = () => {
                           name="phoneNumber"
                           value={customAddress.phoneNumber}
                           onChange={handleCustomAddressChange}
-                          onBlur={() => setPhoneTouched(true)}
+                          onBlur={handleCustomPhoneBlur}
                           placeholder="e.g. 09123456789"
                           maxLength={15}
                           className={`mt-1 block w-full rounded-md border ${
@@ -901,7 +1044,7 @@ export const CheckoutPage: React.FC = () => {
                           disabled={zonesLoading || !regions || regions.length === 0}
                           className="mt-1 block w-full rounded-md border border-border-subtle bg-page px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
                         >
-                          <option value="" disabled>Select Region / State</option>
+                          <option value="">Select Region / State</option>
                           {regions?.map(region => (
                             <option key={region} value={region}>{region}</option>
                           ))}

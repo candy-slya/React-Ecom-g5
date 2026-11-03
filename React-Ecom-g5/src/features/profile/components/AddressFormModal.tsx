@@ -89,15 +89,27 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
   const getPhoneError = () => {
     const phone = formData.phoneNumber.trim();
     if (!phone) {
-      return phoneTouched ? 'ဖုန်းနံပတ် ထည့်ရန် လိုအပ်ပါသည်' : '';
+      return phoneTouched ? 'You need to enter your phone number' : '';
     }
     if (phone.length < 11) {
-      return 'ဖုန်းနံပတ် ၁၁ လုံး မပြည့်သေးပါ';
+      return 'The phone number is not complete with 11 digits yet';
     }
     if (phone.length > 11) {
-      return 'ဖုန်းနံပတ် ၁၁ လုံး ကျော်နေပါတယ်';
+      return 'Phone number cannot exceed 11 digits';
     }
     return '';
+  };
+
+  const handlePhoneBlur = () => {
+    setPhoneTouched(true);
+    const phone = formData.phoneNumber.trim();
+    if (!phone) {
+      showToast("You need to enter your phone number.", "error");
+    } else if (phone.length < 11) {
+      showToast("The phone number is not complete with 11 digits yet.", "error");
+    } else if (phone.length > 11) {
+      showToast("Phone number cannot exceed 11 digits.", "error");
+    }
   };
 
   const phoneError = getPhoneError();
@@ -108,9 +120,9 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
     if (!/^\d{11}$/.test(formData.phoneNumber)) {
       setPhoneTouched(true);
       if (formData.phoneNumber.trim().length < 11) {
-        showToast("ဖုန်းနံပတ် ၁၁ လုံး မပြည့်သေးပါ။", "error");
+        showToast("The phone number is not complete with 11 digits yet.", "error");
       } else {
-        showToast("ဖုန်းနံပတ် ၁၁ လုံး ကျော်နေပါသည်။", "error");
+        showToast("Phone number cannot exceed 11 digits.", "error");
       }
       return;
     }
@@ -138,10 +150,24 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
   };
 
   const availableRegions = [...regions];
+  const initRegion = initialData?.regionOrState;
+  if (initRegion && !availableRegions.some(r => r.trim().toLowerCase() === initRegion.trim().toLowerCase())) {
+    availableRegions.unshift(initRegion);
+  }
+
   const baseCities = formData.regionOrState && getCitiesForRegion ? getCitiesForRegion(formData.regionOrState) : [];
   const availableCities = [...baseCities];
-  const baseTownships = formData.city ? getTownshipsForCity(formData.city) : [];
+  const initCity = initialData?.city;
+  if (initCity && (!formData.regionOrState || formData.regionOrState === initRegion) && !availableCities.some(c => c.trim().toLowerCase() === initCity.trim().toLowerCase())) {
+    availableCities.unshift(initCity);
+  }
+
+  const baseTownships = formData.city ? getTownshipsForCity(formData.city, formData.regionOrState) : [];
   const availableTownships = [...baseTownships];
+  const initTownship = initialData?.township;
+  if (initTownship && (!formData.city || formData.city === initCity) && !availableTownships.some(t => t.trim().toLowerCase() === initTownship.trim().toLowerCase())) {
+    availableTownships.unshift(initTownship);
+  }
 
   return (
     <div className="fixed inset-0 z-[150] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -183,7 +209,7 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({ isOpen, onCl
                   name="phoneNumber" 
                   value={formData.phoneNumber} 
                   onChange={handlePhoneChange} 
-                  onBlur={() => setPhoneTouched(true)}
+                  onBlur={handlePhoneBlur}
                   placeholder="e.g. 09123456789" 
                   maxLength={15}
                   className={`mt-1 block w-full rounded-md border ${
