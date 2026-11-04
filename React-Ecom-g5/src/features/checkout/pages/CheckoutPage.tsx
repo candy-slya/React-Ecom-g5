@@ -11,6 +11,7 @@ import { isAxiosError } from 'axios';
 import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import { fetchAuthenticatedCart } from '../../cart/store/cartSlice';
+import { pendingCartOrderStorage } from '../../cart/utils/pendingCartOrderStorage';
 import { useDeliveryLocations } from '../../../hooks/useDeliveryLocations';
 
 const extractErrorMessage = (error: unknown): string => {
@@ -323,6 +324,7 @@ export const CheckoutPage: React.FC = () => {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { authenticatedCart } = useAppSelector((state) => state.cart);
+  const { customer } = useAppSelector((state) => state.auth);
 
   const validation = useMemo(
     () => validateCheckoutIntent(location.search, location.state),
@@ -760,6 +762,17 @@ export const CheckoutPage: React.FC = () => {
     try {
       setIsSubmitting(true);
       const response = await checkoutApi.createOrder(requestPayload);
+      if (
+        (response.checkoutType === 'CART' || mode === 'CART') &&
+        (response.paymentStatus === 'PENDING' || response.orderStatus === 'PENDING')
+      ) {
+        pendingCartOrderStorage.set({
+          orderId: response.orderId,
+          orderNo: response.orderNo,
+          checkoutType: 'CART',
+          customerId: customer?.customerId,
+        });
+      }
       navigate(`/payment/${response.orderId}`, { state: { order: response } });
     } catch (err) {
       setOrderError(extractErrorMessage(err));

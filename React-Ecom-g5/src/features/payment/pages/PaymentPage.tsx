@@ -5,6 +5,7 @@ import { orderApi } from '../../order/api/orderApi';
 import { paymentApi } from '../api/paymentApi';
 import type { PaymentDetailResponse } from '../api/paymentApi';
 import { isAxiosError } from 'axios';
+import { pendingCartOrderStorage } from '../../cart/utils/pendingCartOrderStorage';
 
 export const PaymentPage: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
@@ -35,11 +36,17 @@ export const PaymentPage: React.FC = () => {
       try {
         const fetchedOrder = await orderApi.getOrderById(orderId);
         setOrder(fetchedOrder);
+        if (fetchedOrder.paymentStatus === 'SUCCESS' || fetchedOrder.orderStatus === 'PAID') {
+          pendingCartOrderStorage.clear();
+        }
         
         try {
           const fetchedPayment = await paymentApi.getLatestPayment(orderId);
           // Handle 204 No Content (axios might return empty string or null)
           setLatestPayment(fetchedPayment ? fetchedPayment : null);
+          if (fetchedPayment?.paymentStatus === 'SUCCESS') {
+            pendingCartOrderStorage.clear();
+          }
         } catch (paymentErr) {
           if (isAxiosError(paymentErr) && (paymentErr.response?.status === 404 || paymentErr.response?.status === 204)) {
             // No payment exists yet, normal unpaid state
@@ -228,7 +235,7 @@ export const PaymentPage: React.FC = () => {
                         <svg className="h-6 w-6 text-primary mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
-                        <span className="font-bold text-text-main">EKARAJ BANK</span>
+                        <span className="font-bold text-text-main">EKARAJ  BANK</span>
                       </div>
                     </div>
                   </div>
