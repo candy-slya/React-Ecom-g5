@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { isAxiosError } from 'axios';
 import { useAppSelector } from '../../../hooks/useAppSelector';
 import { useAppDispatch } from '../../../hooks/useAppDispatch';
 import { pendingCartOrderStorage, PENDING_CART_ORDER_EVENT } from '../utils/pendingCartOrderStorage';
@@ -14,10 +15,12 @@ export interface UsePendingCartPaymentResult {
 
 export const usePendingCartPayment = (): UsePendingCartPaymentResult => {
   const dispatch = useAppDispatch();
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, customer } = useAppSelector((state) => state.auth);
 
   const [pendingOrder, setPendingOrder] = useState<PendingCartOrder | null>(() => {
-    return pendingCartOrderStorage.get();
+    return isAuthenticated && customer?.customerId
+      ? pendingCartOrderStorage.get(customer.customerId)
+      : null;
   });
 
   const [isPending, setIsPending] = useState<boolean>(() => {
@@ -29,7 +32,17 @@ export const usePendingCartPayment = (): UsePendingCartPaymentResult => {
 
   // Sync state whenever storage changes (same tab or cross-tab)
   const syncMarker = useCallback(() => {
-    const current = pendingCartOrderStorage.get();
+    if (!isAuthenticated || !customer?.customerId) {
+      setPendingOrder(null);
+      setIsPending(false);
+      if (pollingTimerRef.current) {
+        clearTimeout(pollingTimerRef.current);
+        pollingTimerRef.current = null;
+      }
+      return;
+    }
+
+    const current = pendingCartOrderStorage.get(customer.customerId);
     setPendingOrder(current);
     if (!current) {
       setIsPending(false);
@@ -40,7 +53,7 @@ export const usePendingCartPayment = (): UsePendingCartPaymentResult => {
     } else {
       setIsPending(true);
     }
-  }, []);
+  }, [isAuthenticated, customer?.customerId]);
 
   useEffect(() => {
     const handleStorageEvent = (e: StorageEvent) => {
@@ -59,12 +72,12 @@ export const usePendingCartPayment = (): UsePendingCartPaymentResult => {
   }, [syncMarker]);
 
   const checkStatus = useCallback(async () => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !customer?.customerId) {
       setIsPending(false);
       return;
     }
 
-    const currentMarker = pendingCartOrderStorage.get();
+    const currentMarker = pendingCartOrderStorage.get(customer.customerId);
     if (!currentMarker) {
       setIsPending(false);
       return;
@@ -108,7 +121,17 @@ export const usePendingCartPayment = (): UsePendingCartPaymentResult => {
         }
       }, 3000);
     } catch (err) {
-      // Fail-closed on error: keep locked and retry in 5s
+      // Terminal 404 / 403: Resource does not exist or unauthorized customer
+      if (isAxiosError(err) && (err.response?.status === 404 || err.response?.status === 403)) {
+        console.warn(`Pending cart order is inaccessible or deleted (HTTP ${err.response.status}). Clearing stale marker.`);
+        pendingCartOrderStorage.clear();
+        if (!isMountedRef.current) return;
+        setIsPending(false);
+        setPendingOrder(null);
+        return;
+      }
+
+      // Fail-closed on other errors (HTTP 401, 500, network/timeout): keep locked and retry in 5s
       console.warn('Unable to verify pending payment status, retrying in 5s', err);
       if (!isMountedRef.current) return;
       setIsPending(true);
@@ -118,12 +141,12 @@ export const usePendingCartPayment = (): UsePendingCartPaymentResult => {
         }
       }, 5000);
     }
-  }, [isAuthenticated, dispatch]);
+  }, [isAuthenticated, customer?.customerId, dispatch]);
 
   useEffect(() => {
     isMountedRef.current = true;
 
-    if (isAuthenticated && pendingOrder) {
+    if (isAuthenticated && customer?.customerId && pendingOrder) {
       checkStatus();
     } else {
       setIsPending(false);
@@ -136,10 +159,10 @@ export const usePendingCartPayment = (): UsePendingCartPaymentResult => {
         pollingTimerRef.current = null;
       }
     };
-  }, [isAuthenticated, pendingOrder, checkStatus]);
+  }, [isAuthenticated, customer?.customerId, pendingOrder, checkStatus]);
 
   return {
-    isPending: isAuthenticated && isPending,
+    isPending: isAuthenticated && Boolean(customer?.customerId) && isPending,
     pendingOrder,
     refreshStatus: checkStatus,
   };

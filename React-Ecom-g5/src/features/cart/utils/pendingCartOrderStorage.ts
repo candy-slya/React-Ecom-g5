@@ -2,6 +2,7 @@ export interface PendingCartOrder {
   orderId: number;
   orderNo?: string;
   checkoutType: 'CART';
+  customerId?: number;
   createdAt: number;
 }
 
@@ -9,7 +10,7 @@ const STORAGE_KEY = 'g5_pending_cart_order';
 export const PENDING_CART_ORDER_EVENT = 'g5_pending_cart_order_change';
 
 export const pendingCartOrderStorage = {
-  get(): PendingCartOrder | null {
+  get(currentCustomerId?: number): PendingCartOrder | null {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return null;
@@ -20,6 +21,21 @@ export const pendingCartOrderStorage = {
         typeof parsed.orderId === 'number' &&
         parsed.checkoutType === 'CART'
       ) {
+        // Customer scoping validation
+        if (typeof parsed.customerId === 'number') {
+          if (currentCustomerId !== undefined && parsed.customerId !== currentCustomerId) {
+            return null; // Belongs to a different customer
+          }
+          return parsed as PendingCartOrder;
+        }
+
+        // Legacy marker without customerId:
+        // If an authenticated customer ID is provided, treat unscoped legacy marker as stale and clear it
+        if (currentCustomerId !== undefined) {
+          localStorage.removeItem(STORAGE_KEY);
+          return null;
+        }
+
         return parsed as PendingCartOrder;
       }
       return null;
@@ -28,12 +44,13 @@ export const pendingCartOrderStorage = {
     }
   },
 
-  set(order: { orderId: number; orderNo?: string; checkoutType: 'CART' }): void {
+  set(order: { orderId: number; orderNo?: string; checkoutType: 'CART'; customerId?: number }): void {
     try {
       const data: PendingCartOrder = {
         orderId: order.orderId,
         orderNo: order.orderNo,
         checkoutType: 'CART',
+        customerId: order.customerId,
         createdAt: Date.now(),
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
