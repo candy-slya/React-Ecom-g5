@@ -265,19 +265,27 @@ export const ProductListPage: React.FC = () => {
     });
   };
 
-  const applyPrice = () => {
-    if (minPrice < MIN_PRICE || maxPrice > MAX_PRICE || minPrice >= maxPrice) return;
+ const applyPrice = () => {
+  if (
+    minPrice < MIN_PRICE ||
+    maxPrice > MAX_PRICE ||
+    minPrice >= maxPrice
+  ) {
+    return;
+  }
 
-    updateFilters({
-      minPrice: minPrice > MIN_PRICE ? minPrice : null,
-      maxPrice: maxPrice < MAX_PRICE ? maxPrice : null
-    });
-  };
+  updateFilters({
+    minPrice,
+    maxPrice,
+    page: 0
+  });
+};
 
   const clearPrice = () => {
     setMinPrice(DEFAULT_MIN_PRICE);
     setMaxPrice(DEFAULT_MAX_PRICE);
-    updateFilters({ minPrice: null, maxPrice: null });
+    updateFilters({ minPrice: null,maxPrice: null,
+    page: 0 });
   };
 
   const clearFilters = () => {
