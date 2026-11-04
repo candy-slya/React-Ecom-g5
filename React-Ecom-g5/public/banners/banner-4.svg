@@ -1,56 +1,101 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" width="100%" height="100%">
   <defs>
-    <linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1e1b4b" />
-      <stop offset="50%" stop-color="#3730a3" />
-      <stop offset="100%" stop-color="#4f46e5" />
+    <linearGradient id="bgBeverages" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#082f49" />
+      <stop offset="50%" stop-color="#0369a1" />
+      <stop offset="100%" stop-color="#0284c7" />
     </linearGradient>
-    <linearGradient id="coralGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fb923c" />
-      <stop offset="100%" stop-color="#f97316" />
+    <linearGradient id="cyanSplash" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#06b6d4" />
     </linearGradient>
-    <filter id="glow4" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="30" result="blur" />
+    <linearGradient id="lemonGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="100%" stop-color="#facc15" />
+    </linearGradient>
+    <filter id="glowBeverages" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="35" result="blur" />
       <feComposite in="SourceGraphic" in2="blur" operator="over" />
     </filter>
   </defs>
 
-  <rect width="1200" height="480" fill="url(#bg4)" rx="24" />
+  <!-- Background -->
+  <rect width="1200" height="480" fill="url(#bgBeverages)" rx="24" />
 
-  <circle cx="950" cy="220" r="190" fill="#818cf8" opacity="0.3" filter="url(#glow4)" />
-  <circle cx="800" cy="380" r="130" fill="#fb923c" opacity="0.25" filter="url(#glow4)" />
-  <circle cx="150" cy="150" r="140" fill="#6366f1" opacity="0.3" filter="url(#glow4)" />
+  <!-- Ambient Glow -->
+  <circle cx="960" cy="210" r="190" fill="#38bdf8" opacity="0.35" filter="url(#glowBeverages)" />
+  <circle cx="780" cy="370" r="140" fill="#facc15" opacity="0.25" filter="url(#glowBeverages)" />
+  <circle cx="200" cy="130" r="130" fill="#0284c7" opacity="0.3" filter="url(#glowBeverages)" />
 
-  <!-- Concentric Rings Accent -->
-  <circle cx="920" cy="240" r="170" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="8 8" opacity="0.15" />
-  <circle cx="920" cy="240" r="220" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="10 10" opacity="0.1" />
+  <!-- Wave Bubbles Motif -->
+  <g opacity="0.08" fill="#ffffff">
+    <circle cx="680" cy="120" r="18" />
+    <circle cx="720" cy="90" r="10" />
+    <circle cx="760" cy="140" r="26" />
+    <circle cx="820" cy="80" r="14" />
+    <circle cx="1100" cy="380" r="32" />
+    <circle cx="1140" cy="320" r="16" />
+  </g>
 
   <!-- Left Content -->
   <g transform="translate(80, 110)">
-    <rect x="0" y="0" width="180" height="34" rx="17" fill="url(#coralGrad)" />
-    <text x="90" y="22" fill="#ffffff" font-size="12" font-weight="900" letter-spacing="1.5" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif">MODERN LIVING</text>
+    <!-- Pill Badge -->
+    <rect x="0" y="0" width="180" height="34" rx="17" fill="url(#lemonGold)" />
+    <text x="90" y="22" fill="#082f49" font-size="12" font-weight="900" letter-spacing="1.5" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif">CHILLED &amp; FRESH</text>
 
-    <text x="0" y="85" fill="#ffffff" font-size="44" font-weight="900" font-family="system-ui, -apple-system, sans-serif">Home Essentials</text>
-    <text x="0" y="135" fill="url(#coralGrad)" font-size="44" font-weight="900" font-family="system-ui, -apple-system, sans-serif">&amp; Smart Comfort</text>
+    <!-- Main Title -->
+    <text x="0" y="85" fill="#ffffff" font-size="44" font-weight="900" font-family="system-ui, -apple-system, sans-serif">Refreshing Drinks</text>
+    <text x="0" y="135" fill="url(#lemonGold)" font-size="44" font-weight="900" font-family="system-ui, -apple-system, sans-serif">&amp; Cold Beverages</text>
 
-    <text x="0" y="180" fill="#e0e7ff" font-size="16" font-family="system-ui, -apple-system, sans-serif">Transform your personal space with modern aesthetics and practical utilities.</text>
+    <!-- Subtitle -->
+    <text x="0" y="180" fill="#e0f2fe" font-size="16" font-family="system-ui, -apple-system, sans-serif">Cool down with ice-cold beverages, artisan teas, coffees, and fresh juices.</text>
 
-    <rect x="0" y="215" width="165" height="46" rx="8" fill="#ffffff" />
-    <text x="82" y="244" fill="#312e81" font-size="14" font-weight="800" letter-spacing="1" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif">EXPLORE HOME →</text>
+    <!-- Shop Now Button -->
+    <rect x="0" y="215" width="165" height="46" rx="10" fill="#ffffff" />
+    <text x="82" y="244" fill="#0369a1" font-size="14" font-weight="900" letter-spacing="1" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif">SHOP NOW →</text>
   </g>
 
-  <!-- Right Visual Graphics -->
-  <g transform="translate(900, 240)">
-    <!-- Modern Lamp & Couch silhouette -->
-    <path d="M -70 80 L 70 80 C 70 80, 80 50, 70 30 L -70 30 C -80 50, -70 80, -70 80 Z" fill="#e0e7ff" opacity="0.9" />
-    <rect x="-60" y="-10" width="120" height="40" rx="10" fill="#c7d2fe" />
-    <!-- Pillow -->
-    <rect x="-40" y="5" width="35" height="25" rx="6" fill="#fb923c" />
-    <!-- Floating Star -->
-    <g transform="translate(65, -60)">
-      <circle cx="0" cy="0" r="40" fill="url(#coralGrad)" />
-      <text x="0" y="-4" fill="#ffffff" font-size="12" font-weight="900" text-anchor="middle" font-family="sans-serif">BEST</text>
-      <text x="0" y="14" fill="#ffffff" font-size="14" font-weight="900" text-anchor="middle" font-family="sans-serif">CHOICE</text>
+  <!-- Right Visual Graphics: Iced Beverage Cup & Lemon Slice -->
+  <g transform="translate(890, 240)">
+    <!-- Aura Rings -->
+    <circle cx="0" cy="0" r="145" fill="none" stroke="#38bdf8" stroke-width="2" stroke-dasharray="6 6" opacity="0.4" />
+    <circle cx="0" cy="0" r="110" fill="#ffffff" opacity="0.04" />
+
+    <!-- Beverage Tumbler / Cup Silhouette -->
+    <!-- Straw -->
+    <path d="M 15 -140 L 10 -80 L -5 30" stroke="#facc15" stroke-width="8" stroke-linecap="round" fill="none" />
+    <!-- Lid -->
+    <path d="M -55 -70 L 55 -70 C 60 -70, 60 -80, 50 -80 L -50 -80 C -60 -80, -60 -70, -55 -70 Z" fill="#ffffff" opacity="0.95" />
+    <!-- Cup Body -->
+    <path d="M -50 -70 L -35 90 C -33 98, -25 105, -15 105 L 15 105 C 25 105, 33 98, 35 90 L 50 -70 Z" fill="#ffffff" opacity="0.9" />
+    <!-- Liquid Gradient Inside Cup -->
+    <path d="M -45 -40 L -33 85 C -31 92, -23 98, -13 98 L 13 98 C 23 98, 31 92, 33 85 L 45 -40 Z" fill="url(#cyanSplash)" opacity="0.85" />
+    
+    <!-- Floating Ice Cubes -->
+    <rect x="-22" y="-25" width="20" height="20" rx="4" fill="#ffffff" opacity="0.75" transform="rotate(15 -12 -15)" />
+    <rect x="8" y="-10" width="18" height="18" rx="4" fill="#ffffff" opacity="0.7" transform="rotate(-20 17 -1)" />
+
+    <!-- Citrus Slice Wheel Accent -->
+    <g transform="translate(68, 48)">
+      <circle cx="0" cy="0" r="28" fill="#facc15" />
+      <circle cx="0" cy="0" r="24" fill="#ffffff" />
+      <circle cx="0" cy="0" r="21" fill="#fef08a" />
+      <!-- Spokes -->
+      <line x1="0" y1="-21" x2="0" y2="21" stroke="#eab308" stroke-width="2" />
+      <line x1="-21" y1="0" x2="21" y2="0" stroke="#eab308" stroke-width="2" />
+      <line x1="-15" y1="-15" x2="15" y2="15" stroke="#eab308" stroke-width="2" />
+      <line x1="-15" y1="15" x2="15" y2="-15" stroke="#eab308" stroke-width="2" />
     </g>
+
+    <!-- Floating Fresh Badge -->
+    <g transform="translate(75, -65)">
+      <circle cx="0" cy="0" r="40" fill="url(#lemonGold)" />
+      <text x="0" y="-3" fill="#082f49" font-size="11" font-weight="900" text-anchor="middle" font-family="sans-serif">ICE COLD</text>
+      <text x="0" y="13" fill="#082f49" font-size="12" font-weight="900" text-anchor="middle" font-family="sans-serif">&amp; FRESH</text>
+    </g>
+
+    <!-- Bubbles -->
+    <circle cx="-60" cy="20" r="6" fill="#38bdf8" opacity="0.8" />
+    <circle cx="-75" cy="-20" r="8" fill="#38bdf8" opacity="0.6" />
   </g>
 </svg>

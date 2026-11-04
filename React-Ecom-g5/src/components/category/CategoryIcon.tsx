@@ -11,6 +11,17 @@ export interface CategoryTheme {
 export const getCategoryTheme = (name: string): CategoryTheme => {
   const n = name.toLowerCase();
 
+  // Clothing & Apparel (with Pants / Jeans)
+  if (n === 'clothing' || n.includes('pant') || n.includes('trouser') || n.includes('jean')) {
+    return {
+      bgGradient: 'from-indigo-50 via-sky-50/70 to-blue-50',
+      iconColor: 'text-indigo-600',
+      badgeBg: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+      borderColor: 'group-hover:border-indigo-400',
+      glowColor: 'group-hover:shadow-indigo-500/15',
+    };
+  }
+
   // Men's Clothing
   if (n.includes('men') && (n.includes('cloth') || n.includes('fashion') || n.includes('wear') || n.includes('shirt'))) {
     return {
@@ -231,6 +242,17 @@ export const getCategoryTheme = (name: string): CategoryTheme => {
     };
   }
 
+  // Beverages & Cold Drinks
+  if (n.includes('beverage') || n.includes('drink') || n.includes('juice') || n.includes('coffee') || n.includes('tea')) {
+    return {
+      bgGradient: 'from-emerald-50 via-teal-50/60 to-cyan-50',
+      iconColor: 'text-teal-600',
+      badgeBg: 'bg-teal-50 text-teal-700 border-teal-200',
+      borderColor: 'group-hover:border-teal-400',
+      glowColor: 'group-hover:shadow-teal-500/15',
+    };
+  }
+
   // Toys & Games
   if (n.includes('toy') || n.includes('game') || n.includes('figure') || n.includes('action')) {
     return {
@@ -254,6 +276,21 @@ export const getCategoryTheme = (name: string): CategoryTheme => {
 
 export const CategoryIcon: React.FC<{ name: string; className?: string }> = ({ name, className = 'w-7 h-7' }) => {
   const n = name.toLowerCase();
+
+  // 0. Clothing & Apparel (Outfit with shirt and denim pants / trousers)
+  if (n === 'clothing' || n.includes('pant') || n.includes('trouser') || n.includes('jean')) {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        {/* Folded / stylish shirt on top */}
+        <path d="M7 2.5h10l2.5 3.5-3 1.5V9H7.5V7.5L4.5 6 7 2.5z" />
+        <path d="M10 2.5a2 2 0 0 0 4 0" />
+        {/* Stylish trousers / pants with waistband & legs (ဘောင်းဘီ) */}
+        <path d="M7 11h10v10.5h-3.8l-.7-6.5-.7 6.5H7V11z" />
+        <path d="M9.5 11v2" />
+        <path d="M14.5 11v2" />
+      </svg>
+    );
+  }
 
   // 1. Mens Clothing (Clean, premium polo shirt / folded dress shirt with collar)
   if (n.includes('men') && (n.includes('cloth') || n.includes('fashion') || n.includes('wear') || n.includes('shirt'))) {
@@ -584,6 +621,19 @@ export const CategoryIcon: React.FC<{ name: string; className?: string }> = ({ n
       <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="5" r="2.5" />
         <path d="M8 9h8l1 6-2 1v6h-2v-5h-2v5H9v-6L7 15l1-6z" />
+      </svg>
+    );
+  }
+
+  // Beverages & Cold Drinks (Iced cup with straw / beverage bottle)
+  if (n.includes('beverage') || n.includes('drink') || n.includes('juice') || n.includes('coffee') || n.includes('tea')) {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
+        <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
+        <line x1="6" y1="2" x2="6" y2="4" />
+        <line x1="10" y1="2" x2="10" y2="4" />
+        <line x1="14" y1="2" x2="14" y2="4" />
       </svg>
     );
   }

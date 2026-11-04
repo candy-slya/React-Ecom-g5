@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { productApi } from '../../product/api/productApi';
 import { ProductCard } from '../../../components/product/ProductCard';
+import { DEFAULT_BACKOFFICE_CATEGORIES } from '../data/defaultCategories';
 import type { CategoryNodeResponse, ProductListResponse, PageResponse } from '../../product/types';
 
 export const CategoryDetailPage: React.FC = () => {
@@ -33,11 +34,15 @@ export const CategoryDetailPage: React.FC = () => {
     if (!categoryId) return;
     setLoadingCategory(true);
     productApi.getCategoryTree().then(res => {
-      const found = findCategory(res, Number(categoryId));
+      let found = findCategory(res, Number(categoryId));
+      if (!found) {
+        found = findCategory(DEFAULT_BACKOFFICE_CATEGORIES, Number(categoryId));
+      }
       setCategory(found);
       setLoadingCategory(false);
     }).catch((e: any) => {
       console.error(e);
+
       setLoadingCategory(false);
     });
   }, [categoryId]);
@@ -55,6 +60,7 @@ export const CategoryDetailPage: React.FC = () => {
       setLoadingProducts(false);
     }).catch((e: any) => {
       console.error(e);
+
       setLoadingProducts(false);
     });
   }, [categoryId, activeSort, activePage]);

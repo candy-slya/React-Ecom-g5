@@ -4,10 +4,11 @@ import { productApi } from '../../product/api/productApi';
 import type { CategoryNodeResponse } from '../../product/types';
 import { CategoryCard } from '../../../components/category/CategoryCard';
 import { GeometricPatternBanner } from '../../../components/common/GeometricPatternBanner';
+import { DEFAULT_BACKOFFICE_CATEGORIES } from '../data/defaultCategories';
 
 export const CategoryListPage: React.FC = () => {
   const navigate = useNavigate();
-  const [categories, setCategories] = useState<CategoryNodeResponse[]>([]);
+  const [categories, setCategories] = useState<CategoryNodeResponse[]>(DEFAULT_BACKOFFICE_CATEGORIES);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedParentId, setSelectedParentId] = useState<number | 'ALL'>('ALL');
@@ -18,10 +19,15 @@ export const CategoryListPage: React.FC = () => {
 
   useEffect(() => {
     productApi.getCategoryTree().then(res => {
-      setCategories(res);
+      if (res && res.length > 0) {
+        setCategories(res);
+      } else {
+        setCategories(DEFAULT_BACKOFFICE_CATEGORIES);
+      }
       setLoading(false);
     }).catch((e: any) => {
       console.error(e);
+      setCategories(DEFAULT_BACKOFFICE_CATEGORIES);
       setLoading(false);
     });
   }, []);
