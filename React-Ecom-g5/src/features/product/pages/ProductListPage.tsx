@@ -10,15 +10,15 @@ import type {
 import { ProductCard } from '../../../components/product/ProductCard';
 import { GeometricPatternBanner } from '../../../components/common/GeometricPatternBanner';
 
-const MIN_PRICE = 10_000;
+const MIN_PRICE = 1_000;
 const MAX_PRICE = 10_000_000;
 const DEFAULT_MIN_PRICE = 50_000;
 const DEFAULT_MAX_PRICE = 500_000;
-const PRICE_STEP = 10_000; // slider precision: 30,000, 50,000, etc.
-const MIN_HANDLE_GAP = 50_000; // prevent the two handles from overlapping
-const DROPDOWN_STEP = 20_000; // shorter dropdown: 20,000, 40,000, 60,000...
+const PRICE_STEP = 1_000; // slider precision: 30,000, 50,000, etc.
+const MIN_HANDLE_GAP = 1_000; // prevent the two handles from overlapping
+const DROPDOWN_STEP = 10_000; // shorter dropdown: 20,000, 40,000, 60,000...
 const PRICE_OPTIONS = [
-  MIN_PRICE,
+  1_000,
   ...Array.from(
     { length: MAX_PRICE / DROPDOWN_STEP },
     (_, index) => (index + 1) * DROPDOWN_STEP
