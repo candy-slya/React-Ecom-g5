@@ -22,6 +22,7 @@ export const PaymentPage: React.FC = () => {
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [initiationError, setInitiationError] = useState<string | null>(null);
+  const [isWaitingForPayment, setIsWaitingForPayment] = useState<boolean>(false);
 
   useEffect(() => {
     if (!orderId || isNaN(Number(orderId))) {
@@ -63,6 +64,30 @@ export const PaymentPage: React.FC = () => {
     fetchData();
   }, [orderId]);
 
+  // Polling hook: Automatically detects when G3 completes webhook delivery to G5
+  useEffect(() => {
+    if (!isWaitingForPayment || !orderId) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const currentOrder = await orderApi.getOrderById(orderId);
+        setOrder(currentOrder);
+        if (currentOrder.paymentStatus === 'SUCCESS' || currentOrder.orderStatus === 'PAID') {
+          clearInterval(interval);
+          navigate(`/orders/${orderId}/receipt`);
+        } else if (currentOrder.paymentStatus === 'FAILED') {
+          setIsWaitingForPayment(false);
+          const payment = await paymentApi.getLatestPayment(orderId);
+          setLatestPayment(payment || null);
+        }
+      } catch (e) {
+        console.warn('Polling order payment status...', e);
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [isWaitingForPayment, orderId, navigate]);
+
   const handleProceedToPayment = async () => {
     if (!orderId || isSubmitting) return;
 
@@ -78,8 +103,10 @@ export const PaymentPage: React.FC = () => {
         return;
       }
       
-      // Full browser redirect. This enforces the external gateway boundary.
-      window.location.href = response.redirectUrl;
+      // Open G1 Banking Portal in a NEW TAB / WINDOW
+      window.open(response.redirectUrl, '_blank');
+      setIsWaitingForPayment(true);
+      setIsSubmitting(false);
     } catch (err) {
       if (isAxiosError(err) && err.response?.data?.message) {
         setInitiationError(err.response.data.message);
@@ -219,6 +246,25 @@ export const PaymentPage: React.FC = () => {
                     </div>
                   )}
 
+                  {isWaitingForPayment && (
+                    <div className="rounded-lg bg-sky-50 p-4 border border-sky-200 mb-4 text-center">
+                      <div className="flex items-center justify-center space-x-2 mb-2">
+                        <div className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                        <h4 className="text-sm font-bold text-sky-900">Banking portal opened in a new tab</h4>
+                      </div>
+                      <p className="text-xs text-sky-700 mb-3">
+                        Please complete your payment in the bank tab. This page will automatically update once confirmed.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleProceedToPayment}
+                        className="text-xs font-semibold text-primary hover:underline cursor-pointer"
+                      >
+                        Did the tab not open? Click here to reopen
+                      </button>
+                    </div>
+                  )}
+
                   <div className="pt-4">
                     <button
                       type="button"
@@ -226,7 +272,7 @@ export const PaymentPage: React.FC = () => {
                       disabled={isSubmitting}
                       className="w-full rounded-md bg-primary text-white px-4 py-4 text-base font-bold shadow-md transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {isSubmitting ? 'Processing...' : (latestPayment?.paymentStatus === 'FAILED' ? 'Try Again' : 'Proceed to Payment')}
+                      {isSubmitting ? 'Processing...' : (isWaitingForPayment ? 'Reopen Payment Window' : (latestPayment?.paymentStatus === 'FAILED' ? 'Try Again' : 'Proceed to Payment'))}
                     </button>
                   </div>
                 </>
