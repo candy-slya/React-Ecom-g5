@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { orderApi } from '../api/orderApi';
 import type { OrderDetailResponse } from '../types';
-import { formatPrice, formatDateTime } from '../../../utils/formatters';
+import { formatPrice, formatDateTime, formatPaymentMethod } from '../../../utils/formatters';
 import { getOrderStatusBadge, getPaymentStatusBadge } from '../../../utils/statusBadges';
 import { OrderTimeline } from '../components/OrderTimeline';
 import { ShipmentInformation } from '../components/ShipmentInformation';
@@ -166,7 +166,7 @@ const OrderItemRow: React.FC<{
       </div>
       
       <div className="sm:text-right mt-2 sm:mt-0 flex flex-col justify-end">
-        {item.discountAmount > 0 && (
+        {Boolean(item.discountAmount && item.discountAmount > 0) && (
           <p className="text-sm text-[#B42318] mb-1">
             Discount: -{formatPrice(item.discountAmount)}
           </p>
@@ -515,7 +515,7 @@ export const OrderDetailPage: React.FC = () => {
                   <>
                     <div className="flex justify-between">
                       <span className="text-text-muted">Method:</span>
-                      <span className="font-medium">{order.payment.paymentMethod}</span>
+                      <span className="font-medium">{formatPaymentMethod(order.payment.paymentMethod)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-text-muted">Status:</span>

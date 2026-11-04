@@ -9,6 +9,7 @@ interface CartItemProps {
   onQuantityChange: (id: number, quantity: number) => void;
   onRemove: (id: number) => void;
   isUpdating: boolean;
+  disabled?: boolean;
 }
 
 export const CartItemComponent: React.FC<CartItemProps> = ({
@@ -17,6 +18,7 @@ export const CartItemComponent: React.FC<CartItemProps> = ({
   onQuantityChange,
   onRemove,
   isUpdating,
+  disabled = false,
 }) => {
   const [imageError, setImageError] = useState(false);
 
@@ -25,6 +27,7 @@ export const CartItemComponent: React.FC<CartItemProps> = ({
     : (item as GuestCartResolvedItemResponse).variantId;
 
   const handleDecrease = () => {
+    if (disabled) return;
     if (item.quantity > 1) {
       let targetQuantity = item.quantity - 1;
       
@@ -37,7 +40,7 @@ export const CartItemComponent: React.FC<CartItemProps> = ({
   };
 
   const handleIncrease = () => {
-    if (!item.available) return;
+    if (disabled || !item.available) return;
     
     if (item.quantity < item.availableQuantity) {
       onQuantityChange(identifierId, item.quantity + 1);
@@ -45,6 +48,7 @@ export const CartItemComponent: React.FC<CartItemProps> = ({
   };
 
   const handleRemove = () => {
+    if (disabled) return;
     onRemove(identifierId);
   };
 
@@ -154,7 +158,7 @@ export const CartItemComponent: React.FC<CartItemProps> = ({
               <button
                 type="button"
                 onClick={handleDecrease}
-                disabled={item.quantity <= 1 || isUpdating}
+                disabled={item.quantity <= 1 || isUpdating || disabled}
                 className="text-text-muted hover:text-primary focus:outline-none disabled:opacity-50"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -165,7 +169,7 @@ export const CartItemComponent: React.FC<CartItemProps> = ({
               <button
                 type="button"
                 onClick={handleIncrease}
-                disabled={!item.available || item.quantity >= item.availableQuantity || isUpdating}
+                disabled={!item.available || item.quantity >= item.availableQuantity || isUpdating || disabled}
                 className="text-text-muted hover:text-primary focus:outline-none disabled:opacity-50"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -177,7 +181,7 @@ export const CartItemComponent: React.FC<CartItemProps> = ({
             <button
               type="button"
               onClick={handleRemove}
-              disabled={isUpdating}
+              disabled={isUpdating || disabled}
               className="text-sm font-medium text-[#B42318] hover:text-[#911d13] transition-colors focus:outline-none disabled:opacity-50"
             >
               Remove

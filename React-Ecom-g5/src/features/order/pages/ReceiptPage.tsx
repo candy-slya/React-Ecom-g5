@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { orderApi } from '../api/orderApi';
 import type { OrderDetailResponse } from '../types';
-import { formatPrice, formatDateTime } from '../../../utils/formatters';
+import { formatPrice, formatDateTime, formatPaymentMethod } from '../../../utils/formatters';
 import { getPaymentStatusBadge } from '../../../utils/statusBadges';
 
 
@@ -224,8 +224,10 @@ export const ReceiptPage: React.FC = () => {
             {/* Header */}
             <div className="flex justify-between items-start border-b border-border-subtle pb-6 mb-6">
               <div>
-                <BrandLogo className="transform scale-125 origin-left" />
-                <p className="text-text-muted mt-1 text-sm">Customer Receipt</p>
+                <div className="pb-1.5">
+                  <BrandLogo className="transform scale-125 origin-left" />
+                </div>
+                <p className="text-text-muted mt-4 text-sm font-medium tracking-wide">Customer Receipt</p>
               </div>
               <div className="text-right">
                 <p className="text-lg font-bold text-text-main">Order #{order.orderNo}</p>
@@ -266,7 +268,7 @@ export const ReceiptPage: React.FC = () => {
                   <div className="text-sm text-text-main space-y-2">
                     <div className="flex justify-between">
                       <span className="text-text-muted">Method:</span>
-                      <span className="font-medium">{order.payment.paymentMethod}</span>
+                      <span className="font-medium">{formatPaymentMethod(order.payment.paymentMethod)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-text-muted">Status:</span>
