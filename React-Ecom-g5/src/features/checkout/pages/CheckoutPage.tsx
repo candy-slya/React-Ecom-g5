@@ -324,6 +324,7 @@ export const CheckoutPage: React.FC = () => {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { authenticatedCart } = useAppSelector((state) => state.cart);
+  const { customer } = useAppSelector((state) => state.auth);
 
   const validation = useMemo(
     () => validateCheckoutIntent(location.search, location.state),
@@ -769,6 +770,7 @@ export const CheckoutPage: React.FC = () => {
           orderId: response.orderId,
           orderNo: response.orderNo,
           checkoutType: 'CART',
+          customerId: customer?.customerId,
         });
       }
       navigate(`/payment/${response.orderId}`, { state: { order: response } });

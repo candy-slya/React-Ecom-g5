@@ -190,30 +190,40 @@ export const LoginPage: React.FC = () => {
         const parsed = new URL(redirect, dummyBase);
 
         // Case 1: URL contains BUY_NOW query parameters
-        if (parsed.pathname === "/checkout" && parsed.searchParams.get("mode") === "buy_now") {
+        if (
+          parsed.pathname === "/checkout" &&
+          parsed.searchParams.get("mode") === "buy_now"
+        ) {
           const varId = Number(parsed.searchParams.get("variantId"));
           const qty = Number(parsed.searchParams.get("qty"));
-          const hasValidParams = Number.isInteger(varId) && varId > 0 && Number.isInteger(qty) && qty > 0;
+          const hasValidParams =
+            Number.isInteger(varId) &&
+            varId > 0 &&
+            Number.isInteger(qty) &&
+            qty > 0;
 
-          const forwardState = (
+          const forwardState =
             state?.checkoutMode === "BUY_NOW" &&
             typeof state.buyNowItem?.variantId === "number" &&
             state.buyNowItem.variantId > 0 &&
             typeof state.buyNowItem?.quantity === "number" &&
             state.buyNowItem.quantity > 0
-          ) ? {
-            checkoutMode: "BUY_NOW",
-            buyNowItem: {
-              variantId: state.buyNowItem.variantId,
-              quantity: state.buyNowItem.quantity,
-            },
-          } : hasValidParams ? {
-            checkoutMode: "BUY_NOW",
-            buyNowItem: {
-              variantId: varId,
-              quantity: qty,
-            },
-          } : undefined;
+              ? {
+                  checkoutMode: "BUY_NOW",
+                  buyNowItem: {
+                    variantId: state.buyNowItem.variantId,
+                    quantity: state.buyNowItem.quantity,
+                  },
+                }
+              : hasValidParams
+                ? {
+                    checkoutMode: "BUY_NOW",
+                    buyNowItem: {
+                      variantId: varId,
+                      quantity: qty,
+                    },
+                  }
+                : undefined;
 
           navigate(redirect, { replace: true, state: forwardState });
           return;
@@ -311,8 +321,14 @@ export const LoginPage: React.FC = () => {
       }
 
       handlePostLoginNavigation();
-    } catch (err) {
-      // login rejected
+    } catch (err: any) {
+      // ✅ 429 Error (Rate Limit) ဖြစ်လာပါက User-friendly မက်ဆေ့ခ်ျ သတ်မှတ်ပြသခြင်း
+      const errString = String(err?.message || err);
+      if (err?.response?.status === 429 || errString.includes("429")) {
+        setFormError("Too many login attempts. Please try again later.");
+      } else {
+        setFormError("Invalid email or password.");
+      }
     }
   };
 
