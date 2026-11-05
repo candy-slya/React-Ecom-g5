@@ -5,7 +5,8 @@ import { orderApi } from '../../order/api/orderApi';
 import { paymentApi } from '../api/paymentApi';
 import type { PaymentDetailResponse } from '../api/paymentApi';
 import { isAxiosError } from 'axios';
-import { pendingCartOrderStorage } from '../../cart/utils/pendingCartOrderStorage';
+import { useAppDispatch } from '../../../hooks/useAppDispatch';
+import { fetchAuthenticatedCart } from '../../cart/store/cartSlice';
 
 export const PaymentPage: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
@@ -21,9 +22,43 @@ export const PaymentPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(!initialOrder);
   const [error, setError] = useState<string | null>(null);
 
+  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(() => {
+    if (!initialOrder?.reservationExpiresAt) return null;
+    const diff = Math.floor((new Date(initialOrder.reservationExpiresAt).getTime() - Date.now()) / 1000);
+    return Math.max(0, diff);
+  });
+
+  useEffect(() => {
+    if (!order?.reservationExpiresAt) {
+      setRemainingSeconds(null);
+      return;
+    }
+
+    const calculateRemaining = () => {
+      const expiryMs = new Date(order.reservationExpiresAt!).getTime();
+      const diff = Math.floor((expiryMs - Date.now()) / 1000);
+      return Math.max(0, diff);
+    };
+
+    setRemainingSeconds(calculateRemaining());
+
+    const timer = setInterval(() => {
+      const remaining = calculateRemaining();
+      setRemainingSeconds(remaining);
+      if (remaining <= 0) {
+        clearInterval(timer);
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [order?.reservationExpiresAt]);
+
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [initiationError, setInitiationError] = useState<string | null>(null);
   const [isWaitingForPayment, setIsWaitingForPayment] = useState<boolean>(false);
+  const [isCancelling, setIsCancelling] = useState<boolean>(false);
+
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     if (!orderId || isNaN(Number(orderId))) {
@@ -36,17 +71,19 @@ export const PaymentPage: React.FC = () => {
       try {
         const fetchedOrder = await orderApi.getOrderById(orderId);
         setOrder(fetchedOrder);
-        if (fetchedOrder.paymentStatus === 'SUCCESS' || fetchedOrder.orderStatus === 'PAID') {
-          pendingCartOrderStorage.clear();
-        }
         
+        if (
+          fetchedOrder.orderStatus === 'CANCELLED' ||
+          fetchedOrder.paymentStatus === 'FAILED' ||
+          fetchedOrder.reservationActive === false
+        ) {
+          dispatch(fetchAuthenticatedCart());
+        }
+
         try {
           const fetchedPayment = await paymentApi.getLatestPayment(orderId);
           // Handle 204 No Content (axios might return empty string or null)
           setLatestPayment(fetchedPayment ? fetchedPayment : null);
-          if (fetchedPayment?.paymentStatus === 'SUCCESS') {
-            pendingCartOrderStorage.clear();
-          }
         } catch (paymentErr) {
           if (isAxiosError(paymentErr) && (paymentErr.response?.status === 404 || paymentErr.response?.status === 204)) {
             // No payment exists yet, normal unpaid state
@@ -82,10 +119,16 @@ export const PaymentPage: React.FC = () => {
         if (currentOrder.paymentStatus === 'SUCCESS' || currentOrder.orderStatus === 'PAID') {
           clearInterval(interval);
           navigate(`/orders/${orderId}/receipt`);
-        } else if (currentOrder.paymentStatus === 'FAILED') {
+        } else if (
+          currentOrder.orderStatus === 'CANCELLED' ||
+          currentOrder.paymentStatus === 'CANCELLED' ||
+          currentOrder.paymentStatus === 'FAILED' ||
+          currentOrder.reservationActive === false
+        ) {
           setIsWaitingForPayment(false);
           const payment = await paymentApi.getLatestPayment(orderId);
           setLatestPayment(payment || null);
+          dispatch(fetchAuthenticatedCart());
         }
       } catch (e) {
         console.warn('Polling order payment status...', e);
@@ -93,10 +136,44 @@ export const PaymentPage: React.FC = () => {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [isWaitingForPayment, orderId, navigate]);
+  }, [isWaitingForPayment, orderId, navigate, dispatch]);
+
+  const isCartOrder = (order?.checkoutType || 'CART').toUpperCase() === 'CART';
+
+  const isTerminalFailed =
+    order?.paymentStatus !== 'SUCCESS' &&
+    order?.orderStatus !== 'PAID' &&
+    (latestPayment?.paymentStatus === 'FAILED' || (order?.paymentStatus === 'FAILED' && latestPayment?.paymentStatus !== 'CANCELLED' && latestPayment !== null));
+
+  const isTerminalCancelled =
+    order?.paymentStatus !== 'SUCCESS' &&
+    order?.orderStatus !== 'PAID' &&
+    !isTerminalFailed &&
+    (latestPayment?.paymentStatus === 'CANCELLED' || (order?.orderStatus === 'CANCELLED' && latestPayment !== null));
+
+  const isTerminalExpired =
+    order?.paymentStatus !== 'SUCCESS' &&
+    order?.orderStatus !== 'PAID' &&
+    !isTerminalFailed &&
+    !isTerminalCancelled &&
+    (order?.reservationActive === false || (remainingSeconds !== null && remainingSeconds <= 0) || (order?.orderStatus === 'CANCELLED' && !latestPayment));
+
+  const isTerminalState = isTerminalFailed || isTerminalCancelled || isTerminalExpired;
+
+  const isReservationActive =
+    !isTerminalState &&
+    order?.paymentStatus !== 'SUCCESS' &&
+    order?.orderStatus !== 'PAID' &&
+    Boolean(order?.reservationExpiresAt);
+
+  const formatCountdown = (totalSeconds: number) => {
+    const mins = Math.floor(Math.max(0, totalSeconds) / 60);
+    const secs = Math.max(0, totalSeconds) % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const handleProceedToPayment = async () => {
-    if (!orderId || isSubmitting) return;
+    if (!orderId || isSubmitting || isTerminalState) return;
 
     setIsSubmitting(true);
     setInitiationError(null);
@@ -121,6 +198,24 @@ export const PaymentPage: React.FC = () => {
         setInitiationError('Failed to initiate payment. Please try again.');
       }
       setIsSubmitting(false);
+    }
+  };
+
+  const handleCancelPayment = async () => {
+    if (!orderId || isCancelling) return;
+    setIsCancelling(true);
+    try {
+      await paymentApi.cancelPayment(orderId);
+      const updatedOrder = await orderApi.getOrderById(orderId);
+      setOrder(updatedOrder);
+      const updatedPayment = await paymentApi.getLatestPayment(orderId);
+      setLatestPayment(updatedPayment);
+      setIsWaitingForPayment(false);
+      dispatch(fetchAuthenticatedCart());
+    } catch (err: any) {
+      console.error('Failed to cancel payment:', err);
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -221,8 +316,107 @@ export const PaymentPage: React.FC = () => {
                     </button>
                   </div>
                 </>
+              ) : isTerminalState ? (
+                <>
+                  <div className="border-b border-border-subtle pb-6">
+                    <p className="text-sm font-medium text-text-muted mb-1">Payment Status</p>
+                    <p className={`text-xl font-bold ${isTerminalCancelled ? 'text-slate-700' : 'text-rose-600'}`}>
+                      {isTerminalFailed ? 'FAILED' : isTerminalCancelled ? 'CANCELLED' : 'EXPIRED'}
+                    </p>
+                  </div>
+                  <div className="border-b border-border-subtle pb-6">
+                    <p className="text-sm font-medium text-text-muted mb-1">Order Amount</p>
+                    <p className="text-xl font-bold text-text-main">{formatPrice(order.totalAmount)}</p>
+                  </div>
+
+                  <div className="pt-4 text-center mt-4 border-t border-gray-100 pt-6">
+                    <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full ${isTerminalCancelled ? 'bg-slate-100' : 'bg-rose-100'}`}>
+                      {isTerminalCancelled ? (
+                        <svg className="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      ) : isTerminalFailed ? (
+                        <svg className="h-6 w-6 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                      ) : (
+                        <svg className="h-6 w-6 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      )}
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-2">
+                      {isTerminalFailed ? 'Payment Failed' : isTerminalCancelled ? 'Payment Cancelled' : 'Reservation Expired'}
+                    </h3>
+                    <p className="text-sm text-slate-600 mb-1">
+                      {isTerminalFailed
+                        ? 'Your payment was not completed.'
+                        : isTerminalCancelled
+                        ? 'Your payment was cancelled.'
+                        : 'The reservation time limit for this order has expired.'}
+                    </p>
+                    <p className="text-sm text-slate-600 mb-2">Reserved stock has been released.</p>
+                    {isCartOrder ? (
+                      <p className="text-sm font-semibold text-emerald-700 mb-6">
+                        Your checkout items have been returned to your cart.
+                      </p>
+                    ) : (
+                      <p className="text-sm text-slate-500 mb-6">
+                        Direct purchase was not completed.
+                      </p>
+                    )}
+
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                      {isCartOrder && (
+                        <button
+                          type="button"
+                          onClick={() => navigate('/cart')}
+                          className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-primary text-white font-bold rounded shadow-sm hover:bg-primary-hover transition-colors"
+                        >
+                          <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                          View Cart
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => navigate('/orders')}
+                        className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 border border-border-subtle bg-white text-text-main font-bold rounded shadow-sm hover:bg-gray-50 transition-colors"
+                      >
+                        Order History
+                      </button>
+                    </div>
+                  </div>
+                </>
               ) : (
                 <>
+                  {/* Active Reservation Banner */}
+                  {isReservationActive && (
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 shadow-sm">
+                      <div className="flex items-start space-x-3">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <svg className="h-5 w-5 text-amber-600 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between flex-wrap gap-2">
+                            <h3 className="text-sm font-bold text-amber-900">Payment Pending</h3>
+                            {remainingSeconds !== null && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-amber-200 text-amber-900 shadow-sm">
+                                Reserved for: {formatCountdown(remainingSeconds)}
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-1 text-xs text-amber-800 leading-relaxed">
+                            Your order has been created. Stock is temporarily reserved while you complete payment.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="border-b border-border-subtle pb-6">
                     <p className="text-sm font-medium text-text-muted mb-1">Amount Due</p>
                     <p className="text-3xl font-bold text-text-main">{formatPrice(order.totalAmount)}</p>
@@ -243,13 +437,6 @@ export const PaymentPage: React.FC = () => {
                   {initiationError && (
                     <div className="rounded-md bg-[#FEF3F2] p-4 border border-[#FEE4E2]">
                       <p className="text-sm font-medium text-[#B42318]">{initiationError}</p>
-                    </div>
-                  )}
-
-                  {(order.paymentStatus === 'FAILED' || order.paymentStatus === 'PENDING') && latestPayment?.paymentStatus === 'FAILED' && (
-                    <div className="rounded-md bg-[#FEF3F2] p-4 border border-[#FEE4E2] mb-4 text-center">
-                      <h3 className="text-lg font-bold text-[#B42318] mb-1">Payment Failed</h3>
-                      <p className="text-sm text-[#B42318]">Your payment was not completed. You can try again.</p>
                     </div>
                   )}
 
@@ -276,10 +463,22 @@ export const PaymentPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleProceedToPayment}
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || isCancelling}
                       className="w-full rounded-md bg-primary text-white px-4 py-4 text-base font-bold shadow-md transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {isSubmitting ? 'Processing...' : (isWaitingForPayment ? 'Reopen Payment Window' : (latestPayment?.paymentStatus === 'FAILED' ? 'Try Again' : 'Proceed to Payment'))}
+                      {isSubmitting
+                        ? 'Processing...'
+                        : isWaitingForPayment
+                        ? 'Reopen Payment Window'
+                        : 'Proceed to Payment'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancelPayment}
+                      disabled={isCancelling || isSubmitting}
+                      className="w-full mt-3 rounded-md border border-slate-300 bg-white text-slate-700 px-4 py-3 text-sm font-semibold shadow-sm hover:bg-slate-50 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {isCancelling ? 'Cancelling...' : 'Cancel Payment'}
                     </button>
                   </div>
                 </>

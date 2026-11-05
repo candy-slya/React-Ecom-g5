@@ -23,6 +23,14 @@ export interface PaymentDetailResponse {
   createdAt: string;
 }
 
+export interface PaymentCancelResponse {
+  orderId: number;
+  orderStatus: string;
+  paymentStatus: string;
+  message: string;
+  itemsRestored: boolean;
+}
+
 export const paymentApi = {
   initiatePayment: async (orderId: number | string, paymentMethod: string): Promise<PaymentInitiateResponse> => {
     const request: PaymentInitiateRequest = { paymentMethod };
@@ -32,6 +40,11 @@ export const paymentApi = {
 
   getLatestPayment: async (orderId: number | string): Promise<PaymentDetailResponse> => {
     const response = await axiosClient.get(`/v1/payments/orders/${orderId}/latest`);
+    return response.data;
+  },
+
+  cancelPayment: async (orderId: number | string): Promise<PaymentCancelResponse> => {
+    const response = await axiosClient.post(`/v1/payments/orders/${orderId}/cancel`);
     return response.data;
   },
 };

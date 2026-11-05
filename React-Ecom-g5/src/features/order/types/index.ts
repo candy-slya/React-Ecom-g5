@@ -12,6 +12,10 @@ export interface OrderListResponse {
   createdAt: string;
   items: OrderItemSummary[];
   trackingNumbers: string[];
+  checkoutType?: string;
+  reservationExpiresAt?: string | null;
+  reservationActive?: boolean | null;
+  hasInitiatedPayment?: boolean | null;
 }
 
 export interface Page<T> {
@@ -83,5 +87,8 @@ export interface OrderDetailResponse {
   payment: OrderPaymentSummary;
   statusHistory: OrderStatusHistory[];
   shipments: ShipmentTracking[];
+  checkoutType?: string;
+  reservationExpiresAt?: string | null;
+  reservationActive?: boolean | null;
 }
 

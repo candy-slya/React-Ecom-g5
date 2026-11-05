@@ -32,6 +32,8 @@ export interface OrderResponse {
   paymentStatus: string;
   createdAt: string;
   checkoutType?: string;
+  reservationExpiresAt?: string | null;
+  reservationActive?: boolean | null;
 }
 
 export interface CustomerAddressResponse {
