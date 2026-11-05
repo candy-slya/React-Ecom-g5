@@ -172,19 +172,19 @@ export const OrderHistoryPage: React.FC = () => {
     let textColor = 'text-gray-800';
 
     if (order.orderStatus === 'CANCELLED') {
-      if (order.reservationActive === false) {
-        text = 'RESERVATION EXPIRED';
+      if (order.isExpired) {
+        text = 'ORDER EXPIRED';
         bgColor = 'bg-[#B42318]/10';
         textColor = 'text-[#B42318]';
       } else {
-        text = 'PAYMENT CANCELLED';
-        bgColor = 'bg-gray-100';
-        textColor = 'text-gray-700';
+        text = 'PAYMENT FAILED';
+        bgColor = 'bg-[#B42318]/10';
+        textColor = 'text-[#B42318]';
       }
     } else if (order.orderStatus === 'PENDING') {
       if (order.paymentStatus === 'PENDING') {
-        if (order.reservationActive === false) {
-          text = 'RESERVATION EXPIRED';
+        if (order.isExpired) {
+          text = 'ORDER EXPIRED';
           bgColor = 'bg-[#B42318]/10';
           textColor = 'text-[#B42318]';
         } else if (order.hasInitiatedPayment) {
@@ -197,7 +197,7 @@ export const OrderHistoryPage: React.FC = () => {
           textColor = 'text-[#B7791F]';
         }
       } else if (order.paymentStatus === 'FAILED') {
-        text = 'FAILED';
+        text = 'PAYMENT FAILED';
         bgColor = 'bg-[#B42318]/10';
         textColor = 'text-[#B42318]';
       }
@@ -212,6 +212,7 @@ export const OrderHistoryPage: React.FC = () => {
           textColor = 'text-[#2E7D32]';
           break;
         case 'FAILED':
+          text = 'PAYMENT FAILED';
           bgColor = 'bg-[#B42318]/10';
           textColor = 'text-[#B42318]';
           break;
@@ -376,26 +377,23 @@ export const OrderHistoryPage: React.FC = () => {
         ) : (
           <div className="space-y-6 print:space-y-4">
             {pageData?.content.map((order) => {
-              // Final UX Rule 1: Pay Now appears ONLY when payment was never started AND reservation is active
+              // Final UX Rule 1 & Step 9: Pay Now appears ONLY when payment was never started, reservation is active, and not expired
+              const isNotExpired =
+                !order.isExpired &&
+                (!order.reservationExpiresAt || new Date(order.reservationExpiresAt).getTime() > Date.now());
+
               const isPayable =
                 order.orderStatus === 'PENDING' &&
                 order.paymentStatus === 'PENDING' &&
                 order.hasInitiatedPayment === false &&
-                order.reservationActive === true;
+                order.reservationActive === true &&
+                isNotExpired;
 
               // Final UX Rule 2: Processing state has NO action button (wait only)
               const isProcessing =
                 order.orderStatus === 'PENDING' &&
                 order.paymentStatus === 'PENDING' &&
                 order.hasInitiatedPayment === true;
-
-              const isCartOrder = (order.checkoutType || 'CART').toUpperCase() === 'CART';
-              const isTerminalRestored =
-                (order.orderStatus === 'CANCELLED' ||
-                  order.paymentStatus === 'FAILED' ||
-                  order.reservationActive === false) &&
-                order.orderStatus !== 'PAID' &&
-                order.paymentStatus !== 'SUCCESS';
 
               return (
               <div
@@ -463,25 +461,6 @@ export const OrderHistoryPage: React.FC = () => {
                               </span>
                               Please wait for the payment result
                             </span>
-                          </div>
-                        )}
-
-                        {/* Restored Cart Order: Option to View Cart */}
-                        {isCartOrder && isTerminalRestored && (
-                          <div className="mt-3 flex sm:justify-end print:hidden">
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate('/cart');
-                              }}
-                              className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white text-slate-700 px-3 py-1.5 text-xs font-semibold shadow-sm hover:bg-slate-50 transition-colors cursor-pointer"
-                            >
-                              <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                              </svg>
-                              View Cart
-                            </button>
                           </div>
                         )}
                       </div>

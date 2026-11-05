@@ -8,7 +8,9 @@ import { fetchAuthenticatedCart } from '../../features/cart/store/cartSlice';
 import { useProductSearch } from '../../features/product/hooks/useProductSearch';
 import { searchHistoryApi } from '../../features/product/api/searchHistoryApi';
 import { productApi } from '../../features/product/api/productApi';
+import { orderApi } from '../../features/order/api/orderApi';
 import type { RecentSearchResponse, ProductListResponse } from '../../features/product/types';
+import type { PendingOrderExpiryResponse } from '../../features/order/types';
 import { getAssetUrl } from '../../utils/assetUtils';
 
 export const StorefrontHeader: React.FC = () => {
@@ -44,6 +46,71 @@ export const StorefrontHeader: React.FC = () => {
   const accountMenuRef = useRef<HTMLDivElement>(null);
   const desktopSearchRef = useRef<HTMLDivElement>(null);
   const mobileSearchRef = useRef<HTMLDivElement>(null);
+
+  const [pendingExpiry, setPendingExpiry] = useState<PendingOrderExpiryResponse | null>(null);
+  const [expirySeconds, setExpirySeconds] = useState<number | null>(null);
+
+  const formatCountdown = (totalSeconds: number): string => {
+    if (totalSeconds <= 0) return '00:00';
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setPendingExpiry(null);
+      setExpirySeconds(null);
+      return;
+    }
+
+    let isMounted = true;
+    const fetchExpiry = async () => {
+      try {
+        const res = await orderApi.getPendingOrderExpiry();
+        if (!isMounted) return;
+        if (res && res.pendingCount > 0 && res.expiresAt) {
+          const diff = Math.max(0, Math.floor((new Date(res.expiresAt).getTime() - Date.now()) / 1000));
+          if (diff > 0) {
+            setPendingExpiry(res);
+            setExpirySeconds(diff);
+            return;
+          }
+        }
+        setPendingExpiry(null);
+        setExpirySeconds(null);
+      } catch {
+        if (isMounted) {
+          setPendingExpiry(null);
+          setExpirySeconds(null);
+        }
+      }
+    };
+
+    fetchExpiry();
+    const pollInterval = setInterval(fetchExpiry, 30000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(pollInterval);
+    };
+  }, [isAuthenticated, pathname]);
+
+  useEffect(() => {
+    if (expirySeconds === null || expirySeconds <= 0) return;
+
+    const timer = setInterval(() => {
+      setExpirySeconds((prev) => {
+        if (prev === null || prev <= 1) {
+          setPendingExpiry(null);
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [expirySeconds]);
 
   // Update input only when URL actually changes (e.g., from external link)
   useEffect(() => {
@@ -330,6 +397,18 @@ export const StorefrontHeader: React.FC = () => {
           </div>
 
           <div className="flex flex-shrink-0 items-center space-x-5">
+            {isAuthenticated && pendingExpiry && expirySeconds !== null && expirySeconds > 0 && (
+              <button
+                type="button"
+                onClick={() => navigate(`/payment/${pendingExpiry.orderId}`)}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition-colors shadow-xs"
+                title="Click to complete payment"
+              >
+                <span className="text-amber-700 font-normal">⏱ Order expires in</span>
+                <span className="font-mono font-bold">{formatCountdown(expirySeconds)}</span>
+              </button>
+            )}
+
             {isAuthenticated ? (
               <div className="relative" ref={accountMenuRef}>
                 <button

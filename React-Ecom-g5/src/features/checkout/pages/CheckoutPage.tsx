@@ -914,9 +914,23 @@ export const CheckoutPage: React.FC = () => {
         ))}
       </div>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h1 className="mb-8 text-3xl font-bold tracking-tight text-text-main sm:text-4xl">
-          {mode === 'BUY_NOW' ? 'Direct Buy Now Checkout' : 'Checkout'}
+        <h1 className="mb-4 text-3xl font-bold tracking-tight text-text-main sm:text-4xl">
+          Checkout
         </h1>
+
+        {mode === 'BUY_NOW' && (
+          <div className="mb-8 flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 shadow-xs">
+            <svg className="h-5 w-5 flex-shrink-0 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <div>
+              <p className="text-sm font-semibold text-text-main">Buy Now Checkout</p>
+              <p className="text-xs text-text-muted mt-0.5">
+                You’re purchasing this item directly. Your shopping cart will remain unchanged.
+              </p>
+            </div>
+          </div>
+        )}
         
         {orderError && (
           <div className="mb-8 rounded-md bg-[#B42318]/10 p-4">
@@ -1145,21 +1159,6 @@ export const CheckoutPage: React.FC = () => {
           </div>
 
           <div className="mt-10 lg:col-span-4 lg:mt-0 space-y-6">
-            {mode === 'BUY_NOW' && (
-              <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-xs text-text-muted space-y-2">
-                <div className="flex items-center space-x-2 text-primary font-bold">
-                  <span className="inline-block h-2 w-2 rounded-full bg-primary animate-pulse"></span>
-                  <span>Direct Buy Now Mode</span>
-                </div>
-                <p>
-                  You are checking out only this selected item. Your shopping cart items remain intact and are not included in this purchase.
-                </p>
-                <div className="border-t border-border-subtle pt-2 text-[11px] text-text-muted">
-                  <strong>Estimated Pricing:</strong> Catalog prices shown. Final authoritative totals and shipping charges will be verified on backend order creation.
-                </div>
-              </div>
-            )}
-
             <OrderSummary 
               cartItems={currentCheckoutItems} 
               shippingFee={selectedShippingFee} 

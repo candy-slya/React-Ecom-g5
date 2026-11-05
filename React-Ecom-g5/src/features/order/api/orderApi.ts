@@ -1,6 +1,6 @@
 import { axiosClient } from '../../../api/axiosClient';
 import type { OrderResponse } from '../../checkout/types';
-import type { OrderDetailResponse, OrderListResponse, Page } from '../types';
+import type { OrderDetailResponse, OrderListResponse, Page, PendingOrderExpiryResponse } from '../types';
 
 export interface GetMyOrdersParams {
   page?: number;
@@ -60,6 +60,11 @@ export const orderApi = {
 
   resumePayment: async (orderId: number | string): Promise<OrderDetailResponse> => {
     const response = await axiosClient.post(`/v1/orders/${orderId}/resume-payment`);
+    return response.data;
+  },
+
+  getPendingOrderExpiry: async (): Promise<PendingOrderExpiryResponse> => {
+    const response = await axiosClient.get<PendingOrderExpiryResponse>('/v1/orders/pending-expiry');
     return response.data;
   }
 };

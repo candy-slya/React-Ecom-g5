@@ -16,6 +16,14 @@ export interface OrderListResponse {
   reservationExpiresAt?: string | null;
   reservationActive?: boolean | null;
   hasInitiatedPayment?: boolean | null;
+  isExpired?: boolean | null;
+}
+
+export interface PendingOrderExpiryResponse {
+  orderId: number | null;
+  orderNo: string | null;
+  expiresAt: string | null;
+  pendingCount: number;
 }
 
 export interface Page<T> {
@@ -90,5 +98,6 @@ export interface OrderDetailResponse {
   checkoutType?: string;
   reservationExpiresAt?: string | null;
   reservationActive?: boolean | null;
+  isExpired?: boolean | null;
 }
 

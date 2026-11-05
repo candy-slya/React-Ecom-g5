@@ -346,19 +346,23 @@ export const PaymentPage: React.FC = () => {
                       )}
                     </div>
                     <h3 className="text-xl font-bold text-slate-900 mb-2">
-                      {isTerminalFailed ? 'Payment Failed' : isTerminalCancelled ? 'Payment Cancelled' : 'Reservation Expired'}
+                      {isTerminalFailed ? 'Payment Failed' : isTerminalCancelled ? 'Order Cancelled' : 'Order Expired'}
                     </h3>
                     <p className="text-sm text-slate-600 mb-1">
                       {isTerminalFailed
                         ? 'Your payment was not completed.'
                         : isTerminalCancelled
-                        ? 'Your payment was cancelled.'
-                        : 'The reservation time limit for this order has expired.'}
+                        ? 'You cancelled the order before payment.'
+                        : 'Your order has expired.'}
                     </p>
-                    <p className="text-sm text-slate-600 mb-2">Reserved stock has been released.</p>
-                    {isCartOrder ? (
+                    <p className="text-sm text-slate-600 mb-2">Stock hold has been released.</p>
+                    {isCartOrder && !isTerminalExpired ? (
                       <p className="text-sm font-semibold text-emerald-700 mb-6">
                         Your checkout items have been returned to your cart.
+                      </p>
+                    ) : isTerminalExpired ? (
+                      <p className="text-sm text-slate-500 mb-6">
+                        The items were not returned to your cart. Please start a new order if you still wish to purchase them.
                       </p>
                     ) : (
                       <p className="text-sm text-slate-500 mb-6">
@@ -367,7 +371,7 @@ export const PaymentPage: React.FC = () => {
                     )}
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                      {isCartOrder && (
+                      {isCartOrder && !isTerminalExpired && (
                         <button
                           type="button"
                           onClick={() => navigate('/cart')}
@@ -391,7 +395,7 @@ export const PaymentPage: React.FC = () => {
                 </>
               ) : (
                 <>
-                  {/* Active Reservation Banner */}
+                  {/* Active Order Expiry Banner */}
                   {isReservationActive && (
                     <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 shadow-sm">
                       <div className="flex items-start space-x-3">
@@ -405,12 +409,12 @@ export const PaymentPage: React.FC = () => {
                             <h3 className="text-sm font-bold text-amber-900">Payment Pending</h3>
                             {remainingSeconds !== null && (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-amber-200 text-amber-900 shadow-sm">
-                                Reserved for: {formatCountdown(remainingSeconds)}
+                                Your order expires in {formatCountdown(remainingSeconds)}
                               </span>
                             )}
                           </div>
                           <p className="mt-1 text-xs text-amber-800 leading-relaxed">
-                            Your order has been created. Stock is temporarily reserved while you complete payment.
+                            Your order has been placed. Please complete your payment before the timer expires.
                           </p>
                         </div>
                       </div>
