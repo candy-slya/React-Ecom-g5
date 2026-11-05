@@ -1,95 +1,225 @@
+
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
+import {
+  useParams,
+  useNavigate,
+  Link,
+  useSearchParams
+} from 'react-router-dom';
+
 import { productApi } from '../../product/api/productApi';
 import { ProductCard } from '../../../components/product/ProductCard';
-import { DEFAULT_BACKOFFICE_CATEGORIES } from '../data/defaultCategories';
-import type { CategoryNodeResponse, ProductListResponse, PageResponse } from '../../product/types';
+
+import type {
+  CategoryNodeResponse,
+  ProductListResponse,
+  PageResponse
+} from '../../product/types';
 
 export const CategoryDetailPage: React.FC = () => {
   const { categoryId } = useParams<{ categoryId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  
-  const [category, setCategory] = useState<CategoryNodeResponse | null>(null);
-  const [productsPage, setProductsPage] = useState<PageResponse<ProductListResponse> | null>(null);
+
+  const [category, setCategory] =
+    useState<CategoryNodeResponse | null>(null);
+
+  const [productsPage, setProductsPage] =
+    useState<PageResponse<ProductListResponse> | null>(null);
+
   const [loadingCategory, setLoadingCategory] = useState(true);
   const [loadingProducts, setLoadingProducts] = useState(true);
-  
-  const activeSort = searchParams.get('sort') || 'newest';
-  const activePage = searchParams.get('page') ? Number(searchParams.get('page')) : 0;
 
-  // Helper to recursively find category
-  const findCategory = (nodes: CategoryNodeResponse[], id: number): CategoryNodeResponse | null => {
+  const [categoryError, setCategoryError] = useState<string | null>(null);
+  const [productsError, setProductsError] = useState<string | null>(null);
+
+  const activeSort = searchParams.get('sort') || 'newest';
+
+  const rawPage = Number(searchParams.get('page') ?? '0');
+  const activePage =
+    Number.isSafeInteger(rawPage) && rawPage >= 0
+      ? rawPage
+      : 0;
+
+  const parsedCategoryId = Number(categoryId);
+  const isValidCategoryId =
+    Boolean(categoryId) &&
+    Number.isSafeInteger(parsedCategoryId) &&
+    parsedCategoryId > 0;
+
+  // Recursively find category from database category tree
+  const findCategory = (
+    nodes: CategoryNodeResponse[],
+    id: number
+  ): CategoryNodeResponse | null => {
     for (const node of nodes) {
-      if (node.categoryId === id) return node;
+      if (node.categoryId === id) {
+        return node;
+      }
+
       if (node.children && node.children.length > 0) {
         const found = findCategory(node.children, id);
-        if (found) return found;
+
+        if (found) {
+          return found;
+        }
       }
     }
+
     return null;
   };
 
+  // Load category details using actual database category IDs
   useEffect(() => {
-    if (!categoryId) return;
-    setLoadingCategory(true);
-    productApi.getCategoryTree().then(res => {
-      let found = findCategory(res, Number(categoryId));
-      if (!found) {
-        found = findCategory(DEFAULT_BACKOFFICE_CATEGORIES, Number(categoryId));
-      }
-      setCategory(found);
-      setLoadingCategory(false);
-    }).catch((e: any) => {
-      console.error(e);
+    let cancelled = false;
 
+    setLoadingCategory(true);
+    setCategory(null);
+    setCategoryError(null);
+
+    if (!isValidCategoryId) {
       setLoadingCategory(false);
-    });
+      return;
+    }
+
+    productApi.getCategoryTree()
+      .then((res) => {
+        if (cancelled) return;
+
+        const found = findCategory(
+          res ?? [],
+          parsedCategoryId
+        );
+
+        setCategory(found);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+
+        console.error('Failed to load category:', error);
+        setCategory(null);
+        setCategoryError('Unable to load category. Please try again.');
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoadingCategory(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [categoryId]);
 
+  // Load only products related to selected category
   useEffect(() => {
-    if (!categoryId) return;
-    setLoadingProducts(true);
-    
-    const params: Record<string, any> = { categoryId: Number(categoryId) };
-    if (activeSort) params.sort = activeSort;
-    if (activePage !== undefined) params.page = activePage;
-    
-    productApi.getProducts(params).then(res => {
-      setProductsPage(res);
-      setLoadingProducts(false);
-    }).catch((e: any) => {
-      console.error(e);
+    let cancelled = false;
 
+    setLoadingProducts(true);
+    setProductsPage(null);
+    setProductsError(null);
+
+    if (!isValidCategoryId) {
       setLoadingProducts(false);
-    });
+      return;
+    }
+
+    const params = {
+      categoryId: parsedCategoryId,
+      sort: activeSort,
+      page: activePage
+    };
+
+    productApi.getProducts(params)
+      .then((res) => {
+        if (cancelled) return;
+
+        setProductsPage(res);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+
+        console.error('Failed to load category products:', error);
+        setProductsPage(null);
+        setProductsError('Unable to load products. Please try again.');
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoadingProducts(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [categoryId, activeSort, activePage]);
 
-  const updateFilters = (newParams: Record<string, any>) => {
+  // sorting and pagination URL parameters
+  const updateFilters = (
+    newParams: Record<string, string | number | null | undefined>
+  ) => {
     const nextParams = new URLSearchParams(searchParams);
-    for (const [k, v] of Object.entries(newParams)) {
-      if (v === null || v === undefined || v === '') {
-        nextParams.delete(k);
+
+    for (const [key, value] of Object.entries(newParams)) {
+      if (
+        value === null ||
+        value === undefined ||
+        value === ''
+      ) {
+        nextParams.delete(key);
       } else {
-        nextParams.set(k, v.toString());
+        nextParams.set(key, String(value));
       }
     }
-    if (!newParams.page) {
+
+    if (!Object.prototype.hasOwnProperty.call(newParams, 'page')) {
       nextParams.set('page', '0');
     }
+
     setSearchParams(nextParams);
   };
 
   if (loadingCategory) {
-    return <div className="text-center py-20 text-gray-500">Loading category...</div>;
+    return (
+      <div className="text-center py-20 text-gray-500">
+        Loading category...
+      </div>
+    );
+  }
+
+  if (categoryError) {
+    return (
+      <div className="min-h-screen bg-page pb-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+          <h2 className="text-2xl font-bold mb-4">
+            {categoryError}
+          </h2>
+
+          <Link
+            to="/categories"
+            className="text-primary hover:underline"
+          >
+            Return to Categories
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   if (!category) {
     return (
       <div className="min-h-screen bg-page pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center text-gray-500">
-          <h2 className="text-2xl font-bold mb-4">Category not found</h2>
-          <Link to="/categories" className="text-primary hover:underline">Return to Categories</Link>
+          <h2 className="text-2xl font-bold mb-4">
+            Category not found
+          </h2>
+
+          <Link
+            to="/categories"
+            className="text-primary hover:underline"
+          >
+            Return to Categories
+          </Link>
         </div>
       </div>
     );
@@ -98,24 +228,42 @@ export const CategoryDetailPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-page pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
+        {/* Breadcrumb */}
         <div className="py-6 text-sm text-gray-500">
-          <Link to="/" className="hover:underline">Home</Link> / <Link to="/categories" className="hover:underline">Categories</Link> / {category.categoryName}
+          <Link to="/" className="hover:underline">
+            Home
+          </Link>
+          {' / '}
+          <Link to="/categories" className="hover:underline">
+            Categories
+          </Link>
+          {' / '}
+          {category.categoryName}
         </div>
 
+        {/* Category Header */}
         <div className="bg-white border border-border-subtle p-8 rounded shadow-sm mb-8">
-          <h1 className="text-[34px] font-bold m-0">{category.categoryName}</h1>
+          <h1 className="text-[34px] font-bold m-0">
+            {category.categoryName}
+          </h1>
         </div>
-        
+
         {/* Subcategories */}
         {category.children && category.children.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4">Subcategories</h2>
+            <h2 className="text-xl font-bold mb-4">
+              Subcategories
+            </h2>
+
             <div className="flex flex-wrap gap-3">
-              {category.children.map(child => (
-                <button 
-                  key={child.categoryId} 
-                  onClick={() => navigate(`/categories/${child.categoryId}`)}
+              {category.children.map((child) => (
+                <button
+                  key={child.categoryId}
+                  type="button"
+                  onClick={() =>
+                    navigate(`/categories/${child.categoryId}`)
+                  }
                   className="bg-white border border-border-subtle px-4 py-2 text-sm hover:border-primary hover:text-primary transition-colors rounded"
                 >
                   {child.categoryName}
@@ -125,76 +273,125 @@ export const CategoryDetailPage: React.FC = () => {
           </div>
         )}
 
+        {/* Product Count and Sorting */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-[18px]">
           <div className="text-xs text-gray-500">
-            {loadingProducts ? 'Loading products...' : `Showing ${productsPage?.totalElements || 0} products`}
+            {loadingProducts
+              ? 'Loading products...'
+              : productsError
+                ? 'Unable to load products'
+                : `Showing ${productsPage?.totalElements ?? 0} products`}
           </div>
-          <select value={activeSort} onChange={e => updateFilters({ sort: e.target.value, page: 0 })} className="p-2 border text-sm bg-white">
-            <option value="newest">Newest</option>
-            <option value="priceAsc">Price Low &rarr; High</option>
-            <option value="priceDesc">Price High &rarr; Low</option>
-            <option value="name">Name A-Z</option>
+
+          <select
+            value={activeSort}
+            onChange={(e) =>
+              updateFilters({
+                sort: e.target.value,
+                page: 0
+              })
+            }
+            className="p-2 border text-sm bg-white"
+          >
+            <option value="newest">
+              Newest
+            </option>
+            <option value="priceAsc">
+              Price Low → High
+            </option>
+            <option value="priceDesc">
+              Price High → Low
+            </option>
+            <option value="name">
+              Name A-Z
+            </option>
           </select>
         </div>
 
+        {/* Product Content */}
         {loadingProducts ? (
-          <div className="text-center py-12 text-gray-500">Loading products...</div>
-        ) : productsPage?.content.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            Loading products...
+          </div>
+        ) : productsError ? (
+          <div className="bg-white border p-12 text-center text-red-500 rounded">
+            {productsError}
+          </div>
+        ) : !productsPage || productsPage.content.length === 0 ? (
           <div className="bg-white border p-12 text-center text-gray-500 rounded">
             No products available for this category.
           </div>
         ) : (
           <>
+            {/* Related Products */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-[18px]">
-              {productsPage?.content.map(p => (
-                <ProductCard key={p.productId} product={p} />
+              {productsPage.content.map((product) => (
+                <ProductCard
+                  key={product.productId}
+                  product={product}
+                />
               ))}
             </div>
-            
+
             {/* Pagination */}
-            {productsPage && productsPage.totalPages > 1 && (
+            {productsPage.totalPages > 1 && (
               <div className="mt-12 flex items-center justify-center space-x-2">
+
                 <button
                   type="button"
                   disabled={productsPage.first}
                   onClick={() => {
                     updateFilters({ page: activePage - 1 });
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    window.scrollTo({
+                      top: 0,
+                      behavior: 'smooth'
+                    });
                   }}
                   className="px-4 py-2 rounded-lg border border-border-subtle bg-white text-sm font-semibold text-text-main hover:bg-page hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
                 >
                   Previous
                 </button>
+
                 <div className="flex space-x-1">
-                  {Array.from({ length: productsPage.totalPages }).map((_, idx) => (
+                  {Array.from({
+                    length: productsPage.totalPages
+                  }).map((_, index) => (
                     <button
-                      key={idx}
+                      key={index}
                       type="button"
                       onClick={() => {
-                        updateFilters({ page: idx });
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        updateFilters({ page: index });
+                        window.scrollTo({
+                          top: 0,
+                          behavior: 'smooth'
+                        });
                       }}
                       className={`w-10 h-10 rounded-lg text-sm font-bold transition-colors ${
-                        activePage === idx
+                        activePage === index
                           ? 'bg-primary text-white shadow-sm'
                           : 'bg-white text-text-main border border-border-subtle hover:bg-page hover:text-primary'
                       }`}
                     >
-                      {idx + 1}
+                      {index + 1}
                     </button>
                   ))}
                 </div>
+
                 <button
                   type="button"
                   disabled={productsPage.last}
                   onClick={() => {
                     updateFilters({ page: activePage + 1 });
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    window.scrollTo({
+                      top: 0,
+                      behavior: 'smooth'
+                    });
                   }}
                   className="px-4 py-2 rounded-lg border border-border-subtle bg-white text-sm font-semibold text-text-main hover:bg-page hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
                 >
                   Next
                 </button>
+
               </div>
             )}
           </>
