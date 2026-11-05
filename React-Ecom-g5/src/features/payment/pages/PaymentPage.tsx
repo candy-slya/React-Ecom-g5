@@ -444,47 +444,36 @@ export const PaymentPage: React.FC = () => {
                     </div>
                   )}
 
-                  {isWaitingForPayment && (
+                  {isWaitingForPayment ? (
                     <div className="rounded-lg bg-sky-50 p-4 border border-sky-200 mb-4 text-center">
                       <div className="flex items-center justify-center space-x-2 mb-2">
                         <div className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin" />
                         <h4 className="text-sm font-bold text-sky-900">Banking portal opened in a new tab</h4>
                       </div>
-                      <p className="text-xs text-sky-700 mb-3">
+                      <p className="text-xs text-sky-700">
                         Please complete your payment in the bank tab. This page will automatically update once confirmed.
                       </p>
+                    </div>
+                  ) : (
+                    <div className="pt-4">
                       <button
                         type="button"
                         onClick={handleProceedToPayment}
-                        className="text-xs font-semibold text-primary hover:underline cursor-pointer"
+                        disabled={isSubmitting || isCancelling}
+                        className="w-full rounded-md bg-primary text-white px-4 py-4 text-base font-bold shadow-md transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       >
-                        Did the tab not open? Click here to reopen
+                        {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancelPayment}
+                        disabled={isCancelling || isSubmitting}
+                        className="w-full mt-3 rounded-md border border-slate-300 bg-white text-slate-700 px-4 py-3 text-sm font-semibold shadow-sm hover:bg-slate-50 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {isCancelling ? 'Cancelling...' : 'Cancel Payment'}
                       </button>
                     </div>
                   )}
-
-                  <div className="pt-4">
-                    <button
-                      type="button"
-                      onClick={handleProceedToPayment}
-                      disabled={isSubmitting || isCancelling}
-                      className="w-full rounded-md bg-primary text-white px-4 py-4 text-base font-bold shadow-md transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {isSubmitting
-                        ? 'Processing...'
-                        : isWaitingForPayment
-                        ? 'Reopen Payment Window'
-                        : 'Proceed to Payment'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleCancelPayment}
-                      disabled={isCancelling || isSubmitting}
-                      className="w-full mt-3 rounded-md border border-slate-300 bg-white text-slate-700 px-4 py-3 text-sm font-semibold shadow-sm hover:bg-slate-50 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {isCancelling ? 'Cancelling...' : 'Cancel Payment'}
-                    </button>
-                  </div>
                 </>
               )}
 
