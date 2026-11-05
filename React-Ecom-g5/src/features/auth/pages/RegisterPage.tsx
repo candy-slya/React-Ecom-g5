@@ -325,7 +325,7 @@ export const RegisterPage: React.FC = () => {
                     name="fullName"
                     type="text"
                     required
-                    placeholder="John Doe"
+                    placeholder="Mg Mg"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     className="block w-full appearance-none rounded-md border border-border-subtle pl-10 px-3 py-2 text-text-main placeholder-[#9CA3AF] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"

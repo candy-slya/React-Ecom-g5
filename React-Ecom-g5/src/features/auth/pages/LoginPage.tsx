@@ -63,7 +63,7 @@ const logoAnimationStyles = `
 `;
 
 /* ------------------------------------------------------------------ */
-/*  Animated 6SYNC Logo — matches BrandLogo.tsx palette & layout       */
+/*  Animated 6SYNC Logo                                                */
 /* ------------------------------------------------------------------ */
 const AnimatedLogo: React.FC = () => (
   <div className="flex justify-center">
@@ -160,6 +160,15 @@ export const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState("");
   const [mergeWarning, setMergeWarning] = useState("");
+  const [countdown, setCountdown] = useState<number>(() => {
+    // ✅ Page ပြန်လာသည့်အခါ LocalStorage ထဲက ကျန်ရှိနေသောအချိန်ကို တွက်ချက်ယူခြင်း
+    const savedTarget = localStorage.getItem("login_lockout_target");
+    if (savedTarget) {
+      const remaining = Math.ceil((Number(savedTarget) - Date.now()) / 1000);
+      return remaining > 0 ? remaining : 0;
+    }
+    return 0;
+  });
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -168,6 +177,31 @@ export const LoginPage: React.FC = () => {
     (state) => state.auth,
   );
   const { guestItems } = useAppSelector((state) => state.cart);
+
+  // ✅ Countdown Timer Effect (LocalStorage နဲ့ ချိတ်ဆက်ထားခြင်း)
+  useEffect(() => {
+    if (countdown <= 0) {
+      localStorage.removeItem("login_lockout_target");
+      return;
+    }
+
+    const timer = setInterval(() => {
+      const savedTarget = localStorage.getItem("login_lockout_target");
+      if (savedTarget) {
+        const remaining = Math.ceil((Number(savedTarget) - Date.now()) / 1000);
+        if (remaining <= 0) {
+          setCountdown(0);
+          localStorage.removeItem("login_lockout_target");
+        } else {
+          setCountdown(remaining);
+        }
+      } else {
+        setCountdown((prev) => (prev > 1 ? prev - 1 : 0));
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [countdown]);
 
   const handlePostLoginNavigation = useCallback(() => {
     const params = new URLSearchParams(location.search);
@@ -189,7 +223,6 @@ export const LoginPage: React.FC = () => {
         const dummyBase = "http://localhost";
         const parsed = new URL(redirect, dummyBase);
 
-        // Case 1: URL contains BUY_NOW query parameters
         if (
           parsed.pathname === "/checkout" &&
           parsed.searchParams.get("mode") === "buy_now"
@@ -229,7 +262,6 @@ export const LoginPage: React.FC = () => {
           return;
         }
 
-        // Case 2: Legacy state-only BUY_NOW redirect (/checkout with state)
         if (
           parsed.pathname === "/checkout" &&
           state?.checkoutMode === "BUY_NOW" &&
@@ -252,7 +284,6 @@ export const LoginPage: React.FC = () => {
           return;
         }
 
-        // Case 3: Other safe internal redirect
         navigate(redirect, { replace: true });
         return;
       } catch {
@@ -322,10 +353,12 @@ export const LoginPage: React.FC = () => {
 
       handlePostLoginNavigation();
     } catch (err: any) {
-      // ✅ 429 Error (Rate Limit) ဖြစ်လာပါက User-friendly မက်ဆေ့ခ်ျ သတ်မှတ်ပြသခြင်း
       const errString = String(err?.message || err);
       if (err?.response?.status === 429 || errString.includes("429")) {
         setFormError("Too many login attempts. Please try again later.");
+        const targetTime = Date.now() + 60 * 1000;
+        localStorage.setItem("login_lockout_target", targetTime.toString());
+        setCountdown(60); // ✅ ၄၂၉ ကြုံလျှင် ၆၀ စက္ကန့် သတ်မှတ်မည်
       } else {
         setFormError("Invalid email or password.");
       }
@@ -366,7 +399,8 @@ export const LoginPage: React.FC = () => {
               {(formError || error) && (
                 <div className="rounded-md bg-[#FEF2F2] p-4 border border-[#F87171]">
                   <div className="text-sm text-[#B91C1C]">
-                    {formError || error}
+                    {formError || (error?.includes("429") ? "" : error)}
+                    {/* ✅ Alert Box ထဲမှ Countdown စာသားကို ဖယ်ရှားပြီးပါပြီ */}
                   </div>
                 </div>
               )}
@@ -499,16 +533,19 @@ export const LoginPage: React.FC = () => {
               <div>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || countdown > 0} // ✅ Countdown ပြီးဆုံးသည်အထိ ခလုတ်ပိတ်ထားမည်
                   className="flex w-full justify-center rounded-md border border-transparent bg-primary text-white px-4 py-2.5 text-sm font-bold shadow-md hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {loading ? "Signing in..." : "Sign In"}
+                  {loading
+                    ? "Signing in..."
+                    : countdown > 0
+                      ? `Try again in ${countdown}s`
+                      : "Sign In"}
                 </button>
               </div>
             </form>
           </div>
 
-          {/* ✅ Back to shop — card အောက်မှာ */}
           <div className="mt-6 text-center">
             <Link
               to="/"
