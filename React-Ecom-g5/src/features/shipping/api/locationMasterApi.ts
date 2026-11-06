@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { axiosClient } from '../../../api/axiosClient';
 import rawLocations from '../data/myanmar-locations.json';
 
 export interface LocationCityDto {
@@ -17,7 +17,7 @@ export const locationMasterApi = {
   // ၁။ တိုင်း/ပြည်နယ် နှင့် မြို့နယ်အားလုံးကို ဆွဲထုတ်ရန် (GET /api/locations)
   getAllLocations: async (): Promise<LocationRegionDto[]> => {
     try {
-      const response = await axios.get<LocationRegionDto[]>('/api/locations', {
+      const response = await axiosClient.get<LocationRegionDto[]>('../locations', {
         timeout: 4000,
       });
       if (Array.isArray(response.data) && response.data.length > 0) {
@@ -34,7 +34,7 @@ export const locationMasterApi = {
   getCities: async (region: string): Promise<string[]> => {
     if (!region) return [];
     try {
-      const response = await axios.get<string[]>('/api/locations/cities', {
+      const response = await axiosClient.get<string[]>('../locations/cities', {
         params: { region },
         timeout: 4000,
       });
@@ -58,7 +58,7 @@ export const locationMasterApi = {
   getTownships: async (city: string): Promise<string[]> => {
     if (!city) return [];
     try {
-      const response = await axios.get<string[]>('/api/locations/townships', {
+      const response = await axiosClient.get<string[]>('../locations/townships', {
         params: { city },
         timeout: 4000,
       });
