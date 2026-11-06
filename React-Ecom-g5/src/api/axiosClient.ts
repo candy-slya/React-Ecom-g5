@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { authTokenStorage } from '../features/auth/utils/authTokenStorage';
 
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/storefront/';
+const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8008/api/storefront/';
 
 export const axiosClient = axios.create({
   baseURL,
