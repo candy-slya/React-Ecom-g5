@@ -8,6 +8,8 @@ export interface GeometricPatternProps {
  * GeometricPatternBanner
  * HTML hero slider ရဲ့ ညာဘက်အခြမ်းက
  * "6 + Cart" animated logo mark + floating particles + soft glow.
+ *
+ * Light theme version – inner circle uses white background.
  */
 export const GeometricPatternBanner: React.FC<GeometricPatternProps> = ({
   className = "",
@@ -48,10 +50,10 @@ export const GeometricPatternBanner: React.FC<GeometricPatternProps> = ({
           95%,100% { transform: scale(0); opacity: 0; }
         }
 
-        /* ---- Soft glow pulse behind the logo ---- */
+        /* ---- Soft glow pulse behind the logo (lighter for light theme) ---- */
         @keyframes glow-pulse {
-          0%, 100% { opacity: 0.3; transform: scale(0.95); }
-          50%      { opacity: 0.7; transform: scale(1.1); }
+          0%, 100% { opacity: 0.25; transform: scale(0.95); }
+          50%      { opacity: 0.55; transform: scale(1.1); }
         }
 
         /* ---- Floating particles ---- */
@@ -198,16 +200,17 @@ export const GeometricPatternBanner: React.FC<GeometricPatternProps> = ({
           background:
             "linear-gradient(135deg, #ec4899 0%, #8b5cf6 50%, #6366f1 100%)",
           boxShadow:
-            "0 0 50px rgba(139, 92, 246, 0.45), 0 10px 40px rgba(0,0,0,0.5)",
+            "0 0 45px rgba(139, 92, 246, 0.35), 0 10px 30px rgba(0,0,0,0.12)",
         }}
       >
-        <div className="relative flex items-center justify-center p-8 rounded-full bg-[#0F172A]">
-          {/* Soft glow behind */}
+        {/* Light theme: inner circle is white */}
+        <div className="relative flex items-center justify-center p-8 rounded-full bg-white">
+          {/* Soft glow behind (lighter, works on white) */}
           <div
             className="absolute inset-0 rounded-full pointer-events-none gp-glow"
             style={{
               background:
-                "radial-gradient(circle, rgba(139,92,246,0.5) 0%, transparent 70%)",
+                "radial-gradient(circle, rgba(139,92,246,0.22) 0%, transparent 70%)",
             }}
           />
 

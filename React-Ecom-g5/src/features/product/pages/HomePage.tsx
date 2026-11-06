@@ -1,18 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { productApi } from '../api/productApi';
-import { ProductCard } from '../../../components/product/ProductCard';
-import type { BrandResponse } from '../api/productApi';
-import type { CategoryNodeResponse, ProductListResponse } from '../types';
-import { getAssetUrl } from '../../../utils/assetUtils';
-import { CategoryCard } from '../../../components/category/CategoryCard';
-import { PopularSearchesHomeSection } from '../components/PopularSearchesHomeSection';
-import { GeometricPatternBanner } from '../../../components/common/GeometricPatternBanner';
-import { defaultHeroBanners } from '../data/homeBanners';
-
+import React, { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { productApi } from "../api/productApi";
+import { ProductCard } from "../../../components/product/ProductCard";
+import type { BrandResponse } from "../api/productApi";
+import type { CategoryNodeResponse, ProductListResponse } from "../types";
+import { getAssetUrl } from "../../../utils/assetUtils";
+import { CategoryCard } from "../../../components/category/CategoryCard";
+import { PopularSearchesHomeSection } from "../components/PopularSearchesHomeSection";
+import { GeometricPatternBanner } from "../../../components/common/GeometricPatternBanner";
+import { defaultHeroBanners } from "../data/homeBanners";
 
 // Brand Card Component
-const BrandCard: React.FC<{ brand: BrandResponse; onClick: () => void }> = ({ brand, onClick }) => {
+const BrandCard: React.FC<{ brand: BrandResponse; onClick: () => void }> = ({
+  brand,
+  onClick,
+}) => {
   const [hasError, setHasError] = useState(false);
   const [isWide, setIsWide] = useState(false);
   const logoUrl = getAssetUrl(brand.brandLogoUrl);
@@ -31,7 +33,9 @@ const BrandCard: React.FC<{ brand: BrandResponse; onClick: () => void }> = ({ br
       onClick={onClick}
       className="bg-white border border-border-subtle rounded-2xl p-4 sm:p-5 text-center cursor-pointer hover:-translate-y-1.5 hover:border-primary hover:shadow-lg transition-all duration-300 flex flex-col items-center justify-between group"
     >
-      <div className={`w-20 h-20 sm:w-24 sm:h-24 mx-auto border-2 border-border-subtle bg-white rounded-full flex items-center justify-center font-black text-xs mb-3 overflow-hidden shadow-xs group-hover:scale-105 transition-transform duration-300 ${isWide ? 'p-2' : 'p-0'}`}>
+      <div
+        className={`w-20 h-20 sm:w-24 sm:h-24 mx-auto border-2 border-border-subtle bg-white rounded-full flex items-center justify-center font-black text-xs mb-3 overflow-hidden shadow-xs group-hover:scale-105 transition-transform duration-300 ${isWide ? "p-2" : "p-0"}`}
+      >
         {showImage ? (
           <img
             src={logoUrl}
@@ -39,7 +43,7 @@ const BrandCard: React.FC<{ brand: BrandResponse; onClick: () => void }> = ({ br
             onLoad={handleImageLoad}
             onError={() => setHasError(true)}
             className={`w-full h-full rounded-full transition-all ${
-              isWide ? 'object-contain' : 'object-cover'
+              isWide ? "object-contain" : "object-cover"
             }`}
           />
         ) : (
@@ -48,7 +52,9 @@ const BrandCard: React.FC<{ brand: BrandResponse; onClick: () => void }> = ({ br
           </span>
         )}
       </div>
-      <b className="text-sm font-bold text-text-main group-hover:text-primary transition-colors line-clamp-1">{brand.brandName}</b>
+      <b className="text-sm font-bold text-text-main group-hover:text-primary transition-colors line-clamp-1">
+        {brand.brandName}
+      </b>
     </div>
   );
 };
@@ -86,43 +92,58 @@ export const HomePage: React.FC = () => {
 
   // Fetch Initial Data
   useEffect(() => {
-    
     // Categories - Load actual categories from database
-productApi.getCategoryTree()
-  .then((res) => {
-    setCategories(res ?? []);
-    setCurrentCategoryPage(0);
-  })
-  .catch((error) => {
-    console.error("Failed to load categories:", error);
-    setCategories([]);
-  })
-  .finally(() => {
-    setLoadingCategories(false);
-  });
+    productApi
+      .getCategoryTree()
+      .then((res) => {
+        setCategories(res ?? []);
+        setCurrentCategoryPage(0);
+      })
+      .catch((error) => {
+        console.error("Failed to load categories:", error);
+        setCategories([]);
+      })
+      .finally(() => {
+        setLoadingCategories(false);
+      });
 
     // Active Brands
-    productApi.getActiveBrands().then((res) => {
-      const sorted = [...res].sort((a, b) =>
-        (a.brandName || '').localeCompare(b.brandName || '', undefined, { sensitivity: 'base' })
-      );
-      setBrands(sorted);
-    }).catch(console.error);
+    productApi
+      .getActiveBrands()
+      .then((res) => {
+        const sorted = [...res].sort((a, b) =>
+          (a.brandName || "").localeCompare(b.brandName || "", undefined, {
+            sensitivity: "base",
+          }),
+        );
+        setBrands(sorted);
+      })
+      .catch(console.error);
 
     // Best Sellers
-    productApi.getBestSellers().then((res) => setBestSellers(res.content)).catch(console.error);
+    productApi
+      .getBestSellers()
+      .then((res) => setBestSellers(res.content))
+      .catch(console.error);
 
     // Featured / Trending Products (1 Slide: 4 items)
-    productApi.getTrendingProducts(0, 4)
+    productApi
+      .getTrendingProducts(0, 4)
       .then((res) => {
         if (res.content && res.content.length > 0) {
           setPromoProducts(res.content.slice(0, 4));
         } else {
-          productApi.getProducts({ size: 4 }).then((p) => setPromoProducts(p.content.slice(0, 4))).catch(console.error);
+          productApi
+            .getProducts({ size: 4 })
+            .then((p) => setPromoProducts(p.content.slice(0, 4)))
+            .catch(console.error);
         }
       })
       .catch(() => {
-        productApi.getProducts({ size: 4 }).then((p) => setPromoProducts(p.content.slice(0, 4))).catch(console.error);
+        productApi
+          .getProducts({ size: 4 })
+          .then((p) => setPromoProducts(p.content.slice(0, 4)))
+          .catch(console.error);
       });
   }, []);
 
@@ -140,7 +161,10 @@ productApi.getCategoryTree()
   }, [isHeroHovered]);
 
   // 2. Browse Categories (3 categories per view)
-  const totalCategoryPages = Math.max(1, Math.ceil(categories.length / CATEGORIES_PER_PAGE));
+  const totalCategoryPages = Math.max(
+    1,
+    Math.ceil(categories.length / CATEGORIES_PER_PAGE),
+  );
   useEffect(() => {
     if (isCategoryHovered || totalCategoryPages <= 1) return;
     const timer = setInterval(() => {
@@ -150,7 +174,10 @@ productApi.getCategoryTree()
   }, [isCategoryHovered, totalCategoryPages]);
 
   // 3. Shop by Brand (6 brands per view)
-  const totalBrandPages = Math.max(1, Math.ceil(brands.length / BRANDS_PER_PAGE));
+  const totalBrandPages = Math.max(
+    1,
+    Math.ceil(brands.length / BRANDS_PER_PAGE),
+  );
   useEffect(() => {
     if (isBrandHovered || totalBrandPages <= 1) return;
     const timer = setInterval(() => {
@@ -169,7 +196,7 @@ productApi.getCategoryTree()
 
   // Welcome Popup Smooth Transition Logic
   useEffect(() => {
-    const hasSeenWelcome = sessionStorage.getItem('hasSeenWelcome');
+    const hasSeenWelcome = sessionStorage.getItem("hasSeenWelcome");
     let mountTimer: ReturnType<typeof setTimeout>;
     let visibleTimer: ReturnType<typeof setTimeout>;
     let hideTimer: ReturnType<typeof setTimeout>;
@@ -186,7 +213,7 @@ productApi.getCategoryTree()
           setIsVisible(false);
           unmountTimer = setTimeout(() => {
             setIsMounted(false);
-            sessionStorage.setItem('hasSeenWelcome', 'true');
+            sessionStorage.setItem("hasSeenWelcome", "true");
           }, 1000);
         }, 5050);
       }, 1500);
@@ -204,59 +231,79 @@ productApi.getCategoryTree()
     setIsVisible(false);
     setTimeout(() => {
       setIsMounted(false);
-      sessionStorage.setItem('hasSeenWelcome', 'true');
+      sessionStorage.setItem("hasSeenWelcome", "true");
     }, 1000);
   };
 
   const routeProducts = (params?: Record<string, any>) => {
     const q = new URLSearchParams(params).toString();
-    navigate(`/products${q ? '?' + q : ''}`);
+    navigate(`/products${q ? "?" + q : ""}`);
   };
 
   // Original 3-slide promotional content
   const originalHeroSlides = [
     {
       badge: "6SYNC COLLECTION",
-      title: <>Discover Products<br/>Made for Your Day.</>,
-      description: "Discover products by category and brand, then compare variants and live available stock.",
+      title: (
+        <>
+          Discover Products
+          <br />
+          Made for Your Day.
+        </>
+      ),
+      description:
+        "Discover products by category and brand, then compare variants and live available stock.",
       btnText: "SHOP NOW",
-      action: () => routeProducts()
+      action: () => routeProducts(),
     },
     {
       badge: "NEW ARRIVALS",
-      title: <>Elevate Your Style<br/>With Latest Trends.</>,
-      description: "Explore our newest collection of premium items carefully curated just for you.",
+      title: (
+        <>
+          Elevate Your Style
+          <br />
+          With Latest Trends.
+        </>
+      ),
+      description:
+        "Explore our newest collection of premium items carefully curated just for you.",
       btnText: "SHOP NOW",
-      action: () => routeProducts({ sort: 'createdAt,desc' })
+      action: () => routeProducts({ sort: "createdAt,desc" }),
     },
     {
       badge: "LIMITED OFFERS",
-      title: <>HELLO MY FRIEND!<br/>HAVE A NICE DAY</>,
-      description: "Get the best prices on top brands. Shop now before the stock runs out.",
+      title: (
+        <>
+          HELLO MY FRIEND!
+          <br />
+          HAVE A NICE DAY
+        </>
+      ),
+      description:
+        "Get the best prices on top brands. Shop now before the stock runs out.",
       btnText: "SHOP NOW",
-      action: () => routeProducts({ tags: ['SALE'] })
-    }
+      action: () => routeProducts({ tags: ["SALE"] }),
+    },
   ];
 
   // Visible Categories slice (3 per page)
   const visibleCategories = categories.slice(
     currentCategoryPage * CATEGORIES_PER_PAGE,
-    (currentCategoryPage + 1) * CATEGORIES_PER_PAGE
+    (currentCategoryPage + 1) * CATEGORIES_PER_PAGE,
   );
 
   // Visible Brands slice (6 per page)
   const visibleBrands = brands.slice(
     currentBrandPage * BRANDS_PER_PAGE,
-    (currentBrandPage + 1) * BRANDS_PER_PAGE
+    (currentBrandPage + 1) * BRANDS_PER_PAGE,
   );
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 relative">
-
       {/* ============================================================== */}
       {/* 1. TOP HERO BANNER SLIDER (Auto-Rotate Every 5s)               */}
       {/* ============================================================== */}
-      <section 
+      <section
         className="relative rounded-2xl overflow-hidden h-[230px] sm:h-[340px] md:h-[420px] lg:h-[480px] xl:h-[520px] mb-12 shadow-xl group bg-slate-100 select-none"
         onMouseEnter={() => setIsHeroHovered(true)}
         onMouseLeave={() => setIsHeroHovered(false)}
@@ -264,14 +311,17 @@ productApi.getCategoryTree()
         {/* Slides */}
         <div className="relative w-full h-full">
           {defaultHeroBanners.map((slide, index) => {
-            const isActive = index === (currentHeroSlide % defaultHeroBanners.length);
-            const fitMode = slide.objectFit || 'cover';
+            const isActive =
+              index === currentHeroSlide % defaultHeroBanners.length;
+            const fitMode = slide.objectFit || "cover";
 
             return (
               <div
                 key={slide.id}
                 className={`absolute inset-0 transition-opacity duration-700 ease-in-out cursor-pointer ${
-                  isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+                  isActive
+                    ? "opacity-100 z-10"
+                    : "opacity-0 z-0 pointer-events-none"
                 }`}
                 onClick={() => navigate(slide.linkUrl)}
               >
@@ -279,10 +329,10 @@ productApi.getCategoryTree()
                 <img
                   src={slide.imageUrl}
                   alt={slide.title}
-                  loading={index === 0 ? 'eager' : 'lazy'}
-                  style={{ imageRendering: '-webkit-optimize-contrast' }}
+                  loading={index === 0 ? "eager" : "lazy"}
+                  style={{ imageRendering: "-webkit-optimize-contrast" }}
                   className={`relative z-10 w-full h-full ${
-                    fitMode === 'contain' ? 'object-contain' : 'object-cover'
+                    fitMode === "contain" ? "object-contain" : "object-cover"
                   } object-center transition-transform duration-700 group-hover:scale-[1.01]`}
                 />
 
@@ -296,16 +346,22 @@ productApi.getCategoryTree()
                         </span>
                       </div>
                     )}
-                    <h2 
+                    <h2
                       className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-white leading-tight mb-2"
-                      style={{ textShadow: '0 2px 10px rgba(0, 0, 0, 0.9), 0 1px 3px rgba(0, 0, 0, 0.95)' }}
+                      style={{
+                        textShadow:
+                          "0 2px 10px rgba(0, 0, 0, 0.9), 0 1px 3px rgba(0, 0, 0, 0.95)",
+                      }}
                     >
                       {slide.title}
                     </h2>
                     {slide.subtitle && (
-                      <p 
+                      <p
                         className="text-white text-xs sm:text-sm md:text-base font-medium mb-4 sm:mb-5 line-clamp-2 max-w-md"
-                        style={{ textShadow: '0 2px 8px rgba(0, 0, 0, 0.9), 0 1px 2px rgba(0, 0, 0, 0.95)' }}
+                        style={{
+                          textShadow:
+                            "0 2px 8px rgba(0, 0, 0, 0.9), 0 1px 2px rgba(0, 0, 0, 0.95)",
+                        }}
                       >
                         {slide.subtitle}
                       </p>
@@ -333,13 +389,25 @@ productApi.getCategoryTree()
         <button
           onClick={(e) => {
             e.stopPropagation();
-            setCurrentHeroSlide((prev) => (prev === 0 ? defaultHeroBanners.length - 1 : prev - 1));
+            setCurrentHeroSlide((prev) =>
+              prev === 0 ? defaultHeroBanners.length - 1 : prev - 1,
+            );
           }}
           className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-black/40 hover:bg-black/70 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-all z-20 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer shadow-lg hover:scale-105"
           aria-label="Previous Banner"
         >
-          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+          <svg
+            className="w-5 h-5 sm:w-6 sm:h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.5}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
         </button>
 
@@ -347,13 +415,25 @@ productApi.getCategoryTree()
         <button
           onClick={(e) => {
             e.stopPropagation();
-            setCurrentHeroSlide((prev) => (prev + 1) % defaultHeroBanners.length);
+            setCurrentHeroSlide(
+              (prev) => (prev + 1) % defaultHeroBanners.length,
+            );
           }}
           className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-black/40 hover:bg-black/70 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-all z-20 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer shadow-lg hover:scale-105"
           aria-label="Next Banner"
         >
-          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          <svg
+            className="w-5 h-5 sm:w-6 sm:h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.5}
+              d="M9 5l7 7-7 7"
+            />
           </svg>
         </button>
 
@@ -367,9 +447,9 @@ productApi.getCategoryTree()
                 setCurrentHeroSlide(index);
               }}
               className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                index === (currentHeroSlide % defaultHeroBanners.length)
-                  ? 'w-7 bg-primary'
-                  : 'w-2 bg-white/50 hover:bg-white'
+                index === currentHeroSlide % defaultHeroBanners.length
+                  ? "w-7 bg-primary"
+                  : "w-2 bg-white/50 hover:bg-white"
               }`}
               aria-label={`Go to slide ${index + 1}`}
             />
@@ -378,15 +458,18 @@ productApi.getCategoryTree()
 
         {/* Slide Counter (01 / 05) */}
         <div className="absolute bottom-4 right-6 text-xs font-bold text-white/80 tracking-widest z-20 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full hidden sm:block">
-          {String((currentHeroSlide % defaultHeroBanners.length) + 1).padStart(2, '0')} / {String(defaultHeroBanners.length).padStart(2, '0')}
+          {String((currentHeroSlide % defaultHeroBanners.length) + 1).padStart(
+            2,
+            "0",
+          )}{" "}
+          / {String(defaultHeroBanners.length).padStart(2, "0")}
         </div>
       </section>
-
 
       {/* ============================================================== */}
       {/* 2. BROWSE CATEGORIES (3 Categories per View, 5s Auto-Rotate)   */}
       {/* ============================================================== */}
-      <section 
+      <section
         className="mb-14"
         onMouseEnter={() => setIsCategoryHovered(true)}
         onMouseLeave={() => setIsCategoryHovered(false)}
@@ -395,7 +478,9 @@ productApi.getCategoryTree()
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="w-2.5 h-2.5 rounded-full bg-primary inline-block"></span>
-              <h2 className="text-2xl font-black text-text-main tracking-tight">Browse Categories</h2>
+              <h2 className="text-2xl font-black text-text-main tracking-tight">
+                Browse Categories
+              </h2>
             </div>
             <p className="text-sm text-text-muted">
               Choose a department and explore its curated product collection
@@ -406,64 +491,96 @@ productApi.getCategoryTree()
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
               <button
-                onClick={() => setCurrentCategoryPage((prev) => (prev === 0 ? totalCategoryPages - 1 : prev - 1))}
+                onClick={() =>
+                  setCurrentCategoryPage((prev) =>
+                    prev === 0 ? totalCategoryPages - 1 : prev - 1,
+                  )
+                }
                 className="w-8 h-8 rounded-lg bg-white shadow-xs hover:bg-slate-50 flex items-center justify-center text-slate-700 transition-colors cursor-pointer"
                 aria-label="Previous Categories"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M15 19l-7-7 7-7"
+                  />
                 </svg>
               </button>
               <span className="text-xs font-bold text-slate-500 px-2">
-                {String(currentCategoryPage + 1).padStart(2, '0')} / {String(totalCategoryPages).padStart(2, '0')}
+                {String(currentCategoryPage + 1).padStart(2, "0")} /{" "}
+                {String(totalCategoryPages).padStart(2, "0")}
               </span>
               <button
-                onClick={() => setCurrentCategoryPage((prev) => (prev + 1) % totalCategoryPages)}
+                onClick={() =>
+                  setCurrentCategoryPage(
+                    (prev) => (prev + 1) % totalCategoryPages,
+                  )
+                }
                 className="w-8 h-8 rounded-lg bg-white shadow-xs hover:bg-slate-50 flex items-center justify-center text-slate-700 transition-colors cursor-pointer"
                 aria-label="Next Categories"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </button>
             </div>
-            <Link to="/categories" className="text-xs sm:text-sm text-primary font-bold hover:underline whitespace-nowrap">
+            <Link
+              to="/categories"
+              className="text-xs sm:text-sm text-primary font-bold hover:underline whitespace-nowrap"
+            >
               VIEW ALL CATEGORIES &rarr;
             </Link>
           </div>
         </div>
 
         {/* 3 Categories Container with smooth transition */}
-<div className="transition-all duration-500 ease-in-out">
-  {loadingCategories ? (
-    // Loading Skeleton
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-      {[1, 2, 3].map((n) => (
-        <div
-          key={n}
-          className="h-44 bg-slate-100 rounded-2xl animate-pulse"
-        />
-      ))}
-    </div>
-  ) : categories.length > 0 ? (
-    // Actual Category Cards
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-      {visibleCategories.map((c) => (
-        <CategoryCard
-          key={c.categoryId}
-          category={c}
-          onClick={() => navigate(`/categories/${c.categoryId}`)}
-        />
-      ))}
-    </div>
-  ) : (
-    // Empty Categories
-    <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center text-gray-500">
-      No categories available.
-    </div>
-  )}
-</div>
-          
+        <div className="transition-all duration-500 ease-in-out">
+          {loadingCategories ? (
+            // Loading Skeleton
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {[1, 2, 3].map((n) => (
+                <div
+                  key={n}
+                  className="h-44 bg-slate-100 rounded-2xl animate-pulse"
+                />
+              ))}
+            </div>
+          ) : categories.length > 0 ? (
+            // Actual Category Cards
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {visibleCategories.map((c) => (
+                <CategoryCard
+                  key={c.categoryId}
+                  category={c}
+                  onClick={() => navigate(`/categories/${c.categoryId}`)}
+                />
+              ))}
+            </div>
+          ) : (
+            // Empty Categories
+            <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center text-gray-500">
+              No categories available.
+            </div>
+          )}
+        </div>
+
         {/* Categories Page Indicator Dots */}
         {totalCategoryPages > 1 && (
           <div className="flex justify-center items-center gap-1.5 mt-5">
@@ -472,7 +589,9 @@ productApi.getCategoryTree()
                 key={idx}
                 onClick={() => setCurrentCategoryPage(idx)}
                 className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                  idx === currentCategoryPage ? 'w-6 bg-primary' : 'w-1.5 bg-slate-300 hover:bg-slate-400'
+                  idx === currentCategoryPage
+                    ? "w-6 bg-primary"
+                    : "w-1.5 bg-slate-300 hover:bg-slate-400"
                 }`}
                 aria-label={`Category page ${idx + 1}`}
               />
@@ -480,7 +599,6 @@ productApi.getCategoryTree()
           </div>
         )}
       </section>
-
 
       {/* ============================================================== */}
       {/* 3. FEATURED & TRENDING PRODUCTS (1 Slide Only, 4 Items, No Scorebar/Scrollbar) */}
@@ -495,17 +613,20 @@ productApi.getCategoryTree()
               </h2>
             </div>
             <p className="text-sm text-text-muted">
-              Specially selected top products that match current trending highlights
+              Specially selected top products that match current trending
+              highlights
             </p>
           </div>
 
           <div className="flex items-center gap-4 self-start sm:self-auto">
-            <Link 
-              to="/products" 
+            <Link
+              to="/products"
               className="text-xs sm:text-sm text-primary font-bold hover:underline whitespace-nowrap flex items-center gap-1 group"
             >
               <span>EXPLORE ALL</span>
-              <span className="group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+              <span className="group-hover:translate-x-0.5 transition-transform">
+                &rarr;
+              </span>
             </Link>
           </div>
         </div>
@@ -520,17 +641,19 @@ productApi.getCategoryTree()
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map((n) => (
-              <div key={n} className="h-80 bg-slate-100 rounded-3xl animate-pulse" />
+              <div
+                key={n}
+                className="h-80 bg-slate-100 rounded-3xl animate-pulse"
+              />
             ))}
           </div>
         )}
       </section>
 
-
       {/* ============================================================== */}
       {/* 4. SHOP BY BRAND (Rotating Timer Carousel)                     */}
       {/* ============================================================== */}
-      <section 
+      <section
         className="mb-14"
         onMouseEnter={() => setIsBrandHovered(true)}
         onMouseLeave={() => setIsBrandHovered(false)}
@@ -539,7 +662,9 @@ productApi.getCategoryTree()
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="w-2.5 h-2.5 rounded-full bg-accent inline-block"></span>
-              <h2 className="text-2xl font-black text-text-main tracking-tight">Shop by Brand</h2>
+              <h2 className="text-2xl font-black text-text-main tracking-tight">
+                Shop by Brand
+              </h2>
             </div>
             <p className="text-sm text-text-muted">
               Explore your favorite brands in their dedicated storefronts
@@ -550,24 +675,51 @@ productApi.getCategoryTree()
           {totalBrandPages > 1 && (
             <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl self-start sm:self-auto">
               <button
-                onClick={() => setCurrentBrandPage((prev) => (prev === 0 ? totalBrandPages - 1 : prev - 1))}
+                onClick={() =>
+                  setCurrentBrandPage((prev) =>
+                    prev === 0 ? totalBrandPages - 1 : prev - 1,
+                  )
+                }
                 className="w-8 h-8 rounded-lg bg-white shadow-xs hover:bg-slate-50 flex items-center justify-center text-slate-700 transition-colors cursor-pointer"
                 aria-label="Previous Brands"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M15 19l-7-7 7-7"
+                  />
                 </svg>
               </button>
               <span className="text-xs font-bold text-slate-500 px-2">
-                {String(currentBrandPage + 1).padStart(2, '0')} / {String(totalBrandPages).padStart(2, '0')}
+                {String(currentBrandPage + 1).padStart(2, "0")} /{" "}
+                {String(totalBrandPages).padStart(2, "0")}
               </span>
               <button
-                onClick={() => setCurrentBrandPage((prev) => (prev + 1) % totalBrandPages)}
+                onClick={() =>
+                  setCurrentBrandPage((prev) => (prev + 1) % totalBrandPages)
+                }
                 className="w-8 h-8 rounded-lg bg-white shadow-xs hover:bg-slate-50 flex items-center justify-center text-slate-700 transition-colors cursor-pointer"
                 aria-label="Next Brands"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </button>
             </div>
@@ -589,7 +741,10 @@ productApi.getCategoryTree()
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
               {[1, 2, 3, 4, 5, 6].map((n) => (
-                <div key={n} className="h-40 bg-slate-100 rounded-xl animate-pulse" />
+                <div
+                  key={n}
+                  className="h-40 bg-slate-100 rounded-xl animate-pulse"
+                />
               ))}
             </div>
           )}
@@ -603,7 +758,9 @@ productApi.getCategoryTree()
                 key={idx}
                 onClick={() => setCurrentBrandPage(idx)}
                 className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                  idx === currentBrandPage ? 'w-6 bg-accent' : 'w-1.5 bg-slate-300 hover:bg-slate-400'
+                  idx === currentBrandPage
+                    ? "w-6 bg-accent"
+                    : "w-1.5 bg-slate-300 hover:bg-slate-400"
                 }`}
                 aria-label={`Brand page ${idx + 1}`}
               />
@@ -612,18 +769,23 @@ productApi.getCategoryTree()
         )}
       </section>
 
-
       {/* ============================================================== */}
       {/* 5. "HELLO MY FRIEND! HAVE A NICE DAY" 3-SLIDE HERO BANNER       */}
       {/* ============================================================== */}
-      <section className="relative rounded-2xl overflow-hidden h-80 mb-14 bg-[#172554] shadow-xl group">
+      {/* ✨ Deep Charcoal / Slate background with a subtle radial glow behind the logo area */}
+      <section className="relative rounded-2xl overflow-hidden h-80 mb-14 bg-slate-900 shadow-xl group">
+        {/* Subtle radial glow to enhance the logo's presence */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_50%,rgba(139,92,246,0.15),transparent_60%)] pointer-events-none z-0"></div>
+
         {/* Slide Contents */}
-        <div className="relative w-full h-full flex">
+        <div className="relative w-full h-full flex z-10">
           {originalHeroSlides.map((slide, index) => (
-            <div 
+            <div
               key={index}
               className={`absolute inset-0 flex items-center px-8 sm:px-12 transition-all duration-700 ease-out z-10 ${
-                index === currentOldSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'
+                index === currentOldSlide
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-8 pointer-events-none"
               }`}
             >
               <div className="text-white max-w-md lg:max-w-lg z-10">
@@ -636,8 +798,8 @@ productApi.getCategoryTree()
                 <p className="text-white/90 mb-6 text-sm sm:text-base font-normal max-w-md">
                   {slide.description}
                 </p>
-                <button 
-                  onClick={slide.action} 
+                <button
+                  onClick={slide.action}
                   className="bg-[#E11D48] text-white px-7 py-3 text-xs font-bold rounded-lg uppercase tracking-wider shadow hover:bg-sky-500 transition-all transform hover:-translate-y-0.5 cursor-pointer"
                 >
                   {slide.btnText}
@@ -649,26 +811,52 @@ productApi.getCategoryTree()
           {/* Right Geometric Pattern */}
           <div className="absolute right-4 lg:right-12 inset-y-0 w-1/2 hidden md:flex items-center justify-center z-10">
             <GeometricPatternBanner className="w-full max-w-[380px] h-[220px]" />
-          </div>  
-        </div> 
-        
+          </div>
+        </div>
+
         {/* Slider Controls (Arrows) */}
-        <button 
-          onClick={() => setCurrentOldSlide((prev) => (prev === 0 ? originalHeroSlides.length - 1 : prev - 1))}
+        <button
+          onClick={() =>
+            setCurrentOldSlide((prev) =>
+              prev === 0 ? originalHeroSlides.length - 1 : prev - 1,
+            )
+          }
           className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/10 hover:bg-white/25 rounded flex items-center justify-center text-white backdrop-blur-xs transition-colors z-20 cursor-pointer"
           aria-label="Previous slide"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.5}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
         </button>
-        <button 
-          onClick={() => setCurrentOldSlide((prev) => (prev + 1) % originalHeroSlides.length)}
+        <button
+          onClick={() =>
+            setCurrentOldSlide((prev) => (prev + 1) % originalHeroSlides.length)
+          }
           className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/10 hover:bg-white/25 rounded flex items-center justify-center text-white backdrop-blur-xs transition-colors z-20 cursor-pointer"
           aria-label="Next slide"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.5}
+              d="M9 5l7 7-7 7"
+            />
           </svg>
         </button>
 
@@ -679,7 +867,9 @@ productApi.getCategoryTree()
               key={index}
               onClick={() => setCurrentOldSlide(index)}
               className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                index === currentOldSlide ? 'w-5 bg-white' : 'w-1.5 bg-white/40 hover:bg-white/70'
+                index === currentOldSlide
+                  ? "w-5 bg-white"
+                  : "w-1.5 bg-white/40 hover:bg-white/70"
               }`}
               aria-label={`Slide ${index + 1}`}
             />
@@ -688,10 +878,10 @@ productApi.getCategoryTree()
 
         {/* Slide Counter (01 / 03) */}
         <div className="absolute bottom-4 right-8 text-[11px] font-bold text-white/60 tracking-widest z-20 hidden sm:block">
-          {String(currentOldSlide + 1).padStart(2, '0')} / {String(originalHeroSlides.length).padStart(2, '0')}
+          {String(currentOldSlide + 1).padStart(2, "0")} /{" "}
+          {String(originalHeroSlides.length).padStart(2, "0")}
         </div>
       </section>
-
 
       {/* ============================================================== */}
       {/* 6. BEST SELLERS                                                */}
@@ -701,14 +891,16 @@ productApi.getCategoryTree()
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
-              <h2 className="text-2xl font-black text-text-main tracking-tight">Best Seller</h2>
+              <h2 className="text-2xl font-black text-text-main tracking-tight">
+                Best Seller
+              </h2>
             </div>
             <p className="text-sm text-text-muted">
               Top-selling customer favorites and most purchased items.
             </p>
           </div>
           <button
-            onClick={() => routeProducts({ sort: 'salesCount,desc' })}
+            onClick={() => routeProducts({ sort: "salesCount,desc" })}
             className="text-xs sm:text-sm text-primary font-bold hover:underline cursor-pointer"
           >
             VIEW ALL &rarr;
@@ -716,42 +908,53 @@ productApi.getCategoryTree()
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {bestSellers.length > 0 ? (
-            bestSellers.slice(0, 4).map((p) => (
-  <ProductCard key={p.productId} product={p} />
-))
-          ) : (
-            [1, 2, 3, 4].map((n) => (
-              <div key={n} className="h-80 bg-slate-100 rounded-3xl animate-pulse" />
-            ))
-          )}
+          {bestSellers.length > 0
+            ? bestSellers
+                .slice(0, 4)
+                .map((p) => <ProductCard key={p.productId} product={p} />)
+            : [1, 2, 3, 4].map((n) => (
+                <div
+                  key={n}
+                  className="h-80 bg-slate-100 rounded-3xl animate-pulse"
+                />
+              ))}
         </div>
       </section>
-
 
       {/* ============================================================== */}
       {/* 7. POPULAR SEARCHES                                            */}
       {/* ============================================================== */}
       <PopularSearchesHomeSection />
 
-
       {/* ============================================================== */}
       {/* 8. WELCOME NOTIFICATION POPUP (Smooth Fade In & Out)          */}
       {/* ============================================================== */}
       {isMounted && (
-        <div 
+        <div
           className={`fixed bottom-6 right-6 z-50 w-[340px] max-w-[calc(100vw-3rem)] bg-white rounded-2xl shadow-2xl border border-slate-100 p-5 transform transition-all duration-1000 ease-in-out ${
-            isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-10 scale-95'
+            isVisible
+              ? "opacity-100 translate-y-0 scale-100"
+              : "opacity-0 translate-y-10 scale-95"
           }`}
         >
           {/* Close (X) Button */}
-          <button 
+          <button
             onClick={handleCloseWelcome}
             className="absolute top-3 right-3 text-[#EF4444] hover:text-red-700 hover:bg-red-50 p-1.5 rounded-full transition-colors cursor-pointer"
             aria-label="Close"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={3}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
 
@@ -761,15 +964,17 @@ productApi.getCategoryTree()
               👋
             </div>
             <div>
-              <h3 className="font-black text-slate-900 text-base mb-1.5">Welcome!</h3>
+              <h3 className="font-black text-slate-900 text-base mb-1.5">
+                Welcome!
+              </h3>
               <p className="text-[13px] text-slate-700 leading-relaxed font-bold">
-                Welcome to 6SYNC Store. Feel free to browse and find the products you need. Thank you for visiting!
+                Welcome to 6SYNC Store. Feel free to browse and find the
+                products you need. Thank you for visiting!
               </p>
             </div>
           </div>
         </div>
       )}
-
     </main>
   );
 };

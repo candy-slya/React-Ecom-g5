@@ -174,7 +174,7 @@ export const RegisterPage: React.FC = () => {
 
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { isAuthenticated, loading, error, isInitializing } = useAppSelector(
+  const { isAuthenticated, loading, isInitializing } = useAppSelector(
     (state) => state.auth,
   );
   const { guestItems } = useAppSelector((state) => state.cart);
