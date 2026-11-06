@@ -169,6 +169,8 @@ export const RegisterPage: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formError, setFormError] = useState("");
   const [mergeWarning, setMergeWarning] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [passwordError, setPasswordError] = useState(""); // ✅ Password အတွက် သီးသန့် မက်ဆေ့ခ်ျ State
 
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -189,13 +191,44 @@ export const RegisterPage: React.FC = () => {
     };
   }, [dispatch]);
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "");
+    if (value.length <= 11) {
+      setPhone(value);
+      if (value.length > 0 && value.length < 11) {
+        setPhoneError(
+          "Phone number must be exactly 11 digits (e.g., 09xxxxxxxxx).",
+        );
+      } else {
+        setPhoneError("");
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError("");
+    setPhoneError("");
+    setPasswordError("");
     setMergeWarning("");
 
     if (!fullName.trim() || !email.trim() || !password || !confirmPassword) {
       setFormError("Please fill in all required fields.");
+      return;
+    }
+
+    if (phone.trim() && phone.length !== 11) {
+      setPhoneError("Phone number must be exactly 11 digits.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setPasswordError("Password must be at least 6 characters long.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setPasswordError("Passwords do not match.");
       return;
     }
 
@@ -207,16 +240,6 @@ export const RegisterPage: React.FC = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setFormError("Please enter a valid email address.");
-      return;
-    }
-
-    if (password.length < 6) {
-      setFormError("Password must be at least 6 characters long.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setFormError("Passwords do not match.");
       return;
     }
 
@@ -257,7 +280,6 @@ export const RegisterPage: React.FC = () => {
 
       <div className="flex min-h-screen flex-col justify-center py-12 sm:px-6 lg:px-8 bg-page">
         <div className="sm:mx-auto sm:w-full sm:max-w-xl">
-          {/* ✅ Animated Logo */}
           <AnimatedLogo />
 
           <h2 className="mt-6 text-center text-3xl font-extrabold tracking-tight text-text-main">
@@ -283,11 +305,9 @@ export const RegisterPage: React.FC = () => {
             }}
           >
             <form className="space-y-6" onSubmit={handleSubmit} noValidate>
-              {(formError || error) && (
+              {formError && (
                 <div className="rounded-md bg-[#FEF2F2] p-4 border border-[#F87171]">
-                  <div className="text-sm text-[#B91C1C]">
-                    {formError || error}
-                  </div>
+                  <div className="text-sm text-[#B91C1C]">{formError}</div>
                 </div>
               )}
 
@@ -389,12 +409,18 @@ export const RegisterPage: React.FC = () => {
                     id="phone"
                     name="phone"
                     type="tel"
+                    maxLength={11}
                     placeholder="09123456789"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={handlePhoneChange}
                     className="block w-full appearance-none rounded-md border border-border-subtle pl-10 px-3 py-2 text-text-main placeholder-[#9CA3AF] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
                   />
                 </div>
+                {phoneError && (
+                  <p className="mt-1 text-xs text-red-500 font-medium">
+                    {phoneError}
+                  </p>
+                )}
               </div>
 
               {/* Passwords */}
@@ -555,6 +581,12 @@ export const RegisterPage: React.FC = () => {
                   </div>
                 </div>
               </div>
+              {/* ✅ Password အောက်တွင် မက်ဆေ့ခ်ျပြသခြင်း */}
+              {passwordError && (
+                <p className="-mt-3 text-xs text-red-500 font-medium">
+                  {passwordError}
+                </p>
+              )}
 
               {/* Terms & Privacy */}
               <div className="flex items-center">
@@ -601,7 +633,6 @@ export const RegisterPage: React.FC = () => {
             </form>
           </div>
 
-          {/* ✅ Back to shop — card အောက်မှာ */}
           <div className="mt-6 text-center">
             <Link
               to="/"
