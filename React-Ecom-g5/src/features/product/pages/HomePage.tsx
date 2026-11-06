@@ -9,7 +9,7 @@ import { CategoryCard } from '../../../components/category/CategoryCard';
 import { PopularSearchesHomeSection } from '../components/PopularSearchesHomeSection';
 import { GeometricPatternBanner } from '../../../components/common/GeometricPatternBanner';
 import { defaultHeroBanners } from '../data/homeBanners';
-import { DEFAULT_BACKOFFICE_CATEGORIES } from '../../category/data/defaultCategories';
+
 
 // Brand Card Component
 const BrandCard: React.FC<{ brand: BrandResponse; onClick: () => void }> = ({ brand, onClick }) => {
@@ -57,7 +57,8 @@ export const HomePage: React.FC = () => {
   const navigate = useNavigate();
 
   // API Data States (Default to Backoffice Categories)
-  const [categories, setCategories] = useState<CategoryNodeResponse[]>(DEFAULT_BACKOFFICE_CATEGORIES);
+  const [categories, setCategories] = useState<CategoryNodeResponse[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const [brands, setBrands] = useState<BrandResponse[]>([]);
   const [bestSellers, setBestSellers] = useState<ProductListResponse[]>([]);
   const [promoProducts, setPromoProducts] = useState<ProductListResponse[]>([]);
@@ -85,24 +86,20 @@ export const HomePage: React.FC = () => {
 
   // Fetch Initial Data
   useEffect(() => {
-    // Categories (Fallback to Backoffice Default Categories if database is empty/cleared)
-    productApi.getCategoryTree()
-      .then((res) => {
-        if (res && res.length > 0) {
-          const backofficeNames = ['clothing', 'footwear', 'cosmetics', 'beverages', 'electronics'];
-          const matched = res.filter(c => backofficeNames.includes(c.categoryName.toLowerCase()));
-          if (matched.length >= 4) {
-            setCategories(matched);
-          } else {
-            setCategories(DEFAULT_BACKOFFICE_CATEGORIES);
-          }
-        } else {
-          setCategories(DEFAULT_BACKOFFICE_CATEGORIES);
-        }
-      })
-      .catch(() => {
-        setCategories(DEFAULT_BACKOFFICE_CATEGORIES);
-      });
+    
+    // Categories - Load actual categories from database
+productApi.getCategoryTree()
+  .then((res) => {
+    setCategories(res ?? []);
+    setCurrentCategoryPage(0);
+  })
+  .catch((error) => {
+    console.error("Failed to load categories:", error);
+    setCategories([]);
+  })
+  .finally(() => {
+    setLoadingCategories(false);
+  });
 
     // Active Brands
     productApi.getActiveBrands().then((res) => {
@@ -437,26 +434,36 @@ export const HomePage: React.FC = () => {
         </div>
 
         {/* 3 Categories Container with smooth transition */}
-        <div className="transition-all duration-500 ease-in-out">
-          {categories.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {visibleCategories.map((c) => (
-                <CategoryCard
-                  key={c.categoryId}
-                  category={c}
-                  onClick={() => navigate(`/categories/${c.categoryId}`)}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {[1, 2, 3].map((n) => (
-                <div key={n} className="h-44 bg-slate-100 rounded-2xl animate-pulse" />
-              ))}
-            </div>
-          )}
-        </div>
-
+<div className="transition-all duration-500 ease-in-out">
+  {loadingCategories ? (
+    // Loading Skeleton
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      {[1, 2, 3].map((n) => (
+        <div
+          key={n}
+          className="h-44 bg-slate-100 rounded-2xl animate-pulse"
+        />
+      ))}
+    </div>
+  ) : categories.length > 0 ? (
+    // Actual Category Cards
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      {visibleCategories.map((c) => (
+        <CategoryCard
+          key={c.categoryId}
+          category={c}
+          onClick={() => navigate(`/categories/${c.categoryId}`)}
+        />
+      ))}
+    </div>
+  ) : (
+    // Empty Categories
+    <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center text-gray-500">
+      No categories available.
+    </div>
+  )}
+</div>
+          
         {/* Categories Page Indicator Dots */}
         {totalCategoryPages > 1 && (
           <div className="flex justify-center items-center gap-1.5 mt-5">
@@ -710,9 +717,9 @@ export const HomePage: React.FC = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {bestSellers.length > 0 ? (
-            bestSellers.map((p) => (
-              <ProductCard key={p.productId} product={p} />
-            ))
+            bestSellers.slice(0, 4).map((p) => (
+  <ProductCard key={p.productId} product={p} />
+))
           ) : (
             [1, 2, 3, 4].map((n) => (
               <div key={n} className="h-80 bg-slate-100 rounded-3xl animate-pulse" />

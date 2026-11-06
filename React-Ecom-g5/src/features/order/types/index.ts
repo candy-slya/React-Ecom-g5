@@ -12,6 +12,18 @@ export interface OrderListResponse {
   createdAt: string;
   items: OrderItemSummary[];
   trackingNumbers: string[];
+  checkoutType?: string;
+  reservationExpiresAt?: string | null;
+  reservationActive?: boolean | null;
+  hasInitiatedPayment?: boolean | null;
+  isExpired?: boolean | null;
+}
+
+export interface PendingOrderExpiryResponse {
+  orderId: number | null;
+  orderNo: string | null;
+  expiresAt: string | null;
+  pendingCount: number;
 }
 
 export interface Page<T> {
@@ -83,5 +95,9 @@ export interface OrderDetailResponse {
   payment: OrderPaymentSummary;
   statusHistory: OrderStatusHistory[];
   shipments: ShipmentTracking[];
+  checkoutType?: string;
+  reservationExpiresAt?: string | null;
+  reservationActive?: boolean | null;
+  isExpired?: boolean | null;
 }
 

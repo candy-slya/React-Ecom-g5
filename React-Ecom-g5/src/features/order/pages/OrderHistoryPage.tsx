@@ -21,7 +21,28 @@ export const OrderHistoryPage: React.FC = () => {
   const [appliedFilters, setAppliedFilters] = useState<GetMyOrdersParams>({});
   const [downloadingReport, setDownloadingReport] = useState(false);
 
+  const [resumingOrderId, setResumingOrderId] = useState<number | null>(null);
+  const [resumeError, setResumeError] = useState<{ orderId: number; message: string } | null>(null);
+
   const navigate = useNavigate();
+
+  const handleResumePayment = async (e: React.MouseEvent, orderId: number) => {
+    e.stopPropagation();
+    setResumingOrderId(orderId);
+    setResumeError(null);
+
+    try {
+      const updatedOrder = await orderApi.resumePayment(orderId);
+      navigate(`/payment/${orderId}`, { state: { order: updatedOrder } });
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        'Payment cannot be resumed because one or more items are no longer available in the required quantity.';
+      setResumeError({ orderId, message: msg });
+    } finally {
+      setResumingOrderId(null);
+    }
+  };
 
   const fetchOrders = async (page: number, filters: GetMyOrdersParams = appliedFilters) => {
     try {
@@ -145,33 +166,67 @@ export const OrderHistoryPage: React.FC = () => {
     );
   };
 
-  const getPaymentStatusBadge = (status: string) => {
+  const getPaymentStatusBadge = (order: OrderListResponse) => {
+    let text = order.paymentStatus;
     let bgColor = 'bg-gray-100';
     let textColor = 'text-gray-800';
 
-    switch (status) {
-      case 'PENDING':
-        bgColor = 'bg-[#B7791F]/10';
-        textColor = 'text-[#B7791F]';
-        break;
-      case 'SUCCESS':
-        bgColor = 'bg-[#2E7D32]/10';
-        textColor = 'text-[#2E7D32]';
-        break;
-      case 'FAILED':
+    if (order.orderStatus === 'CANCELLED') {
+      if (order.isExpired) {
+        text = 'ORDER EXPIRED';
         bgColor = 'bg-[#B42318]/10';
         textColor = 'text-[#B42318]';
-        break;
-      case 'PARTIALLY_REFUNDED':
-      case 'REFUNDED':
-        bgColor = 'bg-[#74746F]/10';
-        textColor = 'text-text-muted';
-        break;
+      } else {
+        text = 'PAYMENT FAILED';
+        bgColor = 'bg-[#B42318]/10';
+        textColor = 'text-[#B42318]';
+      }
+    } else if (order.orderStatus === 'PENDING') {
+      if (order.paymentStatus === 'PENDING') {
+        if (order.isExpired) {
+          text = 'ORDER EXPIRED';
+          bgColor = 'bg-[#B42318]/10';
+          textColor = 'text-[#B42318]';
+        } else if (order.hasInitiatedPayment) {
+          text = 'PAYMENT PROCESSING';
+          bgColor = 'bg-sky-100';
+          textColor = 'text-sky-800';
+        } else {
+          text = 'PAYMENT PENDING';
+          bgColor = 'bg-[#B7791F]/10';
+          textColor = 'text-[#B7791F]';
+        }
+      } else if (order.paymentStatus === 'FAILED') {
+        text = 'PAYMENT FAILED';
+        bgColor = 'bg-[#B42318]/10';
+        textColor = 'text-[#B42318]';
+      }
+    } else {
+      switch (order.paymentStatus) {
+        case 'PENDING':
+          bgColor = 'bg-[#B7791F]/10';
+          textColor = 'text-[#B7791F]';
+          break;
+        case 'SUCCESS':
+          bgColor = 'bg-[#2E7D32]/10';
+          textColor = 'text-[#2E7D32]';
+          break;
+        case 'FAILED':
+          text = 'PAYMENT FAILED';
+          bgColor = 'bg-[#B42318]/10';
+          textColor = 'text-[#B42318]';
+          break;
+        case 'PARTIALLY_REFUNDED':
+        case 'REFUNDED':
+          bgColor = 'bg-[#74746F]/10';
+          textColor = 'text-text-muted';
+          break;
+      }
     }
 
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${bgColor} ${textColor}`}>
-        {status}
+        {text}
       </span>
     );
   };
@@ -321,7 +376,26 @@ export const OrderHistoryPage: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-6 print:space-y-4">
-            {pageData?.content.map((order) => (
+            {pageData?.content.map((order) => {
+              // Final UX Rule 1 & Step 9: Pay Now appears ONLY when payment was never started, reservation is active, and not expired
+              const isNotExpired =
+                !order.isExpired &&
+                (!order.reservationExpiresAt || new Date(order.reservationExpiresAt).getTime() > Date.now());
+
+              const isPayable =
+                order.orderStatus === 'PENDING' &&
+                order.paymentStatus === 'PENDING' &&
+                order.hasInitiatedPayment === false &&
+                order.reservationActive === true &&
+                isNotExpired;
+
+              // Final UX Rule 2: Processing state has NO action button (wait only)
+              const isProcessing =
+                order.orderStatus === 'PENDING' &&
+                order.paymentStatus === 'PENDING' &&
+                order.hasInitiatedPayment === true;
+
+              return (
               <div
                 key={order.orderId}
                 onClick={() => navigate(`/orders/${order.orderId}`)}
@@ -348,8 +422,47 @@ export const OrderHistoryPage: React.FC = () => {
                         <p className="text-xl font-bold text-text-main">{formatPrice(order.totalAmount)}</p>
                         <div className="flex gap-2 mt-2 sm:justify-end">
                           {getOrderStatusBadge(order.orderStatus)}
-                          {getPaymentStatusBadge(order.paymentStatus)}
+                          {getPaymentStatusBadge(order)}
                         </div>
+
+                        {/* Pay Now: ONLY when payment not started + reservation active */}
+                        {isPayable && (
+                          <div className="mt-3 flex sm:justify-end print:hidden">
+                            <button
+                              type="button"
+                              onClick={(e) => handleResumePayment(e, order.orderId)}
+                              disabled={resumingOrderId === order.orderId}
+                              className="inline-flex items-center justify-center rounded-md bg-primary text-white px-4 py-1.5 text-xs font-bold shadow-sm hover:bg-primary-hover transition-colors disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                            >
+                              {resumingOrderId === order.orderId ? (
+                                <>
+                                  <div className="h-3.5 w-3.5 mr-1.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                                  Resuming...
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                  </svg>
+                                  Pay Now
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Payment Processing: Wait only */}
+                        {isProcessing && (
+                          <div className="mt-3 flex sm:justify-end print:hidden">
+                            <span className="text-xs font-medium text-sky-800 bg-sky-50 border border-sky-200 rounded-md px-3 py-1.5 inline-flex items-center">
+                              <span className="relative flex h-2 w-2 mr-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
+                              </span>
+                              Please wait for the payment result
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <div className="hidden sm:flex text-accent group-hover:translate-x-1 transition-transform print:hidden">
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -358,6 +471,12 @@ export const OrderHistoryPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
+
+                  {resumeError?.orderId === order.orderId && (
+                    <div className="mb-4 rounded-md bg-[#FEF3F2] p-2.5 border border-[#FEE4E2] print:hidden">
+                      <p className="text-xs font-medium text-[#B42318]">{resumeError.message}</p>
+                    </div>
+                  )}
                   
                   <div className="flex flex-col md:flex-row gap-6 justify-between">
                     <div className="flex-1">
@@ -390,7 +509,8 @@ export const OrderHistoryPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-            ))}
+            );
+            })}
 
             {/* Pagination Controls */}
             {pageData && pageData.totalPages > 1 && (

@@ -1,6 +1,6 @@
 import { axiosClient } from '../../../api/axiosClient';
 import type { OrderResponse } from '../../checkout/types';
-import type { OrderListResponse, Page } from '../types';
+import type { OrderDetailResponse, OrderListResponse, Page, PendingOrderExpiryResponse } from '../types';
 
 export interface GetMyOrdersParams {
   page?: number;
@@ -51,5 +51,38 @@ export const orderApi = {
       responseType: 'blob',
     });
     return response.data;
+  },
+
+  restoreToCart: async (orderId: number | string): Promise<RestoreToCartResponse> => {
+    const response = await axiosClient.post<RestoreToCartResponse>(`/v1/orders/${orderId}/restore-to-cart`);
+    return response.data;
+  },
+
+  resumePayment: async (orderId: number | string): Promise<OrderDetailResponse> => {
+    const response = await axiosClient.post(`/v1/orders/${orderId}/resume-payment`);
+    return response.data;
+  },
+
+  getPendingOrderExpiry: async (): Promise<PendingOrderExpiryResponse> => {
+    const response = await axiosClient.get<PendingOrderExpiryResponse>('/v1/orders/pending-expiry');
+    return response.data;
   }
 };
+
+export interface RestoredItemDetail {
+  variantId: number | null;
+  productName: string;
+  requestedQuantity: number;
+  restoredQuantity: number;
+  status: string;
+  message: string;
+}
+
+export interface RestoreToCartResponse {
+  orderId: number;
+  activeCartId: number;
+  restoredItemCount: number;
+  skippedItemCount: number;
+  message: string;
+  items: RestoredItemDetail[];
+}

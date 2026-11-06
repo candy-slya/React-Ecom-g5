@@ -11,7 +11,6 @@ import {
   removeAuthenticatedCartItem,
 } from '../store/cartSlice';
 import { CartItemComponent } from '../components/CartItemComponent';
-import { usePendingCartPayment } from '../hooks/usePendingCartPayment';
 
 export const CartPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -27,7 +26,6 @@ export const CartPage: React.FC = () => {
 
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
-  const { isPending: isCartPaymentPending } = usePendingCartPayment();
 
   useEffect(() => {
     if (isInitializing) return;
@@ -40,7 +38,6 @@ export const CartPage: React.FC = () => {
   }, [isAuthenticated, isInitializing, dispatch, guestItems.length]); // depend on guestItems.length for initial guest load if it changes outside, but typically we want it on mount or auth change
 
   const handleCheckoutNavigation = () => {
-    if (isCartPaymentPending) return;
     if (isAuthenticated) {
       navigate("/checkout");
     } else {
@@ -56,7 +53,6 @@ export const CartPage: React.FC = () => {
   };
 
   const handleQuantityChange = async (id: number, quantity: number) => {
-    if (isCartPaymentPending) return;
     setIsUpdating(true);
     setUpdateError(null);
     try {
@@ -75,7 +71,6 @@ export const CartPage: React.FC = () => {
   };
 
   const handleRemove = async (id: number) => {
-    if (isCartPaymentPending) return;
     setIsUpdating(true);
     setUpdateError(null);
     try {
@@ -181,21 +176,6 @@ export const CartPage: React.FC = () => {
     <div className="bg-page py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <h1 className="mb-8 text-3xl font-bold tracking-tight text-text-main sm:text-4xl">Shopping Cart</h1>
-        
-        {isCartPaymentPending && (
-          <div className="mb-6 rounded-lg bg-amber-50 p-4 border border-amber-200">
-            <div className="flex items-center">
-              <svg className="h-5 w-5 text-amber-500 mr-2 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <div>
-                <p className="text-sm font-semibold text-amber-900">Your payment is currently being processed. Please wait until the payment result is confirmed.</p>
-                <p className="text-xs text-amber-700 mt-0.5">Cart modifications and new checkout are temporarily locked until the payment resolves.</p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {updateError && (
           <div className="mb-6 rounded-md bg-[#B42318]/10 p-4">
@@ -223,7 +203,6 @@ export const CartPage: React.FC = () => {
                     onQuantityChange={handleQuantityChange}
                     onRemove={handleRemove}
                     isUpdating={isUpdating || loading}
-                    disabled={isCartPaymentPending}
                   />
                 ))}
               </div>
@@ -251,16 +230,11 @@ export const CartPage: React.FC = () => {
                 <button
                   onClick={handleCheckoutNavigation}
                   type="button"
-                  disabled={hasUnavailableItems || isUpdating || loading || isCartPaymentPending}
+                  disabled={hasUnavailableItems || isUpdating || loading}
                   className="w-full rounded-md bg-primary text-white px-4 py-4 text-base font-bold shadow-md transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-border-subtle disabled:text-text-muted"
                 >
-                  {isCartPaymentPending ? 'Payment Processing...' : 'Proceed to Checkout'}
+                  Proceed to Checkout
                 </button>
-                {isCartPaymentPending && (
-                  <p className="mt-3 text-center text-xs text-amber-700">
-                    A cart payment is currently processing. Checkout is locked.
-                  </p>
-                )}
                 {hasUnavailableItems && (
                   <p className="mt-3 text-center text-sm text-[#B42318]">
                     Please remove or update unavailable items to checkout.

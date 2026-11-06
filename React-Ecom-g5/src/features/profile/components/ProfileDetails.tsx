@@ -52,13 +52,13 @@ export const ProfileDetails: React.FC<ProfileDetailsProps> = ({
   const getPhoneError = () => {
     const cleanPhone = phone.trim();
     if (!cleanPhone) {
-      return phoneTouched ? 'ဖုန်းနံပတ် ထည့်ရန် လိုအပ်ပါသည်' : '';
+      return phoneTouched ? 'You need to enter your phone number' : '';
     }
     if (cleanPhone.length < 11) {
-      return 'ဖုန်းနံပတ် ၁၁ လုံး မပြည့်သေးပါ';
+      return 'The phone number is not complete with 11 digits yet';
     }
     if (cleanPhone.length > 11) {
-      return 'ဖုန်းနံပတ် ၁၁ လုံး ကျော်နေပါတယ်';
+      return 'There are more than 11 digits in the phone number';
     }
     return '';
   };
@@ -71,9 +71,9 @@ export const ProfileDetails: React.FC<ProfileDetailsProps> = ({
     if (!/^\d{11}$/.test(phone)) {
       setPhoneTouched(true);
       if (phone.trim().length < 11) {
-        showToast("ဖုန်းနံပတ် ၁၁ လုံး မပြည့်သေးပါ။", "error");
+        showToast("The phone number isn't complete with 11 digits yet.", "error");
       } else {
-        showToast("ဖုန်းနံပတ် ၁၁ လုံး ကျော်နေပါသည်။", "error");
+        showToast("There are more than 11 digits in the phone number", "error");
       }
       return;
     }
