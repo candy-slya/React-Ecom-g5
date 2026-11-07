@@ -69,7 +69,7 @@ export const RefundHistoryPage: React.FC = () => {
           </h1>
           <div className="bg-primary/5 border border-primary/20 text-xs px-3 py-2 rounded-lg text-text-muted">
             <span className="font-semibold text-primary">Policy Notice: </span>
-            Delivered ပြီးမှ (၇) ရက်အတွင်းသာ Refund တောင်းဆိုခွင့်ရှိပါသည်။
+            Refunds can only be requested within 7 days after the order is delivered.
           </div>
         </div>
         

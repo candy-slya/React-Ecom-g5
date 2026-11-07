@@ -76,8 +76,8 @@ export const RequestRefundModal: React.FC<RequestRefundModalProps> = ({
   const isBlocked = deliveryInfo ? (!deliveryInfo.isDelivered || deliveryInfo.isExpired) : false;
   const blockedMessage = deliveryInfo?.ineligibleReason || 
     (!deliveryInfo?.isDelivered 
-      ? 'Delivered ပြီးမှသာ Refund တောင်းဆိုနိုင်ပါသည်။ (Order must be delivered before refund)' 
-      : 'Refund တောင်းဆိုနိုင်သည့် ကာလ (၇ ရက်) ကျော်လွန်သွားပါပြီ။ (Refund period of 7 days has expired)');
+      ? 'Refunds can only be requested after the order has been delivered.' 
+      : 'The 7-day refund request window has expired.');
 
   const selectedItems = itemStates.filter((it) => it.selected);
 

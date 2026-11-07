@@ -8,7 +8,10 @@ export const OrderHistoryPage: React.FC = () => {
   const [pageData, setPageData] = useState<Page<OrderListResponse> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState<number>(() => {
+    const saved = sessionStorage.getItem('orderHistoryPage');
+    return saved ? parseInt(saved, 10) || 0 : 0;
+  });
   
   // Filter form state
   const [startDate, setStartDate] = useState('');
@@ -62,6 +65,26 @@ export const OrderHistoryPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, appliedFilters]);
 
+  useEffect(() => {
+    if (!loading && pageData && pageData.content.length > 0) {
+      const targetOrderId = sessionStorage.getItem('lastViewedOrderId');
+      if (targetOrderId) {
+        const timer = setTimeout(() => {
+          const el = document.getElementById(`order-${targetOrderId}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('ring-2', 'ring-primary');
+            setTimeout(() => {
+              el.classList.remove('ring-2', 'ring-primary');
+              sessionStorage.removeItem('lastViewedOrderId');
+            }, 2000);
+          }
+        }, 120);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [loading, pageData]);
+
   const handleApplyFilters = () => {
     setDateError('');
     if (startDate && endDate && startDate > endDate) {
@@ -76,6 +99,8 @@ export const OrderHistoryPage: React.FC = () => {
       orderNo: orderNo || undefined
     });
     setCurrentPage(0);
+    sessionStorage.setItem('orderHistoryPage', '0');
+    sessionStorage.removeItem('lastViewedOrderId');
   };
 
   const handleResetFilters = () => {
@@ -86,6 +111,8 @@ export const OrderHistoryPage: React.FC = () => {
     setDateError('');
     setAppliedFilters({});
     setCurrentPage(0);
+    sessionStorage.setItem('orderHistoryPage', '0');
+    sessionStorage.removeItem('lastViewedOrderId');
   };
 
   const handleDownloadReportPdf = async () => {
@@ -398,12 +425,19 @@ export const OrderHistoryPage: React.FC = () => {
               return (
               <div
                 key={order.orderId}
-                onClick={() => navigate(`/orders/${order.orderId}`)}
+                id={`order-${order.orderId}`}
+                onClick={() => {
+                  sessionStorage.setItem('lastViewedOrderId', String(order.orderId));
+                  sessionStorage.setItem('orderHistoryPage', String(currentPage));
+                  navigate(`/orders/${order.orderId}`);
+                }}
                 className="rounded-lg border border-border-subtle bg-surface shadow-sm overflow-hidden cursor-pointer hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent group print:border-b print:border-border-subtle print:shadow-none print:break-inside-avoid print:cursor-auto"
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
+                    sessionStorage.setItem('lastViewedOrderId', String(order.orderId));
+                    sessionStorage.setItem('orderHistoryPage', String(currentPage));
                     navigate(`/orders/${order.orderId}`);
                   }
                 }}
@@ -516,7 +550,11 @@ export const OrderHistoryPage: React.FC = () => {
             {pageData && pageData.totalPages > 1 && (
               <div className="flex items-center justify-between border-t border-border-subtle pt-6 mt-8 print:hidden">
                 <button
-                  onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                  onClick={() => setCurrentPage(p => {
+                    const next = Math.max(0, p - 1);
+                    sessionStorage.setItem('orderHistoryPage', String(next));
+                    return next;
+                  })}
                   disabled={pageData.first || loading}
                   className="rounded-md border border-border-subtle bg-surface px-4 py-2 text-sm font-medium text-text-main hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
@@ -527,7 +565,11 @@ export const OrderHistoryPage: React.FC = () => {
                   <span className="font-medium text-text-main">{pageData.totalPages}</span>
                 </span>
                 <button
-                  onClick={() => setCurrentPage(p => Math.min(pageData.totalPages - 1, p + 1))}
+                  onClick={() => setCurrentPage(p => {
+                    const next = Math.min(pageData.totalPages - 1, p + 1);
+                    sessionStorage.setItem('orderHistoryPage', String(next));
+                    return next;
+                  })}
                   disabled={pageData.last || loading}
                   className="rounded-md border border-border-subtle bg-surface px-4 py-2 text-sm font-medium text-text-main hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
