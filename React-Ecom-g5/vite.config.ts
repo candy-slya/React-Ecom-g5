@@ -6,12 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    proxy: {
-      "/api": {
-        target: "http://localhost:8080", // Spring Boot Run ထားသည့် Port (8080 မဟုတ်ပါက သက်ဆိုင်ရာ Port သို့ ပြောင်းပါ)
-        changeOrigin: true,
-        secure: false,
-      },
-    },
+    port: 8005
+
   },
 });

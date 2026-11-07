@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { axiosClient } from "../../../api/axiosClient";
 
 /* ------------------------------------------------------------------ */
 /*  Logo Animation Styles                                              */
@@ -170,7 +170,7 @@ export const ForgotPasswordPage: React.FC = () => {
 
     try {
       setLoading(true);
-      await axios.post("/api/storefront/v1/auth/customer/forgot-password", {
+      await axiosClient.post("/v1/auth/customer/forgot-password", {
         email,
       });
       setStep(2);
@@ -199,7 +199,7 @@ export const ForgotPasswordPage: React.FC = () => {
 
     try {
       setLoading(true);
-      await axios.post("/api/storefront/v1/auth/customer/verify-code", {
+      await axiosClient.post("/v1/auth/customer/verify-code", {
         email,
         code,
       });
@@ -229,7 +229,7 @@ export const ForgotPasswordPage: React.FC = () => {
 
     try {
       setLoading(true);
-      await axios.post("/api/storefront/v1/auth/customer/reset-password", {
+      await axiosClient.post("/v1/auth/customer/reset-password", {
         email,
         code,
         newPassword,
