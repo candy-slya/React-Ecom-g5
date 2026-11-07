@@ -48,9 +48,18 @@ export const ProductDetailPage: React.FC = () => {
 
   
 
+  const [showVariantAlert, setShowVariantAlert] = useState(false);
+
   const [quantity, setQuantity] = useState(1);
 
   const [toastMsg, setToastMsg] = useState('');
+  const [warningMsg, setWarningMsg] = useState('');
+
+  useEffect(() => {
+    if (!warningMsg) return;
+    const timer = setTimeout(() => setWarningMsg(''), 3000);
+    return () => clearTimeout(timer);
+  }, [warningMsg]);
 
   const [isAddingCart, setIsAddingCart] =
     useState(false);
@@ -75,28 +84,17 @@ export const ProductDetailPage: React.FC = () => {
       .then(res => {
   setProduct(res);
 
-  // Auto-select first in-stock variant (or first variant) so users can Add to Cart / Buy Now immediately
-  const defaultVariant =
-    res.variants.find(v => v.availableQuantity > 0) ||
-    res.variants[0] ||
-    null;
-
-  setSelectedVariant(defaultVariant);
-
-  const images = defaultVariant?.images?.length
-    ? defaultVariant.images
-    : res.images;
+  // Show original product images first. Customer chooses a variant manually.
+  setSelectedVariant(null);
+  setShowVariantAlert(false);
+  setWarningMsg('');
 
   const primaryImage =
-    images.find(img => img.isPrimary) ??
-    images[0] ??
     res.images.find(img => img.isPrimary) ??
     res.images[0];
 
   setActiveImage(
-    primaryImage
-      ? getAssetUrl(primaryImage.imageUrl)
-      : null
+    primaryImage ? getAssetUrl(primaryImage.imageUrl) : null
   );
 
   setQuantity(1);
@@ -235,6 +233,8 @@ const galleryImages =
 // Return to original product images
 const handleShowOriginalImages = () => {
   setSelectedVariant(null);
+  setShowVariantAlert(false);
+  setWarningMsg('');
   setQuantity(1);
 
   const primaryImage =
@@ -253,6 +253,8 @@ const handleSelectVariant = (
   variant: ProductVariantResponse
 ) => {
   setSelectedVariant(variant);
+  setShowVariantAlert(false);
+  setWarningMsg('');
   setQuantity(1);
 
   const images =
@@ -300,7 +302,12 @@ const handleSelectVariant = (
  const handleAddToCart = async () => {
 
   if (!selectedVariant) {
-    alert("Please select a variant before adding to cart.");
+    setShowVariantAlert(true);
+    setWarningMsg("Please select a variant before adding to cart.");
+    document.getElementById("variant-selection")?.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
     return;
   }
 
@@ -374,7 +381,12 @@ const handleSelectVariant = (
 
 
   if (!selectedVariant) {
-    alert("Please select a variant before buying.");
+    setShowVariantAlert(true);
+    setWarningMsg("Please select a variant before buying now.");
+    document.getElementById("variant-selection")?.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
     return;
   }
 
@@ -690,7 +702,14 @@ const displayExpiryDate = product.isPerishable
     VARIANT SELECTION
 ========================= */}
 
-<div className="mb-6">
+<div
+  id="variant-selection"
+  className={`mb-6 p-3 rounded-xl border-2 transition-all duration-300 ${
+    showVariantAlert && !selectedVariant
+      ? "border-red-400 bg-red-50"
+      : "border-transparent"
+  }`}
+>
 
   <div className="flex items-center justify-between mb-3">
 
@@ -709,6 +728,12 @@ const displayExpiryDate = product.isPerishable
     )}
 
   </div>
+
+  {showVariantAlert && !selectedVariant && (
+    <p role="alert" className="text-xs text-red-600 font-semibold mb-3">
+      Please choose a variant to continue.
+    </p>
+  )}
 
   <div className="flex flex-wrap gap-3">
 
@@ -1145,6 +1170,25 @@ const displayExpiryDate = product.isPerishable
 
         </div>
 
+      )}
+
+      {/* Top-center warning notification — no progress or loading animation */}
+      {warningMsg && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="fixed top-[115px] left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-2rem)] max-w-[420px] bg-white border border-gray-200 rounded-xl shadow-lg px-5 py-4 flex items-center gap-3"
+        >
+          <div className="shrink-0 text-amber-500" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 3L2 21h20L12 3z" />
+              <path d="M12 9v4" />
+              <path d="M12 17h.01" />
+            </svg>
+          </div>
+          <p className="text-sm font-semibold text-slate-800 flex-1">{warningMsg}</p>
+          <button type="button" onClick={() => setWarningMsg('')} className="text-gray-400 hover:text-gray-700 cursor-pointer" aria-label="Close warning">✕</button>
+        </div>
       )}
 
     </div>
