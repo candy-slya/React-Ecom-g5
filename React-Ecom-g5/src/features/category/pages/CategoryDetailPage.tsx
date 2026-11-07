@@ -1,28 +1,27 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   useParams,
   useNavigate,
   Link,
-  useSearchParams
-} from 'react-router-dom';
+  useSearchParams,
+} from "react-router-dom";
 
-import { productApi } from '../../product/api/productApi';
-import { ProductCard } from '../../../components/product/ProductCard';
+import { productApi } from "../../product/api/productApi";
+import { ProductCard } from "../../../components/product/ProductCard";
+import { GeometricPatternBanner } from "../../../components/common/GeometricPatternBanner";
 
 import type {
   CategoryNodeResponse,
   ProductListResponse,
-  PageResponse
-} from '../../product/types';
+  PageResponse,
+} from "../../product/types";
 
 export const CategoryDetailPage: React.FC = () => {
   const { categoryId } = useParams<{ categoryId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const [category, setCategory] =
-    useState<CategoryNodeResponse | null>(null);
+  const [category, setCategory] = useState<CategoryNodeResponse | null>(null);
 
   const [productsPage, setProductsPage] =
     useState<PageResponse<ProductListResponse> | null>(null);
@@ -33,13 +32,11 @@ export const CategoryDetailPage: React.FC = () => {
   const [categoryError, setCategoryError] = useState<string | null>(null);
   const [productsError, setProductsError] = useState<string | null>(null);
 
-  const activeSort = searchParams.get('sort') || 'newest';
+  const activeSort = searchParams.get("sort") || "newest";
 
-  const rawPage = Number(searchParams.get('page') ?? '0');
+  const rawPage = Number(searchParams.get("page") ?? "0");
   const activePage =
-    Number.isSafeInteger(rawPage) && rawPage >= 0
-      ? rawPage
-      : 0;
+    Number.isSafeInteger(rawPage) && rawPage >= 0 ? rawPage : 0;
 
   const parsedCategoryId = Number(categoryId);
   const isValidCategoryId =
@@ -47,10 +44,9 @@ export const CategoryDetailPage: React.FC = () => {
     Number.isSafeInteger(parsedCategoryId) &&
     parsedCategoryId > 0;
 
-  // Recursively find category from database category tree
   const findCategory = (
     nodes: CategoryNodeResponse[],
-    id: number
+    id: number,
   ): CategoryNodeResponse | null => {
     for (const node of nodes) {
       if (node.categoryId === id) {
@@ -69,7 +65,6 @@ export const CategoryDetailPage: React.FC = () => {
     return null;
   };
 
-  // Load category details using actual database category IDs
   useEffect(() => {
     let cancelled = false;
 
@@ -82,23 +77,21 @@ export const CategoryDetailPage: React.FC = () => {
       return;
     }
 
-    productApi.getCategoryTree()
+    productApi
+      .getCategoryTree()
       .then((res) => {
         if (cancelled) return;
 
-        const found = findCategory(
-          res ?? [],
-          parsedCategoryId
-        );
+        const found = findCategory(res ?? [], parsedCategoryId);
 
         setCategory(found);
       })
       .catch((error) => {
         if (cancelled) return;
 
-        console.error('Failed to load category:', error);
+        console.error("Failed to load category:", error);
         setCategory(null);
-        setCategoryError('Unable to load category. Please try again.');
+        setCategoryError("Unable to load category. Please try again.");
       })
       .finally(() => {
         if (!cancelled) {
@@ -111,7 +104,6 @@ export const CategoryDetailPage: React.FC = () => {
     };
   }, [categoryId]);
 
-  // Load only products related to selected category
   useEffect(() => {
     let cancelled = false;
 
@@ -127,10 +119,11 @@ export const CategoryDetailPage: React.FC = () => {
     const params = {
       categoryId: parsedCategoryId,
       sort: activeSort,
-      page: activePage
+      page: activePage,
     };
 
-    productApi.getProducts(params)
+    productApi
+      .getProducts(params)
       .then((res) => {
         if (cancelled) return;
 
@@ -139,9 +132,9 @@ export const CategoryDetailPage: React.FC = () => {
       .catch((error) => {
         if (cancelled) return;
 
-        console.error('Failed to load category products:', error);
+        console.error("Failed to load category products:", error);
         setProductsPage(null);
-        setProductsError('Unable to load products. Please try again.');
+        setProductsError("Unable to load products. Please try again.");
       })
       .finally(() => {
         if (!cancelled) {
@@ -154,26 +147,21 @@ export const CategoryDetailPage: React.FC = () => {
     };
   }, [categoryId, activeSort, activePage]);
 
-  // sorting and pagination URL parameters
   const updateFilters = (
-    newParams: Record<string, string | number | null | undefined>
+    newParams: Record<string, string | number | null | undefined>,
   ) => {
     const nextParams = new URLSearchParams(searchParams);
 
     for (const [key, value] of Object.entries(newParams)) {
-      if (
-        value === null ||
-        value === undefined ||
-        value === ''
-      ) {
+      if (value === null || value === undefined || value === "") {
         nextParams.delete(key);
       } else {
         nextParams.set(key, String(value));
       }
     }
 
-    if (!Object.prototype.hasOwnProperty.call(newParams, 'page')) {
-      nextParams.set('page', '0');
+    if (!Object.prototype.hasOwnProperty.call(newParams, "page")) {
+      nextParams.set("page", "0");
     }
 
     setSearchParams(nextParams);
@@ -181,9 +169,7 @@ export const CategoryDetailPage: React.FC = () => {
 
   if (loadingCategory) {
     return (
-      <div className="text-center py-20 text-gray-500">
-        Loading category...
-      </div>
+      <div className="text-center py-20 text-gray-500">Loading category...</div>
     );
   }
 
@@ -191,14 +177,9 @@ export const CategoryDetailPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-page pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-          <h2 className="text-2xl font-bold mb-4">
-            {categoryError}
-          </h2>
+          <h2 className="text-2xl font-bold mb-4">{categoryError}</h2>
 
-          <Link
-            to="/categories"
-            className="text-primary hover:underline"
-          >
+          <Link to="/categories" className="text-primary hover:underline">
             Return to Categories
           </Link>
         </div>
@@ -210,14 +191,9 @@ export const CategoryDetailPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-page pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center text-gray-500">
-          <h2 className="text-2xl font-bold mb-4">
-            Category not found
-          </h2>
+          <h2 className="text-2xl font-bold mb-4">Category not found</h2>
 
-          <Link
-            to="/categories"
-            className="text-primary hover:underline"
-          >
+          <Link to="/categories" className="text-primary hover:underline">
             Return to Categories
           </Link>
         </div>
@@ -228,42 +204,55 @@ export const CategoryDetailPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-page pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
         {/* Breadcrumb */}
         <div className="py-6 text-sm text-gray-500">
           <Link to="/" className="hover:underline">
             Home
           </Link>
-          {' / '}
+          {" / "}
           <Link to="/categories" className="hover:underline">
             Categories
           </Link>
-          {' / '}
+          {" / "}
           {category.categoryName}
         </div>
 
-        {/* Category Header */}
-        <div className="bg-white border border-border-subtle p-8 rounded shadow-sm mb-8">
-          <h1 className="text-[34px] font-bold m-0">
-            {category.categoryName}
-          </h1>
+        {/* ============================================================== */}
+        {/* Category Banner - ✨ Deep Charcoal with Purple Glow (like Home) */}
+        {/* ============================================================== */}
+        <div className="relative overflow-hidden bg-slate-900 text-white p-6 sm:p-8 rounded-2xl shadow-md mb-8 flex items-center justify-between min-h-[160px]">
+          {/* Subtle radial glow */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_50%,rgba(139,92,246,0.15),transparent_60%)] pointer-events-none z-0"></div>
+
+          <div className="relative z-10 max-w-xl">
+            <div className="text-sky-200 font-bold text-[13px] tracking-wider uppercase mb-1">
+              CATEGORY
+            </div>
+            <h1 className="text-3xl sm:text-[34px] font-black my-1.5 drop-shadow-sm">
+              {category.categoryName}
+            </h1>
+            <p className="text-sky-100 text-sm max-w-xl m-0 font-medium">
+              {category.children?.length
+                ? `Explore ${category.children.length} subcategories and their products.`
+                : "Browse all products in this category."}
+            </p>
+          </div>
+          <div className="hidden sm:flex relative z-10 flex-shrink-0 items-center justify-end w-[260px] md:w-[320px] lg:w-[360px] h-[120px] md:h-[140px]">
+            <GeometricPatternBanner className="w-full h-full" />
+          </div>
         </div>
 
         {/* Subcategories */}
         {category.children && category.children.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4">
-              Subcategories
-            </h2>
+            <h2 className="text-xl font-bold mb-4">Subcategories</h2>
 
             <div className="flex flex-wrap gap-3">
               {category.children.map((child) => (
                 <button
                   key={child.categoryId}
                   type="button"
-                  onClick={() =>
-                    navigate(`/categories/${child.categoryId}`)
-                  }
+                  onClick={() => navigate(`/categories/${child.categoryId}`)}
                   className="bg-white border border-border-subtle px-4 py-2 text-sm hover:border-primary hover:text-primary transition-colors rounded"
                 >
                   {child.categoryName}
@@ -277,9 +266,9 @@ export const CategoryDetailPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-[18px]">
           <div className="text-xs text-gray-500">
             {loadingProducts
-              ? 'Loading products...'
+              ? "Loading products..."
               : productsError
-                ? 'Unable to load products'
+                ? "Unable to load products"
                 : `Showing ${productsPage?.totalElements ?? 0} products`}
           </div>
 
@@ -288,23 +277,15 @@ export const CategoryDetailPage: React.FC = () => {
             onChange={(e) =>
               updateFilters({
                 sort: e.target.value,
-                page: 0
+                page: 0,
               })
             }
             className="p-2 border text-sm bg-white"
           >
-            <option value="newest">
-              Newest
-            </option>
-            <option value="priceAsc">
-              Price Low → High
-            </option>
-            <option value="priceDesc">
-              Price High → Low
-            </option>
-            <option value="name">
-              Name A-Z
-            </option>
+            <option value="newest">Newest</option>
+            <option value="priceAsc">Price Low → High</option>
+            <option value="priceDesc">Price High → Low</option>
+            <option value="name">Name A-Z</option>
           </select>
         </div>
 
@@ -323,20 +304,14 @@ export const CategoryDetailPage: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Related Products */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-[18px]">
               {productsPage.content.map((product) => (
-                <ProductCard
-                  key={product.productId}
-                  product={product}
-                />
+                <ProductCard key={product.productId} product={product} />
               ))}
             </div>
 
-            {/* Pagination */}
             {productsPage.totalPages > 1 && (
               <div className="mt-12 flex items-center justify-center space-x-2">
-
                 <button
                   type="button"
                   disabled={productsPage.first}
@@ -344,7 +319,7 @@ export const CategoryDetailPage: React.FC = () => {
                     updateFilters({ page: activePage - 1 });
                     window.scrollTo({
                       top: 0,
-                      behavior: 'smooth'
+                      behavior: "smooth",
                     });
                   }}
                   className="px-4 py-2 rounded-lg border border-border-subtle bg-white text-sm font-semibold text-text-main hover:bg-page hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
@@ -354,7 +329,7 @@ export const CategoryDetailPage: React.FC = () => {
 
                 <div className="flex space-x-1">
                   {Array.from({
-                    length: productsPage.totalPages
+                    length: productsPage.totalPages,
                   }).map((_, index) => (
                     <button
                       key={index}
@@ -363,13 +338,13 @@ export const CategoryDetailPage: React.FC = () => {
                         updateFilters({ page: index });
                         window.scrollTo({
                           top: 0,
-                          behavior: 'smooth'
+                          behavior: "smooth",
                         });
                       }}
                       className={`w-10 h-10 rounded-lg text-sm font-bold transition-colors ${
                         activePage === index
-                          ? 'bg-primary text-white shadow-sm'
-                          : 'bg-white text-text-main border border-border-subtle hover:bg-page hover:text-primary'
+                          ? "bg-primary text-white shadow-sm"
+                          : "bg-white text-text-main border border-border-subtle hover:bg-page hover:text-primary"
                       }`}
                     >
                       {index + 1}
@@ -384,14 +359,13 @@ export const CategoryDetailPage: React.FC = () => {
                     updateFilters({ page: activePage + 1 });
                     window.scrollTo({
                       top: 0,
-                      behavior: 'smooth'
+                      behavior: "smooth",
                     });
                   }}
                   className="px-4 py-2 rounded-lg border border-border-subtle bg-white text-sm font-semibold text-text-main hover:bg-page hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
                 >
                   Next
                 </button>
-
               </div>
             )}
           </>
