@@ -379,7 +379,7 @@ export const StorefrontHeader: React.FC = () => {
                 onFocus={handleSearchFocus}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Search products or SKU..."
-                // border-[#EF4444] ထည့်သွင်းပြီး အနီရောင်ဘောင်သတ်မှတ်ထားပါသည်
+                // Highlight search border with primary theme color
                 className="w-full rounded-full border border-[#EF4444] bg-white py-2.5 pl-5 pr-11 text-sm text-text-main placeholder-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#EF4444]"
                 autoComplete="off"
               />

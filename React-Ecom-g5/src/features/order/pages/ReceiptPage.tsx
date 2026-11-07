@@ -61,6 +61,14 @@ export const ReceiptPage: React.FC = () => {
     };
   }, [orderId, retries]);
 
+  const handleBackToOrderDetails = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate(`/orders/${orderId}`);
+    }
+  };
+
   const handleDownloadPdf = async () => {
     if (!orderId) return;
     try {
@@ -146,7 +154,7 @@ export const ReceiptPage: React.FC = () => {
             Payment confirmation is taking longer than usual. Please check your order details or refresh in a moment.
           </p>
           <button 
-            onClick={() => navigate(`/orders/${orderId}`)}
+            onClick={handleBackToOrderDetails}
             className="mt-6 w-full px-4 py-2 bg-primary text-white font-bold rounded shadow-sm hover:bg-primary-hover transition-colors"
           >
             Back to Order Details
@@ -167,7 +175,7 @@ export const ReceiptPage: React.FC = () => {
           <h2 className="mt-4 text-xl font-bold text-text-main">Receipt Unavailable</h2>
           <p className="mt-2 text-text-muted">Receipt is not available for this order.</p>
           <button 
-            onClick={() => navigate(`/orders/${orderId}`)}
+            onClick={handleBackToOrderDetails}
             className="mt-6 w-full px-4 py-2 bg-primary text-white font-bold rounded shadow-sm hover:bg-primary-hover transition-colors"
           >
             Back to Order Details
@@ -184,7 +192,7 @@ export const ReceiptPage: React.FC = () => {
         {/* Actions Bar (Hidden on Print) */}
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-center print:hidden space-y-4 sm:space-y-0">
           <button
-            onClick={() => navigate(`/orders/${orderId}`)}
+            onClick={handleBackToOrderDetails}
             className="text-text-muted hover:text-primary flex items-center transition-colors font-medium"
           >
             <svg className="w-5 h-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">

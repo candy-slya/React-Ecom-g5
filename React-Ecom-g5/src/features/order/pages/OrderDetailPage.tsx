@@ -41,7 +41,7 @@ const computeDeliveryInfo = (order: OrderDetailResponse | null): OrderDeliveryIn
       deliveredAt: null,
       isExpired: false,
       daysRemaining: 0,
-      ineligibleReason: 'Delivered ပြီးမှသာ Refund တောင်းဆိုနိုင်ပါသည်။ (Refund available after delivery)',
+      ineligibleReason: 'Refunds can only be requested after the order has been delivered.',
     };
   }
 
@@ -72,7 +72,7 @@ const computeDeliveryInfo = (order: OrderDetailResponse | null): OrderDeliveryIn
       deliveredAt,
       isExpired: true,
       daysRemaining: 0,
-      ineligibleReason: 'Refund ကာလ (၇ ရက်) ကျော်လွန်သွားပါပြီ။ (Refund period of 7 days has expired)',
+      ineligibleReason: 'The 7-day refund request window has expired.',
     };
   }
 
@@ -248,7 +248,7 @@ export const OrderDetailPage: React.FC = () => {
           <p className="mb-6 text-text-main">{error || 'Order not found'}</p>
           <div className="space-x-4">
             <button
-              onClick={() => navigate('/orders')}
+              onClick={handleBackToOrders}
               className="rounded-md border border-border-subtle bg-surface px-6 py-2 text-text-main font-bold hover:bg-page transition-colors"
             >
               Back to Orders
@@ -320,6 +320,17 @@ export const OrderDetailPage: React.FC = () => {
     !deliveryInfo.isExpired &&
     refundableItems.length > 0;
 
+  const handleBackToOrders = () => {
+    if (order?.orderId) {
+      sessionStorage.setItem('lastViewedOrderId', String(order.orderId));
+    }
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate('/orders');
+    }
+  };
+
   return (
     <div className="bg-page min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl">
@@ -328,7 +339,7 @@ export const OrderDetailPage: React.FC = () => {
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
             <button
-              onClick={() => navigate('/orders')}
+              onClick={handleBackToOrders}
               className="text-text-muted hover:text-primary transition-colors flex items-center mb-4 text-sm font-medium cursor-pointer"
             >
               <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -383,9 +394,9 @@ export const OrderDetailPage: React.FC = () => {
             <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-lg text-sm flex items-start gap-3 shadow-sm">
               <span className="text-xl">🎉</span>
               <div>
-                <p className="font-bold text-emerald-900">Refund အတည်ပြုပြီးပါပြီ (Refund Approved)</p>
+                <p className="font-bold text-emerald-900">Refund Approved</p>
                 <p className="text-xs mt-1 text-emerald-800 leading-relaxed">
-                  ဤအော်ဒါအတွက် Refund တောင်းဆိုမှုကို Admin မှ အတည်ပြု (Approved) ပေးထားပြီးဖြစ်ပါသည်။
+                  The refund request for this order has been approved by our team.
                 </p>
               </div>
             </div>
@@ -393,13 +404,13 @@ export const OrderDetailPage: React.FC = () => {
             <div className="p-4 bg-red-50 border border-red-200 text-red-900 rounded-lg text-sm flex items-start gap-3 shadow-sm">
               <span className="text-xl">❌</span>
               <div className="space-y-1">
-                <p className="font-bold text-red-900">Refund ပယ်ချထားပါသည် (Refund Rejected)</p>
+                <p className="font-bold text-red-900">Refund Request Rejected</p>
                 <p className="text-xs text-red-800 leading-relaxed">
-                  ဤအော်ဒါအတွက် Refund တောင်းဆိုမှုကို Admin/Inventory မှ ပယ်ချ (Rejected) ထားပြီးဖြစ်သဖြင့် ထပ်မံ၍ Refund တောင်းဆို၍ မရနိုင်တော့ပါ။
+                  The refund request for this order was rejected by administration. No further refund requests can be submitted.
                 </p>
                 {rejectedRemarks.length > 0 && (
                   <div className="mt-2 text-xs text-red-900 bg-white/90 p-2.5 rounded-md border border-red-200 shadow-xs">
-                    <span className="font-semibold text-red-900">ပယ်ချရသည့် အကြောင်းအရင်း (Rejection Reason): </span>
+                    <span className="font-semibold text-red-900">Rejection Reason: </span>
                     <ul className="mt-1 list-disc list-inside space-y-0.5">
                       {rejectedRemarks.map((rem, idx) => (
                         <li key={idx} className="font-medium text-red-800">{rem}</li>
@@ -413,9 +424,9 @@ export const OrderDetailPage: React.FC = () => {
             <div className="p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg text-sm flex items-start gap-3 shadow-sm">
               <span className="text-xl">⏳</span>
               <div>
-                <p className="font-bold text-amber-900">Refund စိစစ်ဆဲဖြစ်ပါသည် (Refund Under Review)</p>
+                <p className="font-bold text-amber-900">Refund Under Review</p>
                 <p className="text-xs mt-1 text-amber-800 leading-relaxed">
-                  ဤအော်ဒါအတွက် Refund တောင်းဆိုထားမှုကို Admin/Inventory မှ စိစစ်လျက်ရှိပါသည်။
+                  The refund request for this order is currently being reviewed by our team.
                 </p>
               </div>
             </div>
@@ -423,9 +434,9 @@ export const OrderDetailPage: React.FC = () => {
             <div className="p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg text-sm flex items-start gap-3 shadow-sm">
               <span className="text-xl">📦</span>
               <div>
-                <p className="font-bold text-amber-900">Refund မရရှိနိုင်သေးပါ (Refund Not Eligible)</p>
+                <p className="font-bold text-amber-900">Refund Not Eligible Yet</p>
                 <p className="text-xs mt-1 text-amber-800 leading-relaxed">
-                  ဤအော်ဒါသည် Delivered မဖြစ်သေးသဖြင့် Refund တောင်းဆိုခွင့် မရရှိသေးပါ။ ပစ္စည်းရောက်ရှိပြီးမှသာ (၇) ရက်အတွင်း Refund စတင်တောင်းဆိုနိုင်မည်ဖြစ်ပါသည်။
+                  This order has not been delivered yet. Refunds can only be requested within 7 days after delivery.
                 </p>
               </div>
             </div>
@@ -433,9 +444,9 @@ export const OrderDetailPage: React.FC = () => {
             <div className="p-4 bg-red-50 border border-red-200 text-red-900 rounded-lg text-sm flex items-start gap-3 shadow-sm">
               <span className="text-xl">⏰</span>
               <div>
-                <p className="font-bold text-red-900">Refund ကာလ ကုန်ဆုံးသွားပါပြီ (Refund Period Expired)</p>
+                <p className="font-bold text-red-900">Refund Window Expired</p>
                 <p className="text-xs mt-1 text-red-800 leading-relaxed">
-                  ပစ္စည်းပို့ဆောင်ပြီးစီးသည့်နေ့မှစ၍ (၇) ရက် ကျော်လွန်သွားပြီဖြစ်သောကြောင့် ဤအော်ဒါအတွက် Refund တောင်းဆိုခွင့် ကုန်ဆုံးသွားပါပြီ။
+                  The 7-day refund window from the delivery date has expired. Refunds can no longer be requested for this order.
                 </p>
               </div>
             </div>
@@ -443,9 +454,9 @@ export const OrderDetailPage: React.FC = () => {
             <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-lg text-sm flex items-start gap-3 shadow-sm">
               <span className="text-xl">✅</span>
               <div>
-                <p className="font-bold text-emerald-900">Refund တောင်းဆိုနိုင်ပါသည် ({deliveryInfo.daysRemaining} ရက် ကျန်ရှိ)</p>
+                <p className="font-bold text-emerald-900">Eligible for Refund ({deliveryInfo.daysRemaining} day{deliveryInfo.daysRemaining > 1 ? 's' : ''} remaining)</p>
                 <p className="text-xs mt-1 text-emerald-800 leading-relaxed">
-                  ပစ္စည်းရောက်ရှိပြီး (၇) ရက်အတွင်း အောက်ပါ item များအတွက် Refund တောင်းဆိုခွင့်ရှိပါသည်။
+                  You can request a refund for the eligible items below within 7 days of delivery.
                 </p>
               </div>
             </div>
