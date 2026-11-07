@@ -320,6 +320,13 @@ export const OrderDetailPage: React.FC = () => {
     !deliveryInfo.isExpired &&
     refundableItems.length > 0;
 
+  const isOrderExpired = Boolean(
+    order.isExpired ||
+    (order.reservationActive === false && order.paymentStatus !== 'SUCCESS' && order.orderStatus !== 'PAID') ||
+    (order.reservationExpiresAt && new Date(order.reservationExpiresAt).getTime() <= Date.now() && order.paymentStatus !== 'SUCCESS' && order.orderStatus !== 'PAID') ||
+    order.statusHistory?.some(h => h.remark?.toLowerCase().includes('expire') || h.newStatus?.toLowerCase().includes('expire'))
+  );
+
   const handleBackToOrders = () => {
     if (order?.orderId) {
       sessionStorage.setItem('lastViewedOrderId', String(order.orderId));
@@ -357,13 +364,19 @@ export const OrderDetailPage: React.FC = () => {
           <div className="mt-4 sm:mt-0 flex flex-col items-start sm:items-end space-y-2">
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium text-text-muted">Status:</span>
-              {getOrderStatusBadge(order.orderStatus)}
+              {isOrderExpired ? (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#B42318]/10 text-[#B42318]">
+                  ORDER EXPIRED
+                </span>
+              ) : (
+                getOrderStatusBadge(order.orderStatus)
+              )}
             </div>
             <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium text-text-muted">Payment:</span>
-              {getPaymentStatusBadge(order.paymentStatus)}
+              {!isOrderExpired && <span className="text-sm font-medium text-text-muted">Payment:</span>}
+              {!isOrderExpired && getPaymentStatusBadge(order.paymentStatus)}
             </div>
-            {(order.paymentStatus === 'SUCCESS' || order.paymentStatus === 'REFUNDED' || order.paymentStatus === 'PARTIALLY_REFUNDED') && (
+            {!isOrderExpired && (order.paymentStatus === 'SUCCESS' || order.paymentStatus === 'REFUNDED' || order.paymentStatus === 'PARTIALLY_REFUNDED') && (
               <button
                 onClick={() => navigate(`/orders/${order.orderId}/receipt`)}
                 className="mt-2 inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-bold rounded shadow-sm hover:bg-primary-hover transition-colors cursor-pointer"
@@ -381,7 +394,7 @@ export const OrderDetailPage: React.FC = () => {
           
           {/* Order Timeline */}
           {order.statusHistory && (
-            <OrderTimeline statusHistory={order.statusHistory} />
+            <OrderTimeline statusHistory={order.statusHistory} isExpired={isOrderExpired} />
           )}
 
           {/* Shipment Information */}
@@ -530,7 +543,9 @@ export const OrderDetailPage: React.FC = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-text-muted">Status:</span>
-                      <span className="font-medium">{order.payment.paymentStatus}</span>
+                      <span className={`font-medium ${isOrderExpired ? 'text-[#B42318] font-bold' : ''}`}>
+                        {isOrderExpired ? 'ORDER EXPIRED' : order.payment.paymentStatus}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-text-muted">Amount:</span>

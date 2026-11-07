@@ -3,6 +3,7 @@ import type { OrderStatusHistory } from '../types';
 
 interface OrderTimelineProps {
   statusHistory: OrderStatusHistory[];
+  isExpired?: boolean;
 }
 
 const TIMELINE_STEPS = [
@@ -13,9 +14,13 @@ const TIMELINE_STEPS = [
   { status: 'DELIVERED', label: 'Delivered' },
 ];
 
-export const OrderTimeline: React.FC<OrderTimelineProps> = ({ statusHistory }) => {
+export const OrderTimeline: React.FC<OrderTimelineProps> = ({ statusHistory, isExpired }) => {
   const isCancelled = statusHistory.some(history => history.newStatus === 'CANCELLED');
   const cancelledHistory = isCancelled ? statusHistory.find(h => h.newStatus === 'CANCELLED') : null;
+  const isExpiredOrder = Boolean(
+    isExpired ||
+    statusHistory.some(h => h.remark?.toLowerCase().includes('expire') || h.newStatus?.toLowerCase().includes('expire'))
+  );
 
   const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString('en-US', {
@@ -33,7 +38,17 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({ statusHistory }) =
         <h3 className="text-lg font-bold text-text-main">Order Timeline</h3>
       </div>
       <div className="px-4 py-5 sm:p-6">
-        {isCancelled ? (
+        {isExpiredOrder ? (
+          <div className="flex items-center text-[#B42318] p-4 bg-[#B42318]/10 rounded-md">
+            <svg className="w-6 h-6 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="font-bold text-lg">Order Expired</p>
+              <p className="text-sm mt-1 text-[#B42318]/80">Payment time limit expired. Stock hold has been released.</p>
+            </div>
+          </div>
+        ) : isCancelled ? (
           <div className="flex items-center text-[#B42318] p-4 bg-[#B42318]/10 rounded-md">
             <svg className="w-6 h-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
