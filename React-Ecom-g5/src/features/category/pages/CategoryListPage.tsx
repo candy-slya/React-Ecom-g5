@@ -1,35 +1,42 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { productApi } from '../../product/api/productApi';
-import type { CategoryNodeResponse } from '../../product/types';
-import { CategoryCard } from '../../../components/category/CategoryCard';
-import { GeometricPatternBanner } from '../../../components/common/GeometricPatternBanner';
-import { DEFAULT_BACKOFFICE_CATEGORIES } from '../data/defaultCategories';
+import React, { useEffect, useState, useMemo } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { productApi } from "../../product/api/productApi";
+import type { CategoryNodeResponse } from "../../product/types";
+import { CategoryCard } from "../../../components/category/CategoryCard";
+import { GeometricPatternBanner } from "../../../components/common/GeometricPatternBanner";
+import { DEFAULT_BACKOFFICE_CATEGORIES } from "../data/defaultCategories";
 
 export const CategoryListPage: React.FC = () => {
   const navigate = useNavigate();
-  const [categories, setCategories] = useState<CategoryNodeResponse[]>(DEFAULT_BACKOFFICE_CATEGORIES);
+  const [categories, setCategories] = useState<CategoryNodeResponse[]>(
+    DEFAULT_BACKOFFICE_CATEGORIES,
+  );
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedParentId, setSelectedParentId] = useState<number | 'ALL'>('ALL');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedParentId, setSelectedParentId] = useState<number | "ALL">(
+    "ALL",
+  );
 
   // --- Pagination States ---
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9; // တစ်မျက်နှာလျှင် ၉ ခုသာပြရန်
 
   useEffect(() => {
-    productApi.getCategoryTree().then(res => {
-      if (res && res.length > 0) {
-        setCategories(res);
-      } else {
+    productApi
+      .getCategoryTree()
+      .then((res) => {
+        if (res && res.length > 0) {
+          setCategories(res);
+        } else {
+          setCategories(DEFAULT_BACKOFFICE_CATEGORIES);
+        }
+        setLoading(false);
+      })
+      .catch((e: any) => {
+        console.error(e);
         setCategories(DEFAULT_BACKOFFICE_CATEGORIES);
-      }
-      setLoading(false);
-    }).catch((e: any) => {
-      console.error(e);
-      setCategories(DEFAULT_BACKOFFICE_CATEGORIES);
-      setLoading(false);
-    });
+        setLoading(false);
+      });
   }, []);
 
   // Search သို့မဟုတ် Category Filter ပြောင်းတိုင်း Page 1 သို့ ပြန်သွားရန်
@@ -39,15 +46,19 @@ export const CategoryListPage: React.FC = () => {
 
   // Flatten categories into an organized list with parent information
   const flattenedCategories = useMemo(() => {
-    const list: Array<{ category: CategoryNodeResponse; parentName?: string; parentId?: number }> = [];
+    const list: Array<{
+      category: CategoryNodeResponse;
+      parentName?: string;
+      parentId?: number;
+    }> = [];
 
-    categories.forEach(parent => {
+    categories.forEach((parent) => {
       // Add the parent category
       list.push({ category: parent, parentId: parent.categoryId });
 
       // Add child subcategories
       if (parent.children && parent.children.length > 0) {
-        parent.children.forEach(child => {
+        parent.children.forEach((child) => {
           list.push({
             category: child,
             parentName: parent.categoryName,
@@ -62,16 +73,19 @@ export const CategoryListPage: React.FC = () => {
 
   // Filter based on search query and selected parent department
   const filteredCategories = useMemo(() => {
-    return flattenedCategories.filter(item => {
-      const matchesSearch = item.category.categoryName.toLowerCase().includes(searchQuery.toLowerCase().trim());
-      const matchesParent = selectedParentId === 'ALL' || item.parentId === selectedParentId;
+    return flattenedCategories.filter((item) => {
+      const matchesSearch = item.category.categoryName
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase().trim());
+      const matchesParent =
+        selectedParentId === "ALL" || item.parentId === selectedParentId;
       return matchesSearch && matchesParent;
     });
   }, [flattenedCategories, searchQuery, selectedParentId]);
 
   // --- Pagination Logic ---
   const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
-  
+
   const paginatedCategories = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredCategories.slice(startIndex, startIndex + itemsPerPage);
@@ -80,14 +94,18 @@ export const CategoryListPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-page pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
         {/* Breadcrumb */}
         <div className="py-6 text-sm text-gray-500">
-          <Link to="/" className="hover:underline">Home</Link> / Categories
+          <Link to="/" className="hover:underline">
+            Home
+          </Link>{" "}
+          / Categories
         </div>
 
-       {/* Hero Banner */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-[#0A39A6] via-[#0C42B5] to-[#0284C7] text-white p-6 sm:p-8 rounded-2xl shadow-md mb-8 flex items-center justify-between min-h-[160px]">
+        {/* Hero Banner */}
+        <div className="relative overflow-hidden bg-slate-900 text-white p-6 sm:p-8 rounded-2xl shadow-md mb-8 flex items-center justify-between min-h-[160px]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_50%,rgba(139,92,246,0.15),transparent_60%)] pointer-events-none z-0"></div>
+
           <div className="relative z-10 max-w-xl">
             <div className="text-sky-200 font-bold text-[13px] tracking-wider uppercase mb-1">
               SHOP BY CATEGORY
@@ -96,7 +114,8 @@ export const CategoryListPage: React.FC = () => {
               Browse Categories
             </h1>
             <p className="text-sky-100 text-sm max-w-xl m-0 font-medium">
-              Explore our curated selection of premium products across all categories and departments.
+              Explore our curated selection of premium products across all
+              categories and departments.
             </p>
           </div>
           <div className="hidden sm:flex relative z-10 flex-shrink-0 items-center justify-end w-[260px] md:w-[320px] lg:w-[360px] h-[120px] md:h-[140px]">
@@ -109,23 +128,23 @@ export const CategoryListPage: React.FC = () => {
           {/* Department Pills */}
           <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none">
             <button
-              onClick={() => setSelectedParentId('ALL')}
+              onClick={() => setSelectedParentId("ALL")}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-                selectedParentId === 'ALL'
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+                selectedParentId === "ALL"
+                  ? "bg-primary text-white shadow-sm"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
               }`}
             >
               All Categories ({flattenedCategories.length})
             </button>
-            {categories.map(cat => (
+            {categories.map((cat) => (
               <button
                 key={cat.categoryId}
                 onClick={() => setSelectedParentId(cat.categoryId)}
                 className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
                   selectedParentId === cat.categoryId
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+                    ? "bg-primary text-white shadow-sm"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
                 }`}
               >
                 {cat.categoryName}
@@ -148,11 +167,16 @@ export const CategoryListPage: React.FC = () => {
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
             </svg>
             {searchQuery && (
               <button
-                onClick={() => setSearchQuery('')}
+                onClick={() => setSearchQuery("")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
               >
                 &times;
@@ -165,17 +189,31 @@ export const CategoryListPage: React.FC = () => {
         {loading ? (
           <div className="py-20 text-center">
             <div className="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-full animate-spin mx-auto mb-4" />
-            <div className="text-slate-500 text-sm font-medium">Loading categories...</div>
+            <div className="text-slate-500 text-sm font-medium">
+              Loading categories...
+            </div>
           </div>
         ) : filteredCategories.length === 0 ? (
           <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center text-slate-500 shadow-xs">
             <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
             <p className="font-semibold text-slate-700">No categories found</p>
-            <p className="text-xs text-slate-400 mt-1">Try searching with a different keyword or filter.</p>
+            <p className="text-xs text-slate-400 mt-1">
+              Try searching with a different keyword or filter.
+            </p>
           </div>
         ) : (
           <>
@@ -198,14 +236,14 @@ export const CategoryListPage: React.FC = () => {
                   type="button"
                   disabled={currentPage === 1}
                   onClick={() => {
-                    setCurrentPage(prev => Math.max(prev - 1, 1));
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    setCurrentPage((prev) => Math.max(prev - 1, 1));
+                    window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
                   className="px-4 py-2 rounded-lg border border-border-subtle bg-white text-sm font-semibold text-text-main hover:bg-page hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
                 >
                   Previous
                 </button>
-                
+
                 <div className="flex space-x-1">
                   {Array.from({ length: totalPages }).map((_, idx) => {
                     const pageNum = idx + 1;
@@ -215,12 +253,12 @@ export const CategoryListPage: React.FC = () => {
                         type="button"
                         onClick={() => {
                           setCurrentPage(pageNum);
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                          window.scrollTo({ top: 0, behavior: "smooth" });
                         }}
                         className={`w-10 h-10 rounded-lg text-sm font-bold transition-colors ${
                           currentPage === pageNum
-                            ? 'bg-primary text-white shadow-sm'
-                            : 'bg-white text-text-main border border-border-subtle hover:bg-page hover:text-primary'
+                            ? "bg-primary text-white shadow-sm"
+                            : "bg-white text-text-main border border-border-subtle hover:bg-page hover:text-primary"
                         }`}
                       >
                         {pageNum}
@@ -233,8 +271,8 @@ export const CategoryListPage: React.FC = () => {
                   type="button"
                   disabled={currentPage === totalPages}
                   onClick={() => {
-                    setCurrentPage(prev => Math.min(prev + 1, totalPages));
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+                    window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
                   className="px-4 py-2 rounded-lg border border-border-subtle bg-white text-sm font-semibold text-text-main hover:bg-page hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
                 >

@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { productApi } from '../../product/api/productApi';
-import type { BrandResponse } from '../../product/api/productApi';
-import { getAssetUrl } from '../../../utils/assetUtils';
-import { GeometricPatternBanner } from '../../../components/common/GeometricPatternBanner';
+import React, { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { productApi } from "../../product/api/productApi";
+import type { BrandResponse } from "../../product/api/productApi";
+import { getAssetUrl } from "../../../utils/assetUtils";
+import { GeometricPatternBanner } from "../../../components/common/GeometricPatternBanner";
 
-const BrandGridItem: React.FC<{ brand: BrandResponse; onClick: () => void }> = ({ brand, onClick }) => {
+const BrandGridItem: React.FC<{
+  brand: BrandResponse;
+  onClick: () => void;
+}> = ({ brand, onClick }) => {
   const [hasError, setHasError] = useState(false);
   const [isWide, setIsWide] = useState(false);
   const logoUrl = getAssetUrl(brand.brandLogoUrl);
@@ -24,12 +27,14 @@ const BrandGridItem: React.FC<{ brand: BrandResponse; onClick: () => void }> = (
       onClick={onClick}
       className="bg-white border border-border-subtle rounded-xl p-4 sm:p-5 text-center cursor-pointer hover:-translate-y-1 hover:border-primary hover:shadow-md transition-all flex flex-col items-center justify-between"
     >
-      <div className={`w-24 h-24 sm:w-28 sm:h-28 mx-auto border-2 border-border-subtle bg-white rounded-full flex items-center justify-center font-black text-xs mb-3 overflow-hidden shadow-xs ${isWide ? 'p-2.5' : 'p-0'}`}>
+      <div
+        className={`w-24 h-24 sm:w-28 sm:h-28 mx-auto border-2 border-border-subtle bg-white rounded-full flex items-center justify-center font-black text-xs mb-3 overflow-hidden shadow-xs ${isWide ? "p-2.5" : "p-0"}`}
+      >
         {showImage ? (
           <img
             src={logoUrl}
             className={`w-full h-full rounded-full transition-all ${
-              isWide ? 'object-contain' : 'object-cover'
+              isWide ? "object-contain" : "object-cover"
             }`}
             alt={brand.brandName}
             onLoad={handleImageLoad}
@@ -41,7 +46,9 @@ const BrandGridItem: React.FC<{ brand: BrandResponse; onClick: () => void }> = (
           </span>
         )}
       </div>
-      <b className="text-sm sm:text-base block text-text-main font-bold tracking-tight mt-1">{brand.brandName}</b>
+      <b className="text-sm sm:text-base block text-text-main font-bold tracking-tight mt-1">
+        {brand.brandName}
+      </b>
     </div>
   );
 };
@@ -56,16 +63,21 @@ export const BrandListPage: React.FC = () => {
   const itemsPerPage = 9; // တစ်မျက်နှာလျှင် ၉ ခု (၃ ခုတန်း ၃ တန်း)
 
   useEffect(() => {
-    productApi.getActiveBrands().then(res => {
-      const sorted = [...res].sort((a, b) =>
-        (a.brandName || '').localeCompare(b.brandName || '', undefined, { sensitivity: 'base' })
-      );
-      setBrands(sorted);
-      setLoading(false);
-    }).catch((e: any) => {
-      console.error(e);
-      setLoading(false);
-    });
+    productApi
+      .getActiveBrands()
+      .then((res) => {
+        const sorted = [...res].sort((a, b) =>
+          (a.brandName || "").localeCompare(b.brandName || "", undefined, {
+            sensitivity: "base",
+          }),
+        );
+        setBrands(sorted);
+        setLoading(false);
+      })
+      .catch((e: any) => {
+        console.error(e);
+        setLoading(false);
+      });
   }, []);
 
   const totalPages = Math.ceil(brands.length / itemsPerPage);
@@ -74,19 +86,23 @@ export const BrandListPage: React.FC = () => {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
     <div className="min-h-screen bg-page pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
         <div className="py-6 text-sm text-gray-500">
-          <Link to="/" className="hover:underline">Home</Link> / Brands
+          <Link to="/" className="hover:underline">
+            Home
+          </Link>{" "}
+          / Brands
         </div>
 
         {/* Banner */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-[#0A39A6] via-[#0C42B5] to-[#0284C7] text-white p-6 sm:p-8 rounded-2xl shadow-md mb-8 flex items-center justify-between min-h-[160px]">
+        <div className="relative overflow-hidden bg-slate-900 text-white p-6 sm:p-8 rounded-2xl shadow-md mb-8 flex items-center justify-between min-h-[160px]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_50%,rgba(139,92,246,0.15),transparent_60%)] pointer-events-none z-0"></div>
+
           <div className="relative z-10 max-w-xl">
             <div className="text-sky-200 font-bold text-[13px] tracking-wider uppercase mb-1">
               OUR BRANDS
@@ -104,7 +120,9 @@ export const BrandListPage: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className="text-center py-12 text-gray-500">Loading brands...</div>
+          <div className="text-center py-12 text-gray-500">
+            Loading brands...
+          </div>
         ) : brands.length === 0 ? (
           <div className="bg-white border p-12 text-center text-gray-500 rounded">
             No brands available.
@@ -113,7 +131,7 @@ export const BrandListPage: React.FC = () => {
           <>
             {/* ၃ ခုတန်းစီ ပြရန် Grid ကို grid-cols-2 sm:grid-cols-3 သို့ ပြင်ဆင်ထားသည် */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6 lg:max-w-4xl lg:mx-auto">
-              {currentBrands.map(b => (
+              {currentBrands.map((b) => (
                 <BrandGridItem
                   key={b.brandId}
                   brand={b}
@@ -132,7 +150,7 @@ export const BrandListPage: React.FC = () => {
                 >
                   Previous
                 </button>
-                
+
                 <div className="flex space-x-1">
                   {Array.from({ length: totalPages }).map((_, idx) => {
                     const pageNum = idx + 1;
@@ -142,8 +160,8 @@ export const BrandListPage: React.FC = () => {
                         onClick={() => handlePageChange(pageNum)}
                         className={`w-10 h-10 rounded-lg text-sm font-bold transition-colors ${
                           currentPage === pageNum
-                            ? 'bg-primary text-white shadow-sm'
-                            : 'bg-white text-text-main border border-border-subtle hover:bg-page hover:text-primary'
+                            ? "bg-primary text-white shadow-sm"
+                            : "bg-white text-text-main border border-border-subtle hover:bg-page hover:text-primary"
                         }`}
                       >
                         {pageNum}

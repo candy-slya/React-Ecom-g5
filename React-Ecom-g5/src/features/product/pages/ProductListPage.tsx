@@ -1,14 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { productApi } from '../api/productApi';
-import type { BrandResponse } from '../api/productApi';
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { productApi } from "../api/productApi";
+import type { BrandResponse } from "../api/productApi";
 import type {
   CategoryNodeResponse,
   PageResponse,
-  ProductListResponse
-} from '../types';
-import { ProductCard } from '../../../components/product/ProductCard';
-import { GeometricPatternBanner } from '../../../components/common/GeometricPatternBanner';
+  ProductListResponse,
+} from "../types";
+import { ProductCard } from "../../../components/product/ProductCard";
+import { GeometricPatternBanner } from "../../../components/common/GeometricPatternBanner";
 
 const MIN_PRICE = 1_000;
 const MAX_PRICE = 10_000_000;
@@ -21,46 +21,59 @@ const PRICE_OPTIONS = [
   1_000,
   ...Array.from(
     { length: MAX_PRICE / DROPDOWN_STEP },
-    (_, index) => (index + 1) * DROPDOWN_STEP
-  )
+    (_, index) => (index + 1) * DROPDOWN_STEP,
+  ),
 ];
 
 // Nonlinear slider: customers get more control over everyday budgets.
 // Dropdowns still support the entire 10,000–10,000,000 MMK range.
 const SLIDER_MAX = 1000;
 const priceToSlider = (price: number) =>
-  Math.round(Math.cbrt((Math.max(MIN_PRICE, Math.min(MAX_PRICE, price)) - MIN_PRICE) / (MAX_PRICE - MIN_PRICE)) * SLIDER_MAX);
+  Math.round(
+    Math.cbrt(
+      (Math.max(MIN_PRICE, Math.min(MAX_PRICE, price)) - MIN_PRICE) /
+        (MAX_PRICE - MIN_PRICE),
+    ) * SLIDER_MAX,
+  );
 const sliderToPrice = (position: number) =>
-  Math.max(MIN_PRICE, Math.min(MAX_PRICE,
-    Math.round((MIN_PRICE + (MAX_PRICE - MIN_PRICE) * Math.pow(position / SLIDER_MAX, 3)) / PRICE_STEP) * PRICE_STEP
-  ));
+  Math.max(
+    MIN_PRICE,
+    Math.min(
+      MAX_PRICE,
+      Math.round(
+        (MIN_PRICE +
+          (MAX_PRICE - MIN_PRICE) * Math.pow(position / SLIDER_MAX, 3)) /
+          PRICE_STEP,
+      ) * PRICE_STEP,
+    ),
+  );
 
 export const ProductListPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   /* ================= URL FILTERS ================= */
 
-  const activeSearch = searchParams.get('search') || '';
-  const activeCategoryId = searchParams.get('categoryId')
-    ? Number(searchParams.get('categoryId'))
+  const activeSearch = searchParams.get("search") || "";
+  const activeCategoryId = searchParams.get("categoryId")
+    ? Number(searchParams.get("categoryId"))
     : undefined;
-  const activeBrandId = searchParams.get('brandId')
-    ? Number(searchParams.get('brandId'))
+  const activeBrandId = searchParams.get("brandId")
+    ? Number(searchParams.get("brandId"))
     : undefined;
-  const activeMinPrice = searchParams.get('minPrice') || '';
-  const activeMaxPrice = searchParams.get('maxPrice') || '';
-  const activeSort = searchParams.get('sort') || 'newest';
-  const activePage = searchParams.get('page')
-    ? Number(searchParams.get('page'))
+  const activeMinPrice = searchParams.get("minPrice") || "";
+  const activeMaxPrice = searchParams.get("maxPrice") || "";
+  const activeSort = searchParams.get("sort") || "newest";
+  const activePage = searchParams.get("page")
+    ? Number(searchParams.get("page"))
     : 0;
 
   const activeTags = useMemo(
     () =>
-      (searchParams.get('tags') || '')
-        .split(',')
-        .map(t => t.trim())
+      (searchParams.get("tags") || "")
+        .split(",")
+        .map((t) => t.trim())
         .filter(Boolean),
-    [searchParams]
+    [searchParams],
   );
 
   /* ================= STATE ================= */
@@ -71,18 +84,18 @@ export const ProductListPage: React.FC = () => {
     useState<PageResponse<ProductListResponse> | null>(null);
 
   const [loading, setLoading] = useState(true);
-  const [categorySearch, setCategorySearch] = useState('');
-  const [brandSearch, setBrandSearch] = useState('');
-  const [tagSearch, setTagSearch] = useState('');
+  const [categorySearch, setCategorySearch] = useState("");
+  const [brandSearch, setBrandSearch] = useState("");
+  const [tagSearch, setTagSearch] = useState("");
   const [catalogTags, setCatalogTags] = useState<string[]>([]);
   const [tagsLoading, setTagsLoading] = useState(true);
 
   const [minPrice, setMinPrice] = useState(
-    activeMinPrice ? Number(activeMinPrice) : DEFAULT_MIN_PRICE
+    activeMinPrice ? Number(activeMinPrice) : DEFAULT_MIN_PRICE,
   );
 
   const [maxPrice, setMaxPrice] = useState(
-    activeMaxPrice ? Number(activeMaxPrice) : DEFAULT_MAX_PRICE
+    activeMaxPrice ? Number(activeMaxPrice) : DEFAULT_MAX_PRICE,
   );
 
   /* ================= MASTER DATA ================= */
@@ -114,25 +127,27 @@ export const ProductListPage: React.FC = () => {
           const response = await productApi.getProducts({
             page,
             size: 100,
-            sort: 'newest'
+            sort: "newest",
           });
-          response.content.forEach(product =>
-            product.tags?.forEach(tag => {
+          response.content.forEach((product) =>
+            product.tags?.forEach((tag) => {
               if (tag?.trim()) found.add(tag.trim());
-            })
+            }),
           );
           if (response.last || page + 1 >= response.totalPages) break;
         }
         if (!cancelled) setCatalogTags([...found].sort());
       } catch (error) {
-        console.error('Unable to load catalog tags:', error);
+        console.error("Unable to load catalog tags:", error);
       } finally {
         if (!cancelled) setTagsLoading(false);
       }
     };
 
     void loadTagOptions();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   /* ================= CATEGORY SEARCH ================= */
@@ -143,18 +158,16 @@ export const ProductListPage: React.FC = () => {
     const term = categorySearch.toLowerCase().trim();
 
     const filterTree = (
-      nodes: CategoryNodeResponse[]
+      nodes: CategoryNodeResponse[],
     ): CategoryNodeResponse[] =>
       nodes.reduce((result, node) => {
         const match = node.categoryName.toLowerCase().includes(term);
-        const children = node.children?.length
-          ? filterTree(node.children)
-          : [];
+        const children = node.children?.length ? filterTree(node.children) : [];
 
         if (match || children.length) {
           result.push({
             ...node,
-            children: match ? node.children : children
+            children: match ? node.children : children,
           });
         }
 
@@ -170,7 +183,7 @@ export const ProductListPage: React.FC = () => {
     const term = brandSearch.toLowerCase().trim();
 
     return term
-      ? brands.filter(b => b.brandName.toLowerCase().includes(term))
+      ? brands.filter((b) => b.brandName.toLowerCase().includes(term))
       : brands;
   }, [brands, brandSearch]);
 
@@ -179,13 +192,13 @@ export const ProductListPage: React.FC = () => {
   const availableTags = useMemo(() => {
     const tags = new Set<string>();
 
-    catalogTags.forEach(tag => tags.add(tag));
+    catalogTags.forEach((tag) => tags.add(tag));
     // Keep the current product tags as a fallback if catalog loading fails.
-    productsPage?.content.forEach(product =>
-      product.tags?.forEach(tag => tag && tags.add(tag))
+    productsPage?.content.forEach((product) =>
+      product.tags?.forEach((tag) => tag && tags.add(tag)),
     );
 
-    activeTags.forEach(tag => tags.add(tag));
+    activeTags.forEach((tag) => tags.add(tag));
 
     return [...tags].sort();
   }, [catalogTags, productsPage, activeTags]);
@@ -194,7 +207,7 @@ export const ProductListPage: React.FC = () => {
     const term = tagSearch.toLowerCase().trim();
 
     return term
-      ? availableTags.filter(tag => tag.toLowerCase().includes(term))
+      ? availableTags.filter((tag) => tag.toLowerCase().includes(term))
       : availableTags;
   }, [availableTags, tagSearch]);
 
@@ -213,7 +226,7 @@ export const ProductListPage: React.FC = () => {
         maxPrice: activeMaxPrice ? Number(activeMaxPrice) : undefined,
         sort: activeSort,
         page: activePage,
-        size: 16
+        size: 16,
       })
       .then(setProductsPage)
       .catch(console.error)
@@ -226,7 +239,7 @@ export const ProductListPage: React.FC = () => {
     activeMinPrice,
     activeMaxPrice,
     activeSort,
-    activePage
+    activePage,
   ]);
 
   /* ================= UPDATE FILTER ================= */
@@ -237,22 +250,22 @@ export const ProductListPage: React.FC = () => {
     Object.entries(values).forEach(([key, value]) => {
       if (
         value == null ||
-        value === '' ||
-        value === 'all' ||
+        value === "" ||
+        value === "all" ||
         (Array.isArray(value) && !value.length)
       ) {
         next.delete(key);
       } else {
-        next.set(key, Array.isArray(value) ? value.join(',') : String(value));
+        next.set(key, Array.isArray(value) ? value.join(",") : String(value));
       }
     });
 
-    if (!Object.prototype.hasOwnProperty.call(values, 'page')) {
-      next.set('page', '0');
+    if (!Object.prototype.hasOwnProperty.call(values, "page")) {
+      next.set("page", "0");
     }
 
     setSearchParams(next);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   /* ================= ACTIONS ================= */
@@ -260,38 +273,33 @@ export const ProductListPage: React.FC = () => {
   const handleTagClick = (tag: string) => {
     updateFilters({
       tags: activeTags.includes(tag)
-        ? activeTags.filter(t => t !== tag)
-        : [...activeTags, tag]
+        ? activeTags.filter((t) => t !== tag)
+        : [...activeTags, tag],
     });
   };
 
- const applyPrice = () => {
-  if (
-    minPrice < MIN_PRICE ||
-    maxPrice > MAX_PRICE ||
-    minPrice >= maxPrice
-  ) {
-    return;
-  }
+  const applyPrice = () => {
+    if (minPrice < MIN_PRICE || maxPrice > MAX_PRICE || minPrice >= maxPrice) {
+      return;
+    }
 
-  updateFilters({
-    minPrice,
-    maxPrice,
-    page: 0
-  });
-};
+    updateFilters({
+      minPrice,
+      maxPrice,
+      page: 0,
+    });
+  };
 
   const clearPrice = () => {
     setMinPrice(DEFAULT_MIN_PRICE);
     setMaxPrice(DEFAULT_MAX_PRICE);
-    updateFilters({ minPrice: null,maxPrice: null,
-    page: 0 });
+    updateFilters({ minPrice: null, maxPrice: null, page: 0 });
   };
 
   const clearFilters = () => {
-    setCategorySearch('');
-    setBrandSearch('');
-    setTagSearch('');
+    setCategorySearch("");
+    setBrandSearch("");
+    setTagSearch("");
     setMinPrice(DEFAULT_MIN_PRICE);
     setMaxPrice(DEFAULT_MAX_PRICE);
     setSearchParams(new URLSearchParams());
@@ -301,9 +309,9 @@ export const ProductListPage: React.FC = () => {
 
   const renderCategoryTree = (
     nodes: CategoryNodeResponse[],
-    depth = 0
+    depth = 0,
   ): React.ReactNode =>
-    nodes.map(category => (
+    nodes.map((category) => (
       <React.Fragment key={category.categoryId}>
         <label
           className="block text-[12px] my-2.5 cursor-pointer"
@@ -313,15 +321,11 @@ export const ProductListPage: React.FC = () => {
             type="radio"
             name="cat"
             checked={activeCategoryId === category.categoryId}
-            onChange={() =>
-              updateFilters({ categoryId: category.categoryId })
-            }
+            onChange={() => updateFilters({ categoryId: category.categoryId })}
             className="mr-2 accent-[#0A39A6]"
           />
 
-          {depth > 0 && (
-            <span className="mr-1 text-gray-400">└</span>
-          )}
+          {depth > 0 && <span className="mr-1 text-gray-400">└</span>}
 
           {category.categoryName}
         </label>
@@ -335,7 +339,7 @@ export const ProductListPage: React.FC = () => {
 
   const findCategoryName = (
     nodes: CategoryNodeResponse[],
-    id: number
+    id: number,
   ): string | undefined => {
     for (const node of nodes) {
       if (node.categoryId === id) return node.categoryName;
@@ -349,11 +353,11 @@ export const ProductListPage: React.FC = () => {
 
   const categoryName = activeCategoryId
     ? findCategoryName(categories, activeCategoryId)
-    : '';
+    : "";
 
   const brandName = activeBrandId
-    ? brands.find(b => b.brandId === activeBrandId)?.brandName
-    : '';
+    ? brands.find((b) => b.brandId === activeBrandId)?.brandName
+    : "";
 
   const hasFilters =
     !!activeCategoryId ||
@@ -376,17 +380,19 @@ export const ProductListPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-page pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
         {/* Breadcrumb */}
         <div className="py-6 text-sm text-gray-500">
           <Link to="/" className="hover:text-primary hover:underline">
             Home
           </Link>
-          {' / '}Products
+          {" / "}Products
         </div>
 
-      {/* Banner */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-[#0A39A6] via-[#0C42B5] to-[#0284C7] text-white p-6 sm:p-8 rounded-2xl shadow-md mb-8 flex items-center justify-between min-h-[160px]">
+        {/* Banner */}
+        <div className="relative overflow-hidden bg-slate-900 text-white p-6 sm:p-8 rounded-2xl shadow-md mb-8 flex items-center justify-between min-h-[160px]">
+          {/* Subtle radial glow to enhance the logo's presence */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_50%,rgba(139,92,246,0.15),transparent_60%)] pointer-events-none z-0"></div>
+
           <div className="relative z-10 max-w-xl">
             <div className="text-sky-200 font-bold text-[13px] tracking-wider uppercase mb-1">
               6SYNC CATALOG
@@ -403,14 +409,12 @@ export const ProductListPage: React.FC = () => {
           </div>
         </div>
         <div className="flex flex-col md:flex-row gap-8">
-
           {/* =====================================================
               FILTER SIDEBAR
           ===================================================== */}
 
           <aside className="w-full md:w-[300px] lg:w-[305px] flex-shrink-0 h-max">
             <div className="bg-white border border-slate-200 overflow-hidden rounded-2xl shadow-sm">
-
               {/* KEEP FILTER HEADER */}
               <div className="bg-gradient-to-r from-[#0A39A6] to-[#0284C7] px-5 py-5 text-white flex justify-between items-center">
                 <div>
@@ -430,12 +434,11 @@ export const ProductListPage: React.FC = () => {
               </div>
 
               <div className="p-5">
-
                 {/* CATEGORIES */}
                 <FilterSection title="Categories">
                   <input
                     value={categorySearch}
-                    onChange={e => setCategorySearch(e.target.value)}
+                    onChange={(e) => setCategorySearch(e.target.value)}
                     placeholder="Search categories..."
                     className="filter-input mb-2 rounded-lg"
                   />
@@ -452,9 +455,11 @@ export const ProductListPage: React.FC = () => {
                       All Categories
                     </label>
 
-                    {filteredCategories.length
-                      ? renderCategoryTree(filteredCategories)
-                      : <EmptyText>No categories found</EmptyText>}
+                    {filteredCategories.length ? (
+                      renderCategoryTree(filteredCategories)
+                    ) : (
+                      <EmptyText>No categories found</EmptyText>
+                    )}
                   </div>
                 </FilterSection>
 
@@ -462,7 +467,7 @@ export const ProductListPage: React.FC = () => {
                 <FilterSection title="Brands">
                   <input
                     value={brandSearch}
-                    onChange={e => setBrandSearch(e.target.value)}
+                    onChange={(e) => setBrandSearch(e.target.value)}
                     placeholder="Search brands..."
                     className="filter-input mb-2 rounded-lg"
                   />
@@ -480,7 +485,7 @@ export const ProductListPage: React.FC = () => {
                     </label>
 
                     {filteredBrands.length ? (
-                      filteredBrands.map(brand => (
+                      filteredBrands.map((brand) => (
                         <label
                           key={brand.brandId}
                           className="block text-[12px] my-2.5 cursor-pointer"
@@ -511,14 +516,14 @@ export const ProductListPage: React.FC = () => {
                 <FilterSection title="Tags">
                   <input
                     value={tagSearch}
-                    onChange={e => setTagSearch(e.target.value)}
+                    onChange={(e) => setTagSearch(e.target.value)}
                     placeholder="Search tags..."
                     className="filter-input mb-3 rounded-lg"
                   />
 
                   {filteredTags.length ? (
                     <div className="flex flex-wrap gap-1.5">
-                      {filteredTags.map(tag => {
+                      {filteredTags.map((tag) => {
                         const selected = activeTags.includes(tag);
 
                         return (
@@ -528,8 +533,8 @@ export const ProductListPage: React.FC = () => {
                             onClick={() => handleTagClick(tag)}
                             className={`px-3 py-1.5 rounded-lg border text-[11px] font-semibold transition-colors ${
                               selected
-                                ? 'bg-[#0A39A6] border-[#0A39A6] text-white shadow-sm'
-                                : 'bg-white border-blue-200 text-[#0A39A6] hover:bg-blue-50'
+                                ? "bg-[#0A39A6] border-[#0A39A6] text-white shadow-sm"
+                                : "bg-white border-blue-200 text-[#0A39A6] hover:bg-blue-50"
                             }`}
                           >
                             {tag}
@@ -539,63 +544,103 @@ export const ProductListPage: React.FC = () => {
                     </div>
                   ) : (
                     <EmptyText>
-                      {tagsLoading ? 'Loading tags...' : tagSearch ? 'No matching tags' : 'No tags available for published products'}
+                      {tagsLoading
+                        ? "Loading tags..."
+                        : tagSearch
+                          ? "No matching tags"
+                          : "No tags available for published products"}
                     </EmptyText>
                   )}
                 </FilterSection>
 
                 {/* PRICE — screenshot-style dropdowns and one dual-handle track */}
                 <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 text-slate-800 shadow-[0_3px_18px_rgba(15,23,42,0.04)]">
-                  <div className="mb-4 flex items-center justify-between gap-2"><h3 className="text-[12px] font-extrabold uppercase tracking-wide text-slate-800">FILTER BY PRICE</h3><span className="rounded-md bg-blue-50 px-2 py-1 text-[10px] font-bold text-[#0A39A6]">MMK</span></div>
+                  <div className="mb-4 flex items-center justify-between gap-2">
+                    <h3 className="text-[12px] font-extrabold uppercase tracking-wide text-slate-800">
+                      FILTER BY PRICE
+                    </h3>
+                    <span className="rounded-md bg-blue-50 px-2 py-1 text-[10px] font-bold text-[#0A39A6]">
+                      MMK
+                    </span>
+                  </div>
                   <div className="grid grid-cols-2 gap-3">
                     <label className="block min-w-0">
-                      <span className="mb-1 block text-[11px] font-semibold text-slate-600">Minimum (MMK)</span>
+                      <span className="mb-1 block text-[11px] font-semibold text-slate-600">
+                        Minimum (MMK)
+                      </span>
                       <select
                         aria-label="Minimum price in MMK"
                         value={minPrice}
-                        onChange={e => setMinPrice(Math.min(Number(e.target.value), maxPrice - MIN_HANDLE_GAP))}
+                        onChange={(e) =>
+                          setMinPrice(
+                            Math.min(
+                              Number(e.target.value),
+                              maxPrice - MIN_HANDLE_GAP,
+                            ),
+                          )
+                        }
                         className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50/80 px-2.5 py-2.5 text-[11px] font-semibold text-slate-700 outline-none transition focus:border-[#0A39A6] focus:ring-2 focus:ring-blue-100"
                       >
                         {PRICE_OPTIONS.concat(minPrice)
                           .filter((v, i, arr) => arr.indexOf(v) === i)
                           .sort((a, b) => a - b)
-                          .map(value => (
-                            <option key={value} value={value}>{value.toLocaleString('en-US')}</option>
+                          .map((value) => (
+                            <option key={value} value={value}>
+                              {value.toLocaleString("en-US")}
+                            </option>
                           ))}
                       </select>
                     </label>
                     <label className="block min-w-0">
-                      <span className="mb-1 block text-[11px] font-semibold text-slate-600">Maximum (MMK)</span>
+                      <span className="mb-1 block text-[11px] font-semibold text-slate-600">
+                        Maximum (MMK)
+                      </span>
                       <select
                         aria-label="Maximum price in MMK"
                         value={maxPrice}
-                        onChange={e => setMaxPrice(Math.max(Number(e.target.value), minPrice + MIN_HANDLE_GAP))}
+                        onChange={(e) =>
+                          setMaxPrice(
+                            Math.max(
+                              Number(e.target.value),
+                              minPrice + MIN_HANDLE_GAP,
+                            ),
+                          )
+                        }
                         className="w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50/80 px-2.5 py-2.5 text-[11px] font-semibold text-slate-700 outline-none transition focus:border-[#0A39A6] focus:ring-2 focus:ring-blue-100"
                       >
                         {PRICE_OPTIONS.concat(maxPrice)
                           .filter((v, i, arr) => arr.indexOf(v) === i)
                           .sort((a, b) => a - b)
-                          .map(value => (
-                            <option key={value} value={value}>{value.toLocaleString('en-US')}</option>
+                          .map((value) => (
+                            <option key={value} value={value}>
+                              {value.toLocaleString("en-US")}
+                            </option>
                           ))}
                       </select>
                     </label>
                   </div>
-                  <div className="mt-4 flex flex-wrap gap-1.5" aria-label="Popular price ranges">
+                  <div
+                    className="mt-4 flex flex-wrap gap-1.5"
+                    aria-label="Popular price ranges"
+                  >
                     {[
-                      { label: 'Under 100K', min: MIN_PRICE, max: 100_000 },
-                      { label: '50K–500K', min: 50_000, max: 500_000 },
-                      { label: '500K–2M', min: 500_000, max: 2_000_000 },
-                      { label: '2M+', min: 2_000_000, max: MAX_PRICE }
-                    ].map(preset => {
-                      const selected = minPrice === preset.min && maxPrice === preset.max;
+                      { label: "Under 100K", min: MIN_PRICE, max: 100_000 },
+                      { label: "50K–500K", min: 50_000, max: 500_000 },
+                      { label: "500K–2M", min: 500_000, max: 2_000_000 },
+                      { label: "2M+", min: 2_000_000, max: MAX_PRICE },
+                    ].map((preset) => {
+                      const selected =
+                        minPrice === preset.min && maxPrice === preset.max;
                       return (
                         <button
                           key={preset.label}
                           type="button"
                           aria-pressed={selected}
-                          onClick={() => { setMinPrice(preset.min); setMaxPrice(preset.max); }}
-                          className={`rounded-lg border px-2.5 py-1.5 text-[10px] font-semibold transition-colors ${selected ? 'border-[#0A39A6] bg-blue-50 text-[#0A39A6]' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:bg-slate-50'}`}
+                          onClick={() => {
+                            setMinPrice(preset.min);
+                            setMaxPrice(preset.max);
+                          }}
+                          className={`rounded-lg border px-2.5 py-1.5 text-[10px] font-semibold transition-colors ${selected ? "border-[#0A39A6] bg-blue-50 text-[#0A39A6]" : "border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:bg-slate-50"}`}
                         >
                           {preset.label}
                         </button>
@@ -612,7 +657,7 @@ export const ProductListPage: React.FC = () => {
                       className="absolute h-[4px] bg-[#0A39A6]"
                       style={{
                         left: `${(priceToSlider(minPrice) / SLIDER_MAX) * 100}%`,
-                        right: `${100 - (priceToSlider(maxPrice) / SLIDER_MAX) * 100}%`
+                        right: `${100 - (priceToSlider(maxPrice) / SLIDER_MAX) * 100}%`,
                       }}
                     />
                     <input
@@ -622,9 +667,19 @@ export const ProductListPage: React.FC = () => {
                       max={SLIDER_MAX}
                       step={1}
                       value={priceToSlider(minPrice)}
-                      onChange={e => setMinPrice(Math.min(sliderToPrice(Number(e.target.value)), maxPrice - MIN_HANDLE_GAP))}
+                      onChange={(e) =>
+                        setMinPrice(
+                          Math.min(
+                            sliderToPrice(Number(e.target.value)),
+                            maxPrice - MIN_HANDLE_GAP,
+                          ),
+                        )
+                      }
                       className="price-range-thumb absolute inset-x-0 w-full"
-                      style={{ zIndex: minPrice >= maxPrice - MIN_HANDLE_GAP * 2 ? 5 : 3 }}
+                      style={{
+                        zIndex:
+                          minPrice >= maxPrice - MIN_HANDLE_GAP * 2 ? 5 : 3,
+                      }}
                     />
                     <input
                       aria-label="Adjust maximum price"
@@ -633,16 +688,25 @@ export const ProductListPage: React.FC = () => {
                       max={SLIDER_MAX}
                       step={1}
                       value={priceToSlider(maxPrice)}
-                      onChange={e => setMaxPrice(Math.max(sliderToPrice(Number(e.target.value)), minPrice + MIN_HANDLE_GAP))}
+                      onChange={(e) =>
+                        setMaxPrice(
+                          Math.max(
+                            sliderToPrice(Number(e.target.value)),
+                            minPrice + MIN_HANDLE_GAP,
+                          ),
+                        )
+                      }
                       className="price-range-thumb absolute inset-x-0 w-full"
                       style={{ zIndex: 4 }}
                     />
                   </div>
                   <div className="mt-1 flex flex-wrap items-center justify-between gap-1 text-[10px] font-semibold text-slate-500">
-                    <span>{minPrice.toLocaleString('en-US')} MMK</span>
-                    <span>{maxPrice.toLocaleString('en-US')} MMK</span>
+                    <span>{minPrice.toLocaleString("en-US")} MMK</span>
+                    <span>{maxPrice.toLocaleString("en-US")} MMK</span>
                   </div>
-                  <p className="mt-1.5 text-[10px] text-slate-400">Choose a budget or drag the handles · 10,000 MMK steps</p>
+                  <p className="mt-1.5 text-[10px] text-slate-400">
+                    Choose a budget or drag the handles · 10,000 MMK steps
+                  </p>
                   <button
                     type="button"
                     onClick={applyPrice}
@@ -677,7 +741,6 @@ export const ProductListPage: React.FC = () => {
           ===================================================== */}
 
           <main className="flex-1 min-w-0">
-
             {/* ===================================================
                 KEEP THIS TOP AREA STYLE / UI
             =================================================== */}
@@ -686,10 +749,10 @@ export const ProductListPage: React.FC = () => {
               <span className="text-[12px] text-slate-500">
                 {!loading && productsPage && (
                   <>
-                    Showing{' '}
+                    Showing{" "}
                     <b className="text-slate-800">
                       {productsPage.content.length}
-                    </b>{' '}
+                    </b>{" "}
                     products
                   </>
                 )}
@@ -697,7 +760,7 @@ export const ProductListPage: React.FC = () => {
 
               <select
                 value={activeSort}
-                onChange={e => updateFilters({ sort: e.target.value })}
+                onChange={(e) => updateFilters({ sort: e.target.value })}
                 className="px-3 py-2 border border-slate-200 text-[12px] bg-white outline-none"
               >
                 <option value="newest">Newest</option>
@@ -718,7 +781,6 @@ export const ProductListPage: React.FC = () => {
 
             {hasFilters && (
               <div className="flex flex-wrap items-center gap-2 mb-5">
-
                 {categoryName && (
                   <button
                     type="button"
@@ -739,7 +801,7 @@ export const ProductListPage: React.FC = () => {
                   </button>
                 )}
 
-                {activeTags.map(tag => (
+                {activeTags.map((tag) => (
                   <button
                     key={tag}
                     type="button"
@@ -756,7 +818,14 @@ export const ProductListPage: React.FC = () => {
                     onClick={clearPrice}
                     className="px-3 py-1.5 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold"
                   >
-                    {Number(activeMinPrice || MIN_PRICE).toLocaleString('en-US')} - {Number(activeMaxPrice || MAX_PRICE).toLocaleString('en-US')} MMK ×
+                    {Number(activeMinPrice || MIN_PRICE).toLocaleString(
+                      "en-US",
+                    )}{" "}
+                    -{" "}
+                    {Number(activeMaxPrice || MAX_PRICE).toLocaleString(
+                      "en-US",
+                    )}{" "}
+                    MMK ×
                   </button>
                 )}
 
@@ -778,14 +847,10 @@ export const ProductListPage: React.FC = () => {
                   Loading products...
                 </span>
               </div>
-
             ) : !productsPage?.content.length ? (
-
               /* EMPTY */
               <div className="bg-white border border-border-subtle p-12 text-center">
-                <h3 className="font-bold text-gray-700">
-                  No products found
-                </h3>
+                <h3 className="font-bold text-gray-700">No products found</h3>
 
                 <p className="text-[12px] text-gray-400 mt-1 mb-4">
                   Try changing or clearing your filters.
@@ -799,16 +864,11 @@ export const ProductListPage: React.FC = () => {
                   CLEAR FILTERS
                 </button>
               </div>
-
             ) : (
-
               /* PRODUCT GRID */
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-[18px]">
-                {productsPage.content.map(product => (
-                  <ProductCard
-                    key={product.productId}
-                    product={product}
-                  />
+                {productsPage.content.map((product) => (
+                  <ProductCard key={product.productId} product={product} />
                 ))}
               </div>
             )}
@@ -821,7 +881,7 @@ export const ProductListPage: React.FC = () => {
                   disabled={productsPage.first}
                   onClick={() => {
                     updateFilters({ page: activePage - 1 });
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
                   className="px-4 py-2 rounded-lg border border-border-subtle bg-white text-sm font-semibold text-text-main hover:bg-page hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
                 >
@@ -829,23 +889,25 @@ export const ProductListPage: React.FC = () => {
                 </button>
 
                 <div className="flex space-x-1">
-                  {Array.from({ length: productsPage.totalPages }).map((_, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => {
-                        updateFilters({ page: idx });
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                      className={`w-10 h-10 rounded-lg text-sm font-bold transition-colors ${
-                        activePage === idx
-                          ? 'bg-primary text-white shadow-sm'
-                          : 'bg-white text-text-main border border-border-subtle hover:bg-page hover:text-primary'
-                      }`}
-                    >
-                      {idx + 1}
-                    </button>
-                  ))}
+                  {Array.from({ length: productsPage.totalPages }).map(
+                    (_, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          updateFilters({ page: idx });
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                        className={`w-10 h-10 rounded-lg text-sm font-bold transition-colors ${
+                          activePage === idx
+                            ? "bg-primary text-white shadow-sm"
+                            : "bg-white text-text-main border border-border-subtle hover:bg-page hover:text-primary"
+                        }`}
+                      >
+                        {idx + 1}
+                      </button>
+                    ),
+                  )}
                 </div>
 
                 <button
@@ -853,7 +915,7 @@ export const ProductListPage: React.FC = () => {
                   disabled={productsPage.last}
                   onClick={() => {
                     updateFilters({ page: activePage + 1 });
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
                   className="px-4 py-2 rounded-lg border border-border-subtle bg-white text-sm font-semibold text-text-main hover:bg-page hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
                 >
@@ -861,7 +923,6 @@ export const ProductListPage: React.FC = () => {
                 </button>
               </div>
             )}
-
           </main>
         </div>
       </div>
@@ -969,7 +1030,7 @@ export const ProductListPage: React.FC = () => {
 
 const FilterSection = ({
   title,
-  children
+  children,
 }: {
   title: string;
   children: React.ReactNode;
@@ -982,12 +1043,6 @@ const FilterSection = ({
   </div>
 );
 
-const EmptyText = ({
-  children
-}: {
-  children: React.ReactNode;
-}) => (
-  <div className="text-[11px] text-gray-400 py-2">
-    {children}
-  </div>
+const EmptyText = ({ children }: { children: React.ReactNode }) => (
+  <div className="text-[11px] text-gray-400 py-2">{children}</div>
 );
