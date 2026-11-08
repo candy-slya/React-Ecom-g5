@@ -30,14 +30,20 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({
   // Order Expired ONLY applies when isExpired is true AND order is not cancelled
   const isExpiredOrder = !isCancelled && Boolean(isExpired);
 
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const formatDateTime = (dateString?: string | null): string => {
+    if (!dateString) return '';
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return String(dateString);
+    const day = d.getDate();
+    const month = d.toLocaleString('en-US', { month: 'short' });
+    const year = d.getFullYear();
+    let hours = d.getHours();
+    const minutes = d.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    const formattedHours = hours.toString().padStart(2, '0');
+    return `${day} ${month} ${year}, ${formattedHours}:${minutes} ${ampm}`;
   };
 
   const STATUS_ORDER = ['PENDING', 'PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
