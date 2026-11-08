@@ -409,6 +409,12 @@ export const OrderHistoryPage: React.FC = () => {
                 !order.isExpired &&
                 (!order.reservationExpiresAt || new Date(order.reservationExpiresAt).getTime() > Date.now());
 
+              const isOrderExpired = Boolean(
+                order.isExpired ||
+                (order.reservationExpiresAt && new Date(order.reservationExpiresAt).getTime() <= Date.now() && order.paymentStatus !== 'SUCCESS' && order.orderStatus !== 'PAID') ||
+                (order.reservationActive === false && order.paymentStatus !== 'SUCCESS' && order.orderStatus !== 'PAID')
+              );
+
               const isPayable =
                 order.orderStatus === 'PENDING' &&
                 order.paymentStatus === 'PENDING' &&
@@ -455,8 +461,14 @@ export const OrderHistoryPage: React.FC = () => {
                         <p className="text-sm font-medium text-text-muted mb-1">Total</p>
                         <p className="text-xl font-bold text-text-main">{formatPrice(order.totalAmount)}</p>
                         <div className="flex gap-2 mt-2 sm:justify-end">
-                          {getOrderStatusBadge(order.orderStatus)}
-                          {getPaymentStatusBadge(order)}
+                          {isOrderExpired ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#B42318]/10 text-[#B42318]">
+                              ORDER EXPIRED
+                            </span>
+                          ) : (
+                            getOrderStatusBadge(order.orderStatus)
+                          )}
+                          {!isOrderExpired && getPaymentStatusBadge(order)}
                         </div>
 
                         {/* Pay Now: ONLY when payment not started + reservation active */}

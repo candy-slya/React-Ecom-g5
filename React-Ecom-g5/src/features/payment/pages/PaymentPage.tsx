@@ -321,7 +321,7 @@ export const PaymentPage: React.FC = () => {
                   <div className="border-b border-border-subtle pb-6">
                     <p className="text-sm font-medium text-text-muted mb-1">Payment Status</p>
                     <p className={`text-xl font-bold ${isTerminalCancelled ? 'text-slate-700' : 'text-rose-600'}`}>
-                      {isTerminalFailed ? 'FAILED' : isTerminalCancelled ? 'CANCELLED' : 'EXPIRED'}
+                      {isTerminalFailed ? 'FAILED' : isTerminalCancelled ? 'CANCELLED' : 'ORDER EXPIRED'}
                     </p>
                   </div>
                   <div className="border-b border-border-subtle pb-6">
