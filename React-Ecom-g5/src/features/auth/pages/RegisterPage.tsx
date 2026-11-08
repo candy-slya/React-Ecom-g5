@@ -269,8 +269,27 @@ export const RegisterPage: React.FC = () => {
       }
 
       navigate("/products");
-    } catch (err) {
-      // register rejected
+    } catch (err: unknown) {
+      const errorMessage =
+        typeof err === "string"
+          ? err
+          : err instanceof Error
+            ? err.message
+            : typeof (err as { message?: unknown })?.message === "string"
+              ? (err as { message: string }).message
+              : "";
+
+      const normalizedMessage = errorMessage.toLowerCase();
+      const isDuplicateEmail =
+        normalizedMessage.includes("email already in use");
+
+      if (isDuplicateEmail) {
+        setFormError("This email is already registered.");
+      } else {
+        setFormError(
+          errorMessage || "Registration failed. Please try again."
+        );
+      }
     }
   };
 
