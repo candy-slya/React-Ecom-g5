@@ -763,7 +763,7 @@ export const CheckoutPage: React.FC = () => {
 
       if (mode === 'CART') {
         try {
-          await dispatch(fetchAuthenticatedCart());
+          await dispatch(fetchAuthenticatedCart()).unwrap();
         } catch (cartErr) {
           console.warn('Failed to refresh active cart after order placement:', cartErr);
         }
