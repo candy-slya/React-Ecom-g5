@@ -760,6 +760,15 @@ export const CheckoutPage: React.FC = () => {
     try {
       setIsSubmitting(true);
       const response = await checkoutApi.createOrder(requestPayload);
+
+      if (mode === 'CART') {
+        try {
+          await dispatch(fetchAuthenticatedCart());
+        } catch (cartErr) {
+          console.warn('Failed to refresh active cart after order placement:', cartErr);
+        }
+      }
+
       navigate(`/payment/${response.orderId}`, { state: { order: response } });
     } catch (err) {
       setOrderError(extractErrorMessage(err));
