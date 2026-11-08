@@ -342,6 +342,71 @@ export const OrderDetailPage: React.FC = () => {
       (order.reservationExpiresAt && new Date(order.reservationExpiresAt).getTime() <= Date.now())
     );
 
+  const orderRefunds = myRefunds.filter(r =>
+    order.items?.some(i => i.orderItemId === r.orderItemId)
+  );
+  const approvedRefundCount = orderRefunds.filter(r => r.status === 'APPROVED').length;
+  const rejectedRefundCount = orderRefunds.filter(r => r.status === 'REJECTED').length;
+  const pendingRefundCount = orderRefunds.filter(r => r.status === 'PENDING').length;
+
+  const isPartialRefund = approvedRefundCount > 0 && rejectedRefundCount > 0;
+  const isApprovedRefund = approvedRefundCount > 0 && rejectedRefundCount === 0;
+  const isRejectedRefund = rejectedRefundCount > 0 && approvedRefundCount === 0;
+  const isPendingRefund = pendingRefundCount > 0 && approvedRefundCount === 0 && rejectedRefundCount === 0;
+
+  const getOrderDetailPaymentBadge = () => {
+    if (order.orderStatus === 'CANCELLED') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#B42318]/10 text-[#B42318]">
+          PAYMENT FAILED
+        </span>
+      );
+    }
+    if (order.orderStatus === 'DELIVERED') {
+      if (isPartialRefund) {
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+            PARTIALLY REFUNDED
+          </span>
+        );
+      }
+      if (isApprovedRefund) {
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+            REFUND APPROVED
+          </span>
+        );
+      }
+      if (isRejectedRefund) {
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#B42318]/10 text-[#B42318]">
+            REFUND REJECTED
+          </span>
+        );
+      }
+      if (isPendingRefund) {
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+            REFUND PENDING
+          </span>
+        );
+      }
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#2E7D32]/10 text-[#2E7D32]">
+          SUCCESS
+        </span>
+      );
+    }
+    if (order.orderStatus === 'PAID' || order.orderStatus === 'PROCESSING' || order.orderStatus === 'SHIPPED') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#2E7D32]/10 text-[#2E7D32]">
+          SUCCESS
+        </span>
+      );
+    }
+    return getPaymentStatusBadge(order.paymentStatus);
+  };
+
   return (
     <div className="bg-page min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl">
@@ -379,13 +444,7 @@ export const OrderDetailPage: React.FC = () => {
             <div className="flex items-center space-x-2">
               {!isOrderExpired && <span className="text-sm font-medium text-text-muted">Payment:</span>}
               {!isOrderExpired && (
-                order.orderStatus === 'CANCELLED' ? (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#B42318]/10 text-[#B42318]">
-                    PAYMENT FAILED
-                  </span>
-                ) : (
-                  getPaymentStatusBadge(order.paymentStatus)
-                )
+                getOrderDetailPaymentBadge()
               )}
             </div>
             {!isOrderExpired && (order.paymentStatus === 'SUCCESS' || order.paymentStatus === 'REFUNDED' || order.paymentStatus === 'PARTIALLY_REFUNDED') && (
@@ -563,12 +622,22 @@ export const OrderDetailPage: React.FC = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-text-muted">Status:</span>
-                      <span className={`font-medium ${isOrderExpired || order.orderStatus === 'CANCELLED' ? 'text-[#B42318] font-bold' : ''}`}>
+                      <span className={`font-medium ${isOrderExpired || order.orderStatus === 'CANCELLED' || (order.orderStatus === 'DELIVERED' && isRejectedRefund) ? 'text-[#B42318] font-bold' : (order.orderStatus === 'DELIVERED' && isApprovedRefund) ? 'text-emerald-800 font-bold' : (order.orderStatus === 'DELIVERED' && isPartialRefund) ? 'text-amber-800 font-bold' : ''}`}>
                         {isOrderExpired
                           ? 'ORDER EXPIRED'
                           : order.orderStatus === 'CANCELLED'
                           ? 'PAYMENT FAILED'
-                          : order.payment.paymentStatus}
+                          : order.orderStatus === 'DELIVERED' && isPartialRefund
+                          ? 'PARTIALLY REFUNDED'
+                          : order.orderStatus === 'DELIVERED' && isApprovedRefund
+                          ? 'REFUND APPROVED'
+                          : order.orderStatus === 'DELIVERED' && isRejectedRefund
+                          ? 'REFUND REJECTED'
+                          : order.orderStatus === 'DELIVERED' && isPendingRefund
+                          ? 'REFUND PENDING'
+                          : (order.orderStatus === 'PAID' || order.orderStatus === 'PROCESSING' || order.orderStatus === 'SHIPPED' || order.orderStatus === 'DELIVERED')
+                          ? 'SUCCESS'
+                          : order.payment?.paymentStatus || order.paymentStatus}
                       </span>
                     </div>
                     <div className="flex justify-between">

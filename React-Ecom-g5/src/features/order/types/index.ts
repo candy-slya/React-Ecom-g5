@@ -1,4 +1,5 @@
 export interface OrderItemSummary {
+  orderItemId?: number;
   productName: string;
   qty: number;
 }

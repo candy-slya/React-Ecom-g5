@@ -52,15 +52,30 @@ export const getPaymentStatusBadge = (status: string) => {
       textColor = 'text-red-800';
       break;
     case 'PARTIALLY_REFUNDED':
+      bgColor = 'bg-amber-100';
+      textColor = 'text-amber-800';
+      break;
+    case 'REFUND_REJECTED':
+      bgColor = 'bg-[#B42318]/10';
+      textColor = 'text-[#B42318]';
+      break;
+    case 'REFUND_PENDING':
+      bgColor = 'bg-amber-100';
+      textColor = 'text-amber-800';
+      break;
+    case 'REFUND_APPROVED':
+      bgColor = 'bg-emerald-100';
+      textColor = 'text-emerald-800';
+      break;
     case 'REFUNDED':
-      bgColor = 'bg-orange-100';
-      textColor = 'text-orange-800';
+      bgColor = 'bg-[#74746F]/10';
+      textColor = 'text-text-muted';
       break;
   }
 
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${bgColor} ${textColor}`}>
-      {status.replace('_', ' ')}
+      {status.replace(/_/g, ' ')}
     </span>
   );
 };

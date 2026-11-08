@@ -16,6 +16,7 @@ export interface RefundRequestDto {
 
 export interface RefundResponseDto {
   refundId: number;
+  orderId?: number;
   orderItemId: number;
   productName: string;
   variantAttributes: string;

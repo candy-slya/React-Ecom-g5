@@ -4,6 +4,8 @@ import type { GetMyOrdersParams } from '../api/orderApi';
 import type { OrderListResponse, Page } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { formatDateTime } from '../../../utils/formatters';
+import { refundApi } from '../../refund/api/refundApi';
+import type { RefundResponseDto } from '../../refund/types';
 
 export const OrderHistoryPage: React.FC = () => {
   const [pageData, setPageData] = useState<Page<OrderListResponse> | null>(null);
@@ -27,6 +29,8 @@ export const OrderHistoryPage: React.FC = () => {
 
   const [resumingOrderId, setResumingOrderId] = useState<number | null>(null);
   const [resumeError, setResumeError] = useState<{ orderId: number; message: string } | null>(null);
+  const [myRefunds, setMyRefunds] = useState<RefundResponseDto[]>([]);
+  const [orderItemMap, setOrderItemMap] = useState<Record<number, number[]>>({});
 
   const navigate = useNavigate();
 
@@ -52,8 +56,32 @@ export const OrderHistoryPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await orderApi.getMyOrders({ ...filters, page, size: 10 });
+      const [data, refunds] = await Promise.all([
+        orderApi.getMyOrders({ ...filters, page, size: 10 }),
+        refundApi.getMyRefunds().catch(() => [] as RefundResponseDto[])
+      ]);
+      const itemMap: Record<number, number[]> = {};
+      if (refunds.length > 0 && data?.content) {
+        const deliveredOrders = data.content.filter((o) => o.orderStatus === 'DELIVERED');
+        await Promise.all(
+          deliveredOrders.map(async (o) => {
+            const directIds = o.items?.map((it) => it.orderItemId).filter(Boolean) as number[];
+            if (directIds && directIds.length > 0) {
+              itemMap[o.orderId] = directIds;
+            } else {
+              try {
+                const detail = await orderApi.getOrderById(o.orderId);
+                itemMap[o.orderId] = detail.items?.map((it) => it.orderItemId) || [];
+              } catch (e) {
+                // fallback
+              }
+            }
+          })
+        );
+      }
+      setOrderItemMap(itemMap);
       setPageData(data);
+      setMyRefunds(refunds);
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Failed to fetch orders.');
     } finally {
@@ -214,26 +242,76 @@ export const OrderHistoryPage: React.FC = () => {
         bgColor = 'bg-[#B42318]/10';
         textColor = 'text-[#B42318]';
       }
+    } else if (order.orderStatus !== 'DELIVERED') {
+      text = 'SUCCESS';
+      bgColor = 'bg-[#2E7D32]/10';
+      textColor = 'text-[#2E7D32]';
     } else {
-      switch (order.paymentStatus) {
-        case 'PENDING':
-          bgColor = 'bg-[#B7791F]/10';
-          textColor = 'text-[#B7791F]';
-          break;
-        case 'SUCCESS':
-          bgColor = 'bg-[#2E7D32]/10';
-          textColor = 'text-[#2E7D32]';
-          break;
-        case 'FAILED':
-          text = 'PAYMENT FAILED';
+      const itemIds = orderItemMap[order.orderId] || (order.items?.map((it) => it.orderItemId).filter(Boolean) as number[]) || [];
+      const orderRefunds = myRefunds.filter((r) => {
+        if (itemIds.length > 0) {
+          return itemIds.includes(r.orderItemId);
+        }
+        if (r.orderId) {
+          return r.orderId === order.orderId;
+        }
+        return false;
+      });
+
+      const approvedCount = orderRefunds.filter((r) => r.status === 'APPROVED').length;
+      const rejectedCount = orderRefunds.filter((r) => r.status === 'REJECTED').length;
+      const pendingCount = orderRefunds.filter((r) => r.status === 'PENDING').length;
+
+      if (orderRefunds.length > 0) {
+        if (approvedCount > 0 && rejectedCount > 0) {
+          text = 'PARTIALLY REFUNDED';
+          bgColor = 'bg-amber-100';
+          textColor = 'text-amber-800';
+        } else if (approvedCount > 0 && rejectedCount === 0) {
+          text = 'REFUND APPROVED';
+          bgColor = 'bg-emerald-100';
+          textColor = 'text-emerald-800';
+        } else if (rejectedCount > 0 && approvedCount === 0) {
+          text = 'REFUND REJECTED';
           bgColor = 'bg-[#B42318]/10';
           textColor = 'text-[#B42318]';
-          break;
-        case 'PARTIALLY_REFUNDED':
-        case 'REFUNDED':
-          bgColor = 'bg-[#74746F]/10';
-          textColor = 'text-text-muted';
-          break;
+        } else if (pendingCount > 0) {
+          text = 'REFUND PENDING';
+          bgColor = 'bg-amber-100';
+          textColor = 'text-amber-800';
+        } else {
+          text = 'SUCCESS';
+          bgColor = 'bg-[#2E7D32]/10';
+          textColor = 'text-[#2E7D32]';
+        }
+      } else {
+        switch (order.paymentStatus) {
+          case 'PARTIALLY_REFUNDED':
+            text = 'PARTIALLY REFUNDED';
+            bgColor = 'bg-amber-100';
+            textColor = 'text-amber-800';
+            break;
+          case 'REFUNDED':
+            text = 'REFUND APPROVED';
+            bgColor = 'bg-emerald-100';
+            textColor = 'text-emerald-800';
+            break;
+          case 'FAILED':
+            text = 'PAYMENT FAILED';
+            bgColor = 'bg-[#B42318]/10';
+            textColor = 'text-[#B42318]';
+            break;
+          case 'PENDING':
+            text = 'PAYMENT PENDING';
+            bgColor = 'bg-[#B7791F]/10';
+            textColor = 'text-[#B7791F]';
+            break;
+          default:
+            text = 'SUCCESS';
+            bgColor = 'bg-[#2E7D32]/10';
+            textColor = 'text-[#2E7D32]';
+            break;
+        }
       }
     }
 
