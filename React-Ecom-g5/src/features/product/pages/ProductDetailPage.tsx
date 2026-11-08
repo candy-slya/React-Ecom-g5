@@ -73,6 +73,13 @@ export const ProductDetailPage: React.FC = () => {
     ? Math.max(0, selectedVariant.availableQuantity - existingGuestCartQty)
     : (selectedVariant ? selectedVariant.availableQuantity : 0);
 
+  const isGuestMaxInCart = Boolean(
+    !isAuthenticated &&
+    selectedVariant &&
+    existingGuestCartQty > 0 &&
+    remainingAddableQty <= 0
+  );
+
   useEffect(() => {
     if (!selectedVariant || isAuthenticated) return;
     if (remainingAddableQty > 0 && quantity > remainingAddableQty) {
@@ -862,7 +869,7 @@ const displayExpiryDate = product.isPerishable
                 QUANTITY + ACTIONS
             ========================= */}
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-auto pt-4 border-t border-slate-100">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-start gap-3 mt-auto pt-4 border-t border-slate-100">
 
 
               {/* Quantity */}
@@ -918,41 +925,68 @@ const displayExpiryDate = product.isPerishable
 
   {/* Add To Cart */}
 
-  <button
-    type="button"
-    disabled={
-      isAddingCart ||
-      (selectedVariant !== null && !inStock) ||
-      (!isAuthenticated && selectedVariant !== null && remainingAddableQty <= 0)
-    }
-    onClick={handleAddToCart}
-    className="flex-1 bg-primary text-white h-12 font-bold rounded-xl shadow-md hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-xs sm:text-sm tracking-wide active:scale-[0.99] cursor-pointer"
-  >
-
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
+  <div className="flex-1 flex flex-col gap-2">
+    <button
+      type="button"
+      disabled={
+        isAddingCart ||
+        (selectedVariant !== null && !inStock) ||
+        (!isAuthenticated && selectedVariant !== null && remainingAddableQty <= 0)
+      }
+      onClick={handleAddToCart}
+      className="w-full bg-primary text-white h-12 font-bold rounded-xl shadow-md hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-xs sm:text-sm tracking-wide active:scale-[0.99] cursor-pointer"
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-      />
-    </svg>
 
-    {isAddingCart
-      ? 'ADDING...'
-      : selectedVariant && !inStock
-        ? 'SOLD OUT'
-        : (!isAuthenticated && selectedVariant && remainingAddableQty <= 0)
-          ? 'MAX IN CART'
-          : 'ADD TO CART'
-    }
+      <svg
+        className="w-4 h-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+        />
+      </svg>
 
-  </button>
+      {isAddingCart
+        ? 'ADDING...'
+        : selectedVariant && !inStock
+          ? 'SOLD OUT'
+          : (!isAuthenticated && selectedVariant && remainingAddableQty <= 0)
+            ? 'MAX IN CART'
+            : 'ADD TO CART'
+      }
+
+    </button>
+
+    {isGuestMaxInCart && (
+      <button
+        type="button"
+        onClick={() => navigate('/cart')}
+        className="w-full py-2 px-3 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-slate-900 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+        aria-label="View and manage items in cart"
+      >
+        <span>View & Manage in Cart</span>
+        <svg
+          className="w-3.5 h-3.5 text-slate-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 5l7 7-7 7"
+          />
+        </svg>
+      </button>
+    )}
+  </div>
 
   {/* Buy Now */}
 
