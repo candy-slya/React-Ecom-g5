@@ -12,7 +12,7 @@ export interface GetMyOrdersParams {
 }
 
 export const orderApi = {
-  getOrderById: async (orderId: number | string): Promise<OrderResponse> => {
+  getOrderById: async (orderId: number | string): Promise<OrderDetailResponse> => {
     const response = await axiosClient.get(`/v1/orders/${orderId}`);
     return response.data;
   },

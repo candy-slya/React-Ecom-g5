@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { orderApi } from '../api/orderApi';
 import type { GetMyOrdersParams } from '../api/orderApi';
-import type { OrderListResponse, Page } from '../types';
+import type { OrderDetailResponse, OrderListResponse, Page } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { formatDateTime } from '../../../utils/formatters';
 import { refundApi } from '../../refund/api/refundApi';
@@ -70,7 +70,7 @@ export const OrderHistoryPage: React.FC = () => {
               itemMap[o.orderId] = directIds;
             } else {
               try {
-                const detail = await orderApi.getOrderById(o.orderId);
+                const detail = (await orderApi.getOrderById(o.orderId)) as unknown as OrderDetailResponse;
                 itemMap[o.orderId] = detail.items?.map((it) => it.orderItemId) || [];
               } catch (e) {
                 // fallback
