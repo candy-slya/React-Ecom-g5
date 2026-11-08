@@ -126,21 +126,34 @@ const cartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {
-    addGuestItem: (state, action: PayloadAction<{ variantId: number; quantity: number }>) => {
-      const { variantId, quantity } = action.payload;
+    addGuestItem: (
+      state,
+      action: PayloadAction<{ variantId: number; quantity: number; availableQuantity?: number }>
+    ) => {
+      const { variantId, quantity, availableQuantity } = action.payload;
       
       if (!Number.isSafeInteger(variantId) || variantId <= 0) return;
       if (!Number.isSafeInteger(quantity) || quantity <= 0 || quantity > MAX_CART_ITEM_QUANTITY) return;
+
+      const maxLimit = (typeof availableQuantity === 'number' && Number.isSafeInteger(availableQuantity) && availableQuantity >= 0)
+        ? availableQuantity
+        : MAX_CART_ITEM_QUANTITY;
+
+      if (maxLimit <= 0) return;
 
       const existingItem = state.guestItems.find((item) => item.variantId === variantId);
       
       if (existingItem) {
         const combined = existingItem.quantity + quantity;
-        if (combined <= MAX_CART_ITEM_QUANTITY) {
-          existingItem.quantity = combined;
+        const capped = Math.min(combined, maxLimit);
+        if (capped > 0 && capped <= MAX_CART_ITEM_QUANTITY) {
+          existingItem.quantity = capped;
         }
       } else {
-        state.guestItems.push({ variantId, quantity });
+        const capped = Math.min(quantity, maxLimit);
+        if (capped > 0 && capped <= MAX_CART_ITEM_QUANTITY) {
+          state.guestItems.push({ variantId, quantity: capped });
+        }
       }
       
       guestCartStorage.save(state.guestItems);

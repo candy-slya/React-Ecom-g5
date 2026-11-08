@@ -29,6 +29,10 @@ export const ProductDetailPage: React.FC = () => {
     (state: any) => state.auth
   );
 
+  const { guestItems } = useAppSelector(
+    (state: any) => state.cart
+  );
+
   const [product, setProduct] =
     useState<ProductDetailResponse | null>(null);
 
@@ -60,6 +64,23 @@ export const ProductDetailPage: React.FC = () => {
     const timer = setTimeout(() => setWarningMsg(''), 3000);
     return () => clearTimeout(timer);
   }, [warningMsg]);
+
+  const existingGuestCartQty = selectedVariant && !isAuthenticated
+    ? (guestItems?.find((item: any) => item.variantId === selectedVariant.variantId)?.quantity || 0)
+    : 0;
+
+  const remainingAddableQty = selectedVariant && !isAuthenticated
+    ? Math.max(0, selectedVariant.availableQuantity - existingGuestCartQty)
+    : (selectedVariant ? selectedVariant.availableQuantity : 0);
+
+  useEffect(() => {
+    if (!selectedVariant || isAuthenticated) return;
+    if (remainingAddableQty > 0 && quantity > remainingAddableQty) {
+      setQuantity(remainingAddableQty);
+    } else if (remainingAddableQty <= 0 && quantity > 1) {
+      setQuantity(1);
+    }
+  }, [selectedVariant, remainingAddableQty, isAuthenticated, quantity]);
 
   const [isAddingCart, setIsAddingCart] =
     useState(false);
@@ -280,8 +301,9 @@ const handleSelectVariant = (
 
     if (!selectedVariant) return;
 
-    const max =
-      selectedVariant.availableQuantity;
+    const max = !isAuthenticated
+      ? (remainingAddableQty > 0 ? remainingAddableQty : 1)
+      : selectedVariant.availableQuantity;
 
     if (max <= 0) return;
 
@@ -318,6 +340,19 @@ const handleSelectVariant = (
 
   if (isAddingCart) return;
 
+  // Guest Early Stock Validation
+  if (!isAuthenticated) {
+    if (remainingAddableQty <= 0) {
+      setWarningMsg("Maximum available stock is already in your cart.");
+      return;
+    }
+
+    if (existingGuestCartQty + quantity > selectedVariant.availableQuantity) {
+      setWarningMsg(`Insufficient stock. Only ${remainingAddableQty} more item(s) can be added.`);
+      return;
+    }
+  }
+
   const req = {
     variantId: selectedVariant.variantId,
     quantity
@@ -342,7 +377,11 @@ const handleSelectVariant = (
       } else {
 
         dispatch(
-          addGuestItem(req)
+          addGuestItem({
+            variantId: selectedVariant.variantId,
+            quantity,
+            availableQuantity: selectedVariant.availableQuantity,
+          })
         );
 
       }
@@ -356,13 +395,28 @@ const handleSelectVariant = (
         3000
       );
 
-    } catch (e) {
+    } catch (e: any) {
 
       console.error(e);
 
-      alert(
-        'Failed to add to cart.'
-      );
+      const errorMessage =
+        typeof e === 'string'
+          ? e
+          : e instanceof Error
+            ? e.message
+            : typeof e?.message === 'string'
+              ? e.message
+              : '';
+
+      const isStockError =
+        errorMessage.toLowerCase().includes('combined quantity exceeds stock') ||
+        errorMessage.toLowerCase().includes('exceeds stock');
+
+      if (isStockError) {
+        setWarningMsg('Insufficient stock. The requested quantity exceeds available stock.');
+      } else {
+        setWarningMsg('Failed to add to cart.');
+      }
 
     } finally {
 
@@ -842,8 +896,9 @@ const displayExpiryDate = product.isPerishable
                     !inStock ||
                     (
                       selectedVariant
-                        ? quantity >=
-                          selectedVariant.availableQuantity
+                        ? (!isAuthenticated
+                            ? (remainingAddableQty > 0 ? quantity >= remainingAddableQty : true)
+                            : quantity >= selectedVariant.availableQuantity)
                         : false
                     )
                   }
@@ -867,7 +922,8 @@ const displayExpiryDate = product.isPerishable
     type="button"
     disabled={
       isAddingCart ||
-      (selectedVariant !== null && !inStock)
+      (selectedVariant !== null && !inStock) ||
+      (!isAuthenticated && selectedVariant !== null && remainingAddableQty <= 0)
     }
     onClick={handleAddToCart}
     className="flex-1 bg-primary text-white h-12 font-bold rounded-xl shadow-md hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 text-xs sm:text-sm tracking-wide active:scale-[0.99] cursor-pointer"
@@ -891,7 +947,9 @@ const displayExpiryDate = product.isPerishable
       ? 'ADDING...'
       : selectedVariant && !inStock
         ? 'SOLD OUT'
-        : 'ADD TO CART'
+        : (!isAuthenticated && selectedVariant && remainingAddableQty <= 0)
+          ? 'MAX IN CART'
+          : 'ADD TO CART'
     }
 
   </button>
