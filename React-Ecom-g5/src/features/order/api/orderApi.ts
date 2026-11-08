@@ -1,5 +1,5 @@
 import { axiosClient } from '../../../api/axiosClient';
-import type { OrderResponse } from '../../checkout/types';
+
 import type { OrderDetailResponse, OrderListResponse, Page, PendingOrderExpiryResponse } from '../types';
 
 export interface GetMyOrdersParams {
