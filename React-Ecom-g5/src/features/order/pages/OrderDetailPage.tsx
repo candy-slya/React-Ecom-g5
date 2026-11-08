@@ -232,6 +232,17 @@ export const OrderDetailPage: React.FC = () => {
     fetchOrderAndRefunds();
   }, [orderId]);
 
+  const handleBackToOrders = () => {
+    if (order?.orderId) {
+      sessionStorage.setItem('lastViewedOrderId', String(order.orderId));
+    }
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate('/orders');
+    }
+  };
+
   if (loading) {
     return (
       <div className="bg-page min-h-screen py-16 px-4 flex items-center justify-center">
@@ -330,17 +341,6 @@ export const OrderDetailPage: React.FC = () => {
       order.reservationActive === false ||
       (order.reservationExpiresAt && new Date(order.reservationExpiresAt).getTime() <= Date.now())
     );
-
-  const handleBackToOrders = () => {
-    if (order?.orderId) {
-      sessionStorage.setItem('lastViewedOrderId', String(order.orderId));
-    }
-    if (window.history.state && window.history.state.idx > 0) {
-      navigate(-1);
-    } else {
-      navigate('/orders');
-    }
-  };
 
   return (
     <div className="bg-page min-h-screen py-12 px-4 sm:px-6 lg:px-8">

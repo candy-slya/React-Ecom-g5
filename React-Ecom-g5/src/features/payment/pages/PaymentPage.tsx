@@ -295,7 +295,7 @@ export const PaymentPage: React.FC = () => {
                   </div>
                   <div className="pb-4">
                     <p className="text-sm font-medium text-text-muted mb-1">Paid At</p>
-                    <p className="text-base text-text-main">{latestPayment?.paidAt ? formatDateTime(latestPayment.paidAt) : (order.modifiedAt ? formatDateTime(order.modifiedAt) : formatDateTime(order.createdAt))}</p>
+                    <p className="text-base text-text-main">{latestPayment?.paidAt ? formatDateTime(latestPayment.paidAt) : formatDateTime(order.createdAt)}</p>
                   </div>
                   
                   <div className="pt-4 text-center mt-4 border-t border-gray-100 pt-6">
