@@ -3,6 +3,7 @@ import { orderApi } from '../api/orderApi';
 import type { GetMyOrdersParams } from '../api/orderApi';
 import type { OrderListResponse, Page } from '../types';
 import { useNavigate } from 'react-router-dom';
+import { formatDateTime } from '../../../utils/formatters';
 
 export const OrderHistoryPage: React.FC = () => {
   const [pageData, setPageData] = useState<Page<OrderListResponse> | null>(null);
@@ -151,15 +152,6 @@ export const OrderHistoryPage: React.FC = () => {
     return new Intl.NumberFormat('en-US').format(amount) + ' MMK';
   };
 
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 
   const getOrderStatusBadge = (status: string) => {
     let bgColor = 'bg-gray-100';

@@ -1,6 +1,7 @@
 import React from 'react';
 import type { ShipmentTracking } from '../types';
 
+
 interface ShipmentInformationProps {
   shipments: ShipmentTracking[];
 }
@@ -8,13 +9,14 @@ interface ShipmentInformationProps {
 export const ShipmentInformation: React.FC<ShipmentInformationProps> = ({ shipments }) => {
   const formatDateTime = (dateString: string | null) => {
     if (!dateString) return null;
-    return new Date(dateString).toLocaleString('en-US', {
+    const d = new Date(dateString); return `${d.getDate()} ${d.toLocaleString('en-US', { month: 'short' })} ${d.getFullYear()}, ${String((d.getHours() % 12) || 12).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} ${d.getHours() >= 12 ? 'PM' : 'AM'}`; /*
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    });
+      hour12: true,
+    */
   };
 
   const getShipmentStatusBadge = (status: string) => {
