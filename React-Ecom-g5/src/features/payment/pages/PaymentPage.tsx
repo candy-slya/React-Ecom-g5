@@ -123,7 +123,7 @@ export const PaymentPage: React.FC = () => {
           currentOrder.orderStatus === 'CANCELLED' ||
           currentOrder.paymentStatus === 'CANCELLED' ||
           currentOrder.paymentStatus === 'FAILED' ||
-          currentOrder.reservationActive === false
+          (currentOrder.reservationActive === false && currentOrder.paymentStatus !== 'SUCCESS' && currentOrder.orderStatus !== 'PAID')
         ) {
           setIsWaitingForPayment(false);
           const payment = await paymentApi.getLatestPayment(orderId);
@@ -140,30 +140,31 @@ export const PaymentPage: React.FC = () => {
 
   const isCartOrder = (order?.checkoutType || 'CART').toUpperCase() === 'CART';
 
+  const isPaid =
+    order?.paymentStatus === 'SUCCESS' ||
+    order?.orderStatus === 'PAID' ||
+    latestPayment?.paymentStatus === 'SUCCESS';
+
   const isTerminalFailed =
-    order?.paymentStatus !== 'SUCCESS' &&
-    order?.orderStatus !== 'PAID' &&
+    !isPaid &&
     (latestPayment?.paymentStatus === 'FAILED' || (order?.paymentStatus === 'FAILED' && latestPayment?.paymentStatus !== 'CANCELLED' && latestPayment !== null));
 
   const isTerminalCancelled =
-    order?.paymentStatus !== 'SUCCESS' &&
-    order?.orderStatus !== 'PAID' &&
+    !isPaid &&
     !isTerminalFailed &&
-    (latestPayment?.paymentStatus === 'CANCELLED' || (order?.orderStatus === 'CANCELLED' && latestPayment !== null));
+    (order?.orderStatus === 'CANCELLED' || latestPayment?.paymentStatus === 'CANCELLED');
 
   const isTerminalExpired =
-    order?.paymentStatus !== 'SUCCESS' &&
-    order?.orderStatus !== 'PAID' &&
+    !isPaid &&
     !isTerminalFailed &&
     !isTerminalCancelled &&
-    (order?.reservationActive === false || (remainingSeconds !== null && remainingSeconds <= 0) || (order?.orderStatus === 'CANCELLED' && !latestPayment));
+    (order?.reservationActive === false || (remainingSeconds !== null && remainingSeconds <= 0));
 
   const isTerminalState = isTerminalFailed || isTerminalCancelled || isTerminalExpired;
 
   const isReservationActive =
     !isTerminalState &&
-    order?.paymentStatus !== 'SUCCESS' &&
-    order?.orderStatus !== 'PAID' &&
+    !isPaid &&
     Boolean(order?.reservationExpiresAt);
 
   const formatCountdown = (totalSeconds: number) => {
@@ -274,7 +275,7 @@ export const PaymentPage: React.FC = () => {
                 <p className="text-xl font-bold text-text-main">{order.orderNo}</p>
               </div>
 
-              {order.paymentStatus === 'SUCCESS' && latestPayment?.paymentStatus === 'SUCCESS' ? (
+              {isPaid ? (
                 <>
                   <div className="border-b border-border-subtle pb-6">
                     <p className="text-sm font-medium text-text-muted mb-1">Payment Status</p>
@@ -282,19 +283,19 @@ export const PaymentPage: React.FC = () => {
                   </div>
                   <div className="border-b border-border-subtle pb-6">
                     <p className="text-sm font-medium text-text-muted mb-1">Amount Paid</p>
-                    <p className="text-xl font-bold text-text-main">{formatPrice(latestPayment.amount)}</p>
+                    <p className="text-xl font-bold text-text-main">{formatPrice(latestPayment?.amount ?? order.totalAmount)}</p>
                   </div>
                   <div className="border-b border-border-subtle pb-6">
                     <p className="text-sm font-medium text-text-muted mb-1">Payment Method</p>
-                    <p className="text-xl font-bold text-text-main">{formatPaymentMethod(latestPayment.paymentMethod)}</p>
+                    <p className="text-xl font-bold text-text-main">{latestPayment?.paymentMethod ? formatPaymentMethod(latestPayment.paymentMethod) : 'EKARAJ  BANK'}</p>
                   </div>
                   <div className="border-b border-border-subtle pb-6">
                     <p className="text-sm font-medium text-text-muted mb-1">Transaction Reference</p>
-                    <p className="text-sm font-mono break-all text-text-main">{latestPayment.transactionRef || 'N/A'}</p>
+                    <p className="text-sm font-mono break-all text-text-main">{latestPayment?.transactionRef || 'N/A'}</p>
                   </div>
                   <div className="pb-4">
                     <p className="text-sm font-medium text-text-muted mb-1">Paid At</p>
-                    <p className="text-base text-text-main">{formatDateTime(latestPayment.paidAt)}</p>
+                    <p className="text-base text-text-main">{latestPayment?.paidAt ? formatDateTime(latestPayment.paidAt) : (order.modifiedAt ? formatDateTime(order.modifiedAt) : formatDateTime(order.createdAt))}</p>
                   </div>
                   
                   <div className="pt-4 text-center mt-4 border-t border-gray-100 pt-6">

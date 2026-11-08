@@ -320,12 +320,16 @@ export const OrderDetailPage: React.FC = () => {
     !deliveryInfo.isExpired &&
     refundableItems.length > 0;
 
-  const isOrderExpired = Boolean(
-    order.isExpired ||
-    (order.reservationActive === false && order.paymentStatus !== 'SUCCESS' && order.orderStatus !== 'PAID') ||
-    (order.reservationExpiresAt && new Date(order.reservationExpiresAt).getTime() <= Date.now() && order.paymentStatus !== 'SUCCESS' && order.orderStatus !== 'PAID') ||
-    order.statusHistory?.some(h => h.remark?.toLowerCase().includes('expire') || h.newStatus?.toLowerCase().includes('expire'))
-  );
+  // Order Expired ONLY applies to unpaid PENDING orders whose reservation time has lapsed.
+  // It NEVER applies to cancelled orders, paid orders, shipped/delivered orders, or orders with refunds.
+  const isOrderExpired =
+    order.orderStatus === 'PENDING' &&
+    order.paymentStatus === 'PENDING' &&
+    Boolean(
+      order.isExpired ||
+      order.reservationActive === false ||
+      (order.reservationExpiresAt && new Date(order.reservationExpiresAt).getTime() <= Date.now())
+    );
 
   const handleBackToOrders = () => {
     if (order?.orderId) {
@@ -374,7 +378,15 @@ export const OrderDetailPage: React.FC = () => {
             </div>
             <div className="flex items-center space-x-2">
               {!isOrderExpired && <span className="text-sm font-medium text-text-muted">Payment:</span>}
-              {!isOrderExpired && getPaymentStatusBadge(order.paymentStatus)}
+              {!isOrderExpired && (
+                order.orderStatus === 'CANCELLED' ? (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#B42318]/10 text-[#B42318]">
+                    PAYMENT FAILED
+                  </span>
+                ) : (
+                  getPaymentStatusBadge(order.paymentStatus)
+                )
+              )}
             </div>
             {!isOrderExpired && (order.paymentStatus === 'SUCCESS' || order.paymentStatus === 'REFUNDED' || order.paymentStatus === 'PARTIALLY_REFUNDED') && (
               <button
@@ -393,8 +405,12 @@ export const OrderDetailPage: React.FC = () => {
         <div className="space-y-6">
           
           {/* Order Timeline */}
-          {order.statusHistory && (
-            <OrderTimeline statusHistory={order.statusHistory} isExpired={isOrderExpired} />
+          {order && (
+            <OrderTimeline
+              statusHistory={order.statusHistory || []}
+              currentStatus={order.orderStatus}
+              isExpired={isOrderExpired}
+            />
           )}
 
           {/* Shipment Information */}
@@ -543,8 +559,12 @@ export const OrderDetailPage: React.FC = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-text-muted">Status:</span>
-                      <span className={`font-medium ${isOrderExpired ? 'text-[#B42318] font-bold' : ''}`}>
-                        {isOrderExpired ? 'ORDER EXPIRED' : order.payment.paymentStatus}
+                      <span className={`font-medium ${isOrderExpired || order.orderStatus === 'CANCELLED' ? 'text-[#B42318] font-bold' : ''}`}>
+                        {isOrderExpired
+                          ? 'ORDER EXPIRED'
+                          : order.orderStatus === 'CANCELLED'
+                          ? 'PAYMENT FAILED'
+                          : order.payment.paymentStatus}
                       </span>
                     </div>
                     <div className="flex justify-between">

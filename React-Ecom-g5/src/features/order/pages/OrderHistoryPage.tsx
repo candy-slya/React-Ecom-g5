@@ -199,15 +199,9 @@ export const OrderHistoryPage: React.FC = () => {
     let textColor = 'text-gray-800';
 
     if (order.orderStatus === 'CANCELLED') {
-      if (order.isExpired) {
-        text = 'ORDER EXPIRED';
-        bgColor = 'bg-[#B42318]/10';
-        textColor = 'text-[#B42318]';
-      } else {
-        text = 'PAYMENT FAILED';
-        bgColor = 'bg-[#B42318]/10';
-        textColor = 'text-[#B42318]';
-      }
+      text = 'PAYMENT FAILED';
+      bgColor = 'bg-[#B42318]/10';
+      textColor = 'text-[#B42318]';
     } else if (order.orderStatus === 'PENDING') {
       if (order.paymentStatus === 'PENDING') {
         if (order.isExpired) {
@@ -404,16 +398,20 @@ export const OrderHistoryPage: React.FC = () => {
         ) : (
           <div className="space-y-6 print:space-y-4">
             {pageData?.content.map((order) => {
-              // Final UX Rule 1 & Step 9: Pay Now appears ONLY when payment was never started, reservation is active, and not expired
+              // Final UX Rule 1: Pay Now appears ONLY when order is unpaid PENDING with active reservation
               const isNotExpired =
                 !order.isExpired &&
                 (!order.reservationExpiresAt || new Date(order.reservationExpiresAt).getTime() > Date.now());
 
-              const isOrderExpired = Boolean(
-                order.isExpired ||
-                (order.reservationExpiresAt && new Date(order.reservationExpiresAt).getTime() <= Date.now() && order.paymentStatus !== 'SUCCESS' && order.orderStatus !== 'PAID') ||
-                (order.reservationActive === false && order.paymentStatus !== 'SUCCESS' && order.orderStatus !== 'PAID')
-              );
+              // Order Expired ONLY for unpaid PENDING orders whose reservation has lapsed
+              const isOrderExpired =
+                order.orderStatus === 'PENDING' &&
+                order.paymentStatus === 'PENDING' &&
+                Boolean(
+                  order.isExpired ||
+                  (order.reservationExpiresAt && new Date(order.reservationExpiresAt).getTime() <= Date.now()) ||
+                  order.reservationActive === false
+                );
 
               const isPayable =
                 order.orderStatus === 'PENDING' &&
