@@ -555,7 +555,11 @@ export const OrderDetailPage: React.FC = () => {
                   <>
                     <div className="flex justify-between">
                       <span className="text-text-muted">Method:</span>
-                      <span className="font-medium">{formatPaymentMethod(order.payment.paymentMethod)}</span>
+                      <span className="font-medium">
+                        {order.orderStatus === 'CANCELLED' || isOrderExpired || (order.payment.paymentStatus !== 'SUCCESS' && order.payment.paymentStatus !== 'PARTIALLY_REFUNDED' && order.payment.paymentStatus !== 'REFUNDED')
+                          ? 'N/A'
+                          : formatPaymentMethod(order.payment.paymentMethod)}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-text-muted">Status:</span>
