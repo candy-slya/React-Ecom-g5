@@ -1,3 +1,4 @@
+import { Pagination } from "../../../components/common/Pagination";
 import React, { useEffect, useState } from 'react';
 import { orderApi } from '../api/orderApi';
 import type { GetMyOrdersParams } from '../api/orderApi';
@@ -627,34 +628,18 @@ export const OrderHistoryPage: React.FC = () => {
             })}
 
             {/* Pagination Controls */}
-            {pageData && pageData.totalPages > 1 && (
-              <div className="flex items-center justify-between border-t border-border-subtle pt-6 mt-8 print:hidden">
-                <button
-                  onClick={() => setCurrentPage(p => {
-                    const next = Math.max(0, p - 1);
+            {pageData && (
+              <div className="print:hidden">
+                <Pagination
+                  currentPage={currentPage + 1}
+                  totalPages={pageData.totalPages}
+                  disabled={loading}
+                  onPageChange={(page) => {
+                    const next = page - 1;
                     sessionStorage.setItem('orderHistoryPage', String(next));
-                    return next;
-                  })}
-                  disabled={pageData.first || loading}
-                  className="rounded-md border border-border-subtle bg-surface px-4 py-2 text-sm font-medium text-text-main hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Previous
-                </button>
-                <span className="text-sm text-text-muted">
-                  Page <span className="font-medium text-text-main">{pageData.number + 1}</span> of{' '}
-                  <span className="font-medium text-text-main">{pageData.totalPages}</span>
-                </span>
-                <button
-                  onClick={() => setCurrentPage(p => {
-                    const next = Math.min(pageData.totalPages - 1, p + 1);
-                    sessionStorage.setItem('orderHistoryPage', String(next));
-                    return next;
-                  })}
-                  disabled={pageData.last || loading}
-                  className="rounded-md border border-border-subtle bg-surface px-4 py-2 text-sm font-medium text-text-main hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Next
-                </button>
+                    setCurrentPage(next);
+                  }}
+                />
               </div>
             )}
           </div>

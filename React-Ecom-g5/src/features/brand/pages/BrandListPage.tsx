@@ -4,6 +4,7 @@ import { productApi } from "../../product/api/productApi";
 import type { BrandResponse } from "../../product/api/productApi";
 import { getAssetUrl } from "../../../utils/assetUtils";
 import { GeometricPatternBanner } from "../../../components/common/GeometricPatternBanner";
+import { Pagination } from "../../../components/common/Pagination";
 
 const BrandGridItem: React.FC<{
   brand: BrandResponse;
@@ -142,42 +143,11 @@ export const BrandListPage: React.FC = () => {
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="mt-12 flex items-center justify-center space-x-2">
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 rounded-lg border border-border-subtle bg-white text-sm font-semibold text-text-main hover:bg-page hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
-                >
-                  Previous
-                </button>
-
-                <div className="flex space-x-1">
-                  {Array.from({ length: totalPages }).map((_, idx) => {
-                    const pageNum = idx + 1;
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => handlePageChange(pageNum)}
-                        className={`w-10 h-10 rounded-lg text-sm font-bold transition-colors ${
-                          currentPage === pageNum
-                            ? "bg-primary text-white shadow-sm"
-                            : "bg-white text-text-main border border-border-subtle hover:bg-page hover:text-primary"
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="px-4 py-2 rounded-lg border border-border-subtle bg-white text-sm font-semibold text-text-main hover:bg-page hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
-                >
-                  Next
-                </button>
-              </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
             )}
           </>
         )}
