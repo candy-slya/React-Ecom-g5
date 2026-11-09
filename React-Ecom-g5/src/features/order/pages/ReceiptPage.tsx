@@ -275,7 +275,7 @@ export const ReceiptPage: React.FC = () => {
                 {order.payment ? (
                   <div className="text-sm text-text-main space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-text-muted">Method:</span>
+                      <span className="text-text-muted">Payment:</span>
                       <span className="font-medium">{formatPaymentMethod(order.payment.paymentMethod)}</span>
                     </div>
                     <div className="flex justify-between">
