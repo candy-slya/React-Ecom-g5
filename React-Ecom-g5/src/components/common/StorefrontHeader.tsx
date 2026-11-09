@@ -404,7 +404,7 @@ export const StorefrontHeader: React.FC = () => {
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition-colors shadow-xs"
                 title="Click to complete payment"
               >
-                <span className="text-amber-700 font-normal">⏱ Order expires in</span>
+                <span className="text-amber-700 font-normal">Reserved •</span>
                 <span className="font-mono font-bold">{formatCountdown(expirySeconds)}</span>
               </button>
             )}

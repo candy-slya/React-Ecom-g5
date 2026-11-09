@@ -370,6 +370,12 @@ export const CheckoutPage: React.FC = () => {
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [orderError, setOrderError] = useState<string | null>(null);
+  const [activeHoldConflict, setActiveHoldConflict] = useState<{
+    orderId: number;
+    orderNo?: string;
+    expiresAt?: string;
+    message: string;
+  } | null>(null);
 
   // Track the custom location that was successfully quoted to invalidate if changed
   const [quotedCustomLocation, setQuotedCustomLocation] = useState<{city: string, township: string} | null>(null);
@@ -759,6 +765,8 @@ export const CheckoutPage: React.FC = () => {
 
     try {
       setIsSubmitting(true);
+      setActiveHoldConflict(null);
+      setOrderError(null);
       const response = await checkoutApi.createOrder(requestPayload);
 
       if (mode === 'CART') {
@@ -771,6 +779,18 @@ export const CheckoutPage: React.FC = () => {
 
       navigate(`/payment/${response.orderId}`, { state: { order: response } });
     } catch (err) {
+      if (isAxiosError(err) && err.response?.status === 409) {
+        const data = err.response.data as any;
+        if (data?.errorCode === 'ACTIVE_HOLD_EXISTS' || data?.existingOrderId) {
+          setActiveHoldConflict({
+            orderId: Number(data.existingOrderId),
+            orderNo: data.existingOrderNo,
+            expiresAt: data.expiresAt,
+            message: data.message || 'You already have an active unpaid order holding stock.',
+          });
+          return;
+        }
+      }
       setOrderError(extractErrorMessage(err));
     } finally {
       setIsSubmitting(false);
@@ -951,6 +971,52 @@ export const CheckoutPage: React.FC = () => {
           </div>
         )}
         
+        {activeHoldConflict && (
+          <div className="mb-8 rounded-lg border-2 border-amber-300 bg-amber-50 p-6 shadow-sm">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0 mt-0.5">
+                <svg className="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-bold text-amber-900">Active Unpaid Order Holding Stock</h3>
+                <p className="mt-1 text-sm text-amber-800 leading-relaxed">
+                  {activeHoldConflict.message}
+                </p>
+                {activeHoldConflict.orderNo && (
+                  <p className="mt-2 text-xs font-mono font-medium text-amber-900">
+                    Order Ref: <span className="font-bold">{activeHoldConflict.orderNo}</span>
+                  </p>
+                )}
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/payment/${activeHoldConflict.orderId}`)}
+                    className="inline-flex items-center justify-center rounded-md bg-primary text-white px-4 py-2 text-sm font-bold shadow-sm hover:bg-primary-hover transition-colors cursor-pointer"
+                  >
+                    Complete Pending Order
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/orders')}
+                    className="inline-flex items-center justify-center rounded-md border border-amber-300 bg-white text-amber-900 px-4 py-2 text-sm font-semibold shadow-sm hover:bg-amber-100 transition-colors cursor-pointer"
+                  >
+                    View All Orders
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveHoldConflict(null)}
+                    className="inline-flex items-center justify-center rounded-md border border-transparent text-amber-700 px-3 py-2 text-sm font-medium hover:text-amber-900 transition-colors cursor-pointer"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {orderError && (
           <div className="mb-8 rounded-md bg-[#B42318]/10 p-4">
             <div className="flex">

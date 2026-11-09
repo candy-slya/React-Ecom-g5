@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { orderApi } from '../api/orderApi';
 import type { OrderDetailResponse } from '../types';
 import { formatPrice, formatDateTime, formatPaymentMethod } from '../../../utils/formatters';
-import { getOrderStatusBadge, getPaymentStatusBadge } from '../../../utils/statusBadges';
+import { getPaymentStatusBadge } from '../../../utils/statusBadges';
 import { OrderTimeline } from '../components/OrderTimeline';
 import { ShipmentInformation } from '../components/ShipmentInformation';
 import { refundApi } from '../../refund/api/refundApi';
@@ -331,11 +331,20 @@ export const OrderDetailPage: React.FC = () => {
     !deliveryInfo.isExpired &&
     refundableItems.length > 0;
 
-  // Order Expired ONLY applies to unpaid PENDING orders whose reservation time has lapsed.
-  // It NEVER applies to cancelled orders, paid orders, shipped/delivered orders, or orders with refunds.
+  const hasInitiatedPayment = Boolean(order.payment);
+
+  const isProcessing =
+    order.orderStatus === 'PENDING' &&
+    order.paymentStatus === 'PENDING' &&
+    hasInitiatedPayment &&
+    order.payment?.paymentStatus === 'PENDING';
+
+  // Order Expired ONLY applies to unpaid PENDING orders where payment was never initiated and reservation lapsed.
+  // It NEVER applies to processing payments, cancelled orders, paid orders, shipped/delivered orders, or orders with refunds.
   const isOrderExpired =
     order.orderStatus === 'PENDING' &&
     order.paymentStatus === 'PENDING' &&
+    !hasInitiatedPayment &&
     Boolean(
       order.isExpired ||
       order.reservationActive === false ||
@@ -433,20 +442,49 @@ export const OrderDetailPage: React.FC = () => {
           <div className="mt-4 sm:mt-0 flex flex-col items-start sm:items-end space-y-2">
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium text-text-muted">Status:</span>
-              {isOrderExpired ? (
+              {isProcessing ? (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-100 text-sky-800">
+                  Payment Authorization in Progress
+                </span>
+              ) : isOrderExpired ? (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#B42318]/10 text-[#B42318]">
-                  ORDER EXPIRED
+                  Order Expired
+                </span>
+              ) : (order.orderStatus === 'CANCELLED' || order.paymentStatus === 'CANCELLED') ? (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#B42318]/10 text-[#B42318]">
+                  Payment Cancelled
+                </span>
+              ) : order.paymentStatus === 'FAILED' ? (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#B42318]/10 text-[#B42318]">
+                  Payment Failed
+                </span>
+              ) : (order.orderStatus === 'PAID' || order.orderStatus === 'PROCESSING' || order.paymentStatus === 'SUCCESS') ? (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#2E7D32]/10 text-[#2E7D32]">
+                  Payment Successful
                 </span>
               ) : (
-                getOrderStatusBadge(order.orderStatus)
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#B7791F]/10 text-[#B7791F]">
+                  Payment Pending
+                </span>
               )}
             </div>
-            <div className="flex items-center space-x-2">
-              {!isOrderExpired && <span className="text-sm font-medium text-text-muted">Payment:</span>}
-              {!isOrderExpired && (
-                getOrderDetailPaymentBadge()
-              )}
-            </div>
+
+            {isProcessing && (
+              <span className="text-xs font-medium text-sky-800 bg-sky-50 border border-sky-200 rounded-md px-3 py-1 inline-flex items-center">
+                <span className="relative flex h-2 w-2 mr-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
+                </span>
+                Waiting for bank confirmation
+              </span>
+            )}
+
+            {!isOrderExpired && !isProcessing && (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-text-muted">Payment:</span>
+                {getOrderDetailPaymentBadge()}
+              </div>
+            )}
             {!isOrderExpired && (order.paymentStatus === 'SUCCESS' || order.paymentStatus === 'REFUNDED' || order.paymentStatus === 'PARTIALLY_REFUNDED') && (
               <button
                 onClick={() => navigate(`/orders/${order.orderId}/receipt`)}
@@ -615,17 +653,21 @@ export const OrderDetailPage: React.FC = () => {
                     <div className="flex justify-between">
                       <span className="text-text-muted">Method:</span>
                       <span className="font-medium">
-                        {order.orderStatus === 'CANCELLED' || isOrderExpired || (order.payment.paymentStatus !== 'SUCCESS' && order.payment.paymentStatus !== 'PARTIALLY_REFUNDED' && order.payment.paymentStatus !== 'REFUNDED')
-                          ? 'N/A'
-                          : formatPaymentMethod(order.payment.paymentMethod)}
+                        {order.payment?.paymentMethod
+                          ? formatPaymentMethod(order.payment.paymentMethod)
+                          : 'N/A'}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-text-muted">Status:</span>
-                      <span className={`font-medium ${isOrderExpired || order.orderStatus === 'CANCELLED' || (order.orderStatus === 'DELIVERED' && isRejectedRefund) ? 'text-[#B42318] font-bold' : (order.orderStatus === 'DELIVERED' && isApprovedRefund) ? 'text-emerald-800 font-bold' : (order.orderStatus === 'DELIVERED' && isPartialRefund) ? 'text-amber-800 font-bold' : ''}`}>
-                        {isOrderExpired
+                      <span className={`font-medium ${isOrderExpired || order.orderStatus === 'CANCELLED' || (order.orderStatus === 'DELIVERED' && isRejectedRefund) ? 'text-[#B42318] font-bold' : (order.orderStatus === 'DELIVERED' && isApprovedRefund) ? 'text-emerald-800 font-bold' : (order.orderStatus === 'DELIVERED' && isPartialRefund) ? 'text-amber-800 font-bold' : isProcessing ? 'text-sky-800 font-bold' : ''}`}>
+                        {isProcessing
+                          ? 'PAYMENT AUTHORIZATION IN PROGRESS'
+                          : isOrderExpired
                           ? 'ORDER EXPIRED'
-                          : order.orderStatus === 'CANCELLED'
+                          : (order.orderStatus === 'CANCELLED' || order.paymentStatus === 'CANCELLED')
+                          ? 'PAYMENT CANCELLED'
+                          : order.paymentStatus === 'FAILED'
                           ? 'PAYMENT FAILED'
                           : order.orderStatus === 'DELIVERED' && isPartialRefund
                           ? 'PARTIALLY REFUNDED'
@@ -635,8 +677,8 @@ export const OrderDetailPage: React.FC = () => {
                           ? 'REFUND REJECTED'
                           : order.orderStatus === 'DELIVERED' && isPendingRefund
                           ? 'REFUND PENDING'
-                          : (order.orderStatus === 'PAID' || order.orderStatus === 'PROCESSING' || order.orderStatus === 'SHIPPED' || order.orderStatus === 'DELIVERED')
-                          ? 'SUCCESS'
+                          : (order.orderStatus === 'PAID' || order.orderStatus === 'PROCESSING' || order.orderStatus === 'SHIPPED' || order.orderStatus === 'DELIVERED' || order.paymentStatus === 'SUCCESS')
+                          ? 'PAYMENT SUCCESSFUL'
                           : order.payment?.paymentStatus || order.paymentStatus}
                       </span>
                     </div>

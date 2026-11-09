@@ -182,72 +182,9 @@ export const OrderHistoryPage: React.FC = () => {
   };
 
 
-  const getOrderStatusBadge = (status: string) => {
-    let bgColor = 'bg-gray-100';
-    let textColor = 'text-gray-800';
-
-    switch (status) {
-      case 'PENDING':
-        bgColor = 'bg-[#B7791F]/10';
-        textColor = 'text-[#B7791F]';
-        break;
-      case 'PAID':
-      case 'PROCESSING':
-        bgColor = 'bg-primary/10';
-        textColor = 'text-primary';
-        break;
-      case 'SHIPPED':
-      case 'DELIVERED':
-        bgColor = 'bg-[#2E7D32]/10';
-        textColor = 'text-[#2E7D32]';
-        break;
-      case 'CANCELLED':
-        bgColor = 'bg-[#B42318]/10';
-        textColor = 'text-[#B42318]';
-        break;
-    }
-
-    return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${bgColor} ${textColor}`}>
-        {status}
-      </span>
-    );
-  };
-
-  const getPaymentStatusBadge = (order: OrderListResponse) => {
-    let text = order.paymentStatus;
-    let bgColor = 'bg-gray-100';
-    let textColor = 'text-gray-800';
-
-    if (order.orderStatus === 'CANCELLED') {
-      text = 'PAYMENT FAILED';
-      bgColor = 'bg-[#B42318]/10';
-      textColor = 'text-[#B42318]';
-    } else if (order.orderStatus === 'PENDING') {
-      if (order.paymentStatus === 'PENDING') {
-        if (order.isExpired) {
-          text = 'ORDER EXPIRED';
-          bgColor = 'bg-[#B42318]/10';
-          textColor = 'text-[#B42318]';
-        } else if (order.hasInitiatedPayment) {
-          text = 'PAYMENT PROCESSING';
-          bgColor = 'bg-sky-100';
-          textColor = 'text-sky-800';
-        } else {
-          text = 'PAYMENT PENDING';
-          bgColor = 'bg-[#B7791F]/10';
-          textColor = 'text-[#B7791F]';
-        }
-      } else if (order.paymentStatus === 'FAILED') {
-        text = 'PAYMENT FAILED';
-        bgColor = 'bg-[#B42318]/10';
-        textColor = 'text-[#B42318]';
-      }
-    } else if (order.orderStatus !== 'DELIVERED') {
-      text = 'SUCCESS';
-      bgColor = 'bg-[#2E7D32]/10';
-      textColor = 'text-[#2E7D32]';
-    } else {
+  const renderPrimaryStatusBadge = (order: OrderListResponse) => {
+    // 1. Terminal Delivered / Post-Fulfillment
+    if (order.orderStatus === 'DELIVERED') {
       const itemIds = orderItemMap[order.orderId] || (order.items?.map((it) => it.orderItemId).filter(Boolean) as number[]) || [];
       const orderRefunds = myRefunds.filter((r) => {
         if (itemIds.length > 0) {
@@ -265,60 +202,116 @@ export const OrderHistoryPage: React.FC = () => {
 
       if (orderRefunds.length > 0) {
         if (approvedCount > 0 && rejectedCount > 0) {
-          text = 'PARTIALLY REFUNDED';
-          bgColor = 'bg-amber-100';
-          textColor = 'text-amber-800';
-        } else if (approvedCount > 0 && rejectedCount === 0) {
-          text = 'REFUND APPROVED';
-          bgColor = 'bg-emerald-100';
-          textColor = 'text-emerald-800';
-        } else if (rejectedCount > 0 && approvedCount === 0) {
-          text = 'REFUND REJECTED';
-          bgColor = 'bg-[#B42318]/10';
-          textColor = 'text-[#B42318]';
-        } else if (pendingCount > 0) {
-          text = 'REFUND PENDING';
-          bgColor = 'bg-amber-100';
-          textColor = 'text-amber-800';
-        } else {
-          text = 'SUCCESS';
-          bgColor = 'bg-[#2E7D32]/10';
-          textColor = 'text-[#2E7D32]';
+          return (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+              PARTIALLY REFUNDED
+            </span>
+          );
         }
-      } else {
-        switch (order.paymentStatus) {
-          case 'PARTIALLY_REFUNDED':
-            text = 'PARTIALLY REFUNDED';
-            bgColor = 'bg-amber-100';
-            textColor = 'text-amber-800';
-            break;
-          case 'REFUNDED':
-            text = 'REFUND APPROVED';
-            bgColor = 'bg-emerald-100';
-            textColor = 'text-emerald-800';
-            break;
-          case 'FAILED':
-            text = 'PAYMENT FAILED';
-            bgColor = 'bg-[#B42318]/10';
-            textColor = 'text-[#B42318]';
-            break;
-          case 'PENDING':
-            text = 'PAYMENT PENDING';
-            bgColor = 'bg-[#B7791F]/10';
-            textColor = 'text-[#B7791F]';
-            break;
-          default:
-            text = 'SUCCESS';
-            bgColor = 'bg-[#2E7D32]/10';
-            textColor = 'text-[#2E7D32]';
-            break;
+        if (approvedCount > 0 && rejectedCount === 0) {
+          return (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+              REFUND APPROVED
+            </span>
+          );
+        }
+        if (rejectedCount > 0 && approvedCount === 0) {
+          return (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#B42318]/10 text-[#B42318]">
+              REFUND REJECTED
+            </span>
+          );
+        }
+        if (pendingCount > 0) {
+          return (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+              REFUND PENDING
+            </span>
+          );
         }
       }
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#2E7D32]/10 text-[#2E7D32]">
+          DELIVERED
+        </span>
+      );
     }
 
+    if (order.orderStatus === 'SHIPPED') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#2E7D32]/10 text-[#2E7D32]">
+          SHIPPED
+        </span>
+      );
+    }
+
+    // 2. Terminal Paid / Confirmed
+    if (
+      order.orderStatus === 'PAID' ||
+      order.orderStatus === 'PROCESSING' ||
+      order.paymentStatus === 'SUCCESS'
+    ) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#2E7D32]/10 text-[#2E7D32]">
+          PAYMENT SUCCESSFUL
+        </span>
+      );
+    }
+
+    // 3. Terminal Cancelled
+    if (order.orderStatus === 'CANCELLED' || order.paymentStatus === 'CANCELLED') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#B42318]/10 text-[#B42318]">
+          PAYMENT CANCELLED
+        </span>
+      );
+    }
+
+    // 4. Terminal Failed
+    if (order.paymentStatus === 'FAILED') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#B42318]/10 text-[#B42318]">
+          PAYMENT FAILED
+        </span>
+      );
+    }
+
+    // 5. Payment Processing (Payment initiated and pending - overrides timer expiry)
+    if (
+      order.orderStatus === 'PENDING' &&
+      order.paymentStatus === 'PENDING' &&
+      order.hasInitiatedPayment === true
+    ) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-100 text-sky-800">
+          PAYMENT PROCESSING
+        </span>
+      );
+    }
+
+    // 6. True Order Expired (ONLY when payment was never initiated AND reservation lapsed)
+    const isLapsed = Boolean(
+      order.isExpired ||
+      (order.reservationExpiresAt && new Date(order.reservationExpiresAt).getTime() <= Date.now()) ||
+      order.reservationActive === false
+    );
+    if (
+      order.orderStatus === 'PENDING' &&
+      order.paymentStatus === 'PENDING' &&
+      !order.hasInitiatedPayment &&
+      isLapsed
+    ) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#B42318]/10 text-[#B42318]">
+          ORDER EXPIRED
+        </span>
+      );
+    }
+
+    // 7. Unpaid Pending (Reservation active, payment not yet initiated)
     return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${bgColor} ${textColor}`}>
-        {text}
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#B7791F]/10 text-[#B7791F]">
+        PAYMENT PENDING
       </span>
     );
   };
@@ -388,7 +381,7 @@ export const OrderHistoryPage: React.FC = () => {
 
         {/* Filter Section */}
         <div className="bg-surface border border-border-subtle rounded-lg p-6 mb-8 shadow-sm print:hidden">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-text-main mb-1">From Date</label>
               <input
@@ -419,16 +412,6 @@ export const OrderHistoryPage: React.FC = () => {
                 <option value="SHIPPED">Shipped</option>
                 <option value="DELIVERED">Delivered</option>
               </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-text-main mb-1">Order Number</label>
-              <input
-                type="text"
-                placeholder="Search order number"
-                value={orderNo}
-                onChange={e => setOrderNo(e.target.value)}
-                className="w-full rounded-md border border-border-subtle px-3 py-2 text-text-main focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-              />
             </div>
           </div>
           {dateError && <p className="mt-2 text-sm text-[#B42318]">{dateError}</p>}
@@ -474,15 +457,11 @@ export const OrderHistoryPage: React.FC = () => {
                 !order.isExpired &&
                 (!order.reservationExpiresAt || new Date(order.reservationExpiresAt).getTime() > Date.now());
 
-              // Order Expired ONLY for unpaid PENDING orders whose reservation has lapsed
-              const isOrderExpired =
+              // Priority 4: Processing state has NO action button (wait only, overrides expired timer)
+              const isProcessing =
                 order.orderStatus === 'PENDING' &&
                 order.paymentStatus === 'PENDING' &&
-                Boolean(
-                  order.isExpired ||
-                  (order.reservationExpiresAt && new Date(order.reservationExpiresAt).getTime() <= Date.now()) ||
-                  order.reservationActive === false
-                );
+                order.hasInitiatedPayment === true;
 
               const isPayable =
                 order.orderStatus === 'PENDING' &&
@@ -490,12 +469,6 @@ export const OrderHistoryPage: React.FC = () => {
                 order.hasInitiatedPayment === false &&
                 order.reservationActive === true &&
                 isNotExpired;
-
-              // Final UX Rule 2: Processing state has NO action button (wait only)
-              const isProcessing =
-                order.orderStatus === 'PENDING' &&
-                order.paymentStatus === 'PENDING' &&
-                order.hasInitiatedPayment === true;
 
               return (
               <div
@@ -530,14 +503,7 @@ export const OrderHistoryPage: React.FC = () => {
                         <p className="text-sm font-medium text-text-muted mb-1">Total</p>
                         <p className="text-xl font-bold text-text-main">{formatPrice(order.totalAmount)}</p>
                         <div className="flex gap-2 mt-2 sm:justify-end">
-                          {isOrderExpired ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#B42318]/10 text-[#B42318]">
-                              ORDER EXPIRED
-                            </span>
-                          ) : (
-                            getOrderStatusBadge(order.orderStatus)
-                          )}
-                          {!isOrderExpired && getPaymentStatusBadge(order)}
+                          {renderPrimaryStatusBadge(order)}
                         </div>
 
                         {/* Pay Now: ONLY when payment not started + reservation active */}
@@ -574,7 +540,7 @@ export const OrderHistoryPage: React.FC = () => {
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
                               </span>
-                              Please wait for the payment result
+                              Waiting for bank confirmation
                             </span>
                           </div>
                         )}

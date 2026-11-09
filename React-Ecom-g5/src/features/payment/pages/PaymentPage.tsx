@@ -84,6 +84,9 @@ export const PaymentPage: React.FC = () => {
           const fetchedPayment = await paymentApi.getLatestPayment(orderId);
           // Handle 204 No Content (axios might return empty string or null)
           setLatestPayment(fetchedPayment ? fetchedPayment : null);
+          if (fetchedPayment && fetchedPayment.paymentStatus === 'PENDING') {
+            setIsWaitingForPayment(true);
+          }
         } catch (paymentErr) {
           if (isAxiosError(paymentErr) && (paymentErr.response?.status === 404 || paymentErr.response?.status === 204)) {
             // No payment exists yet, normal unpaid state
@@ -122,8 +125,7 @@ export const PaymentPage: React.FC = () => {
         } else if (
           currentOrder.orderStatus === 'CANCELLED' ||
           currentOrder.paymentStatus === 'CANCELLED' ||
-          currentOrder.paymentStatus === 'FAILED' ||
-          (currentOrder.reservationActive === false && currentOrder.paymentStatus !== 'SUCCESS' && currentOrder.orderStatus !== 'PAID')
+          currentOrder.paymentStatus === 'FAILED'
         ) {
           setIsWaitingForPayment(false);
           const payment = await paymentApi.getLatestPayment(orderId);
@@ -154,10 +156,13 @@ export const PaymentPage: React.FC = () => {
     !isTerminalFailed &&
     (order?.orderStatus === 'CANCELLED' || latestPayment?.paymentStatus === 'CANCELLED');
 
+  const isPaymentPending = isWaitingForPayment || latestPayment?.paymentStatus === 'PENDING';
+
   const isTerminalExpired =
     !isPaid &&
     !isTerminalFailed &&
     !isTerminalCancelled &&
+    !isPaymentPending &&
     (order?.reservationActive === false || (remainingSeconds !== null && remainingSeconds <= 0));
 
   const isTerminalState = isTerminalFailed || isTerminalCancelled || isTerminalExpired;
@@ -165,6 +170,7 @@ export const PaymentPage: React.FC = () => {
   const isReservationActive =
     !isTerminalState &&
     !isPaid &&
+    !isPaymentPending &&
     Boolean(order?.reservationExpiresAt);
 
   const formatCountdown = (totalSeconds: number) => {
@@ -322,7 +328,7 @@ export const PaymentPage: React.FC = () => {
                   <div className="border-b border-border-subtle pb-6">
                     <p className="text-sm font-medium text-text-muted mb-1">Payment Status</p>
                     <p className={`text-xl font-bold ${isTerminalCancelled ? 'text-slate-700' : 'text-rose-600'}`}>
-                      {isTerminalFailed ? 'FAILED' : isTerminalCancelled ? 'CANCELLED' : 'ORDER EXPIRED'}
+                      {isTerminalFailed ? 'PAYMENT FAILED' : isTerminalCancelled ? 'PAYMENT CANCELLED' : 'ORDER EXPIRED'}
                     </p>
                   </div>
                   <div className="border-b border-border-subtle pb-6">
@@ -347,7 +353,7 @@ export const PaymentPage: React.FC = () => {
                       )}
                     </div>
                     <h3 className="text-xl font-bold text-slate-900 mb-2">
-                      {isTerminalFailed ? 'Payment Failed' : isTerminalCancelled ? 'Order Cancelled' : 'Order Expired'}
+                      {isTerminalFailed ? 'Payment Failed' : isTerminalCancelled ? 'Payment Cancelled' : 'Order Expired'}
                     </h3>
                     <p className="text-sm text-slate-600 mb-1">
                       {isTerminalFailed
@@ -410,12 +416,15 @@ export const PaymentPage: React.FC = () => {
                             <h3 className="text-sm font-bold text-amber-900">Payment Pending</h3>
                             {remainingSeconds !== null && (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-amber-200 text-amber-900 shadow-sm">
-                                Your order expires in {formatCountdown(remainingSeconds)}
+                                Reservation time remaining: {formatCountdown(remainingSeconds)}
                               </span>
                             )}
                           </div>
-                          <p className="mt-1 text-xs text-amber-800 leading-relaxed">
-                            Your order has been placed. Please complete your payment before the timer expires.
+                          <p className="mt-1.5 text-xs text-amber-800 leading-relaxed">
+                            Your order has been created and the items are temporarily reserved for you.
+                          </p>
+                          <p className="mt-2 text-xs text-amber-700 leading-relaxed">
+                            You can continue to payment when you're ready. If the reservation expires before payment starts, the order will be released automatically.
                           </p>
                         </div>
                       </div>
@@ -449,10 +458,10 @@ export const PaymentPage: React.FC = () => {
                     <div className="rounded-lg bg-sky-50 p-4 border border-sky-200 mb-4 text-center">
                       <div className="flex items-center justify-center space-x-2 mb-2">
                         <div className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-                        <h4 className="text-sm font-bold text-sky-900">Banking portal opened in a new tab</h4>
+                        <h4 className="text-sm font-bold text-sky-900">Payment Authorization in Progress</h4>
                       </div>
                       <p className="text-xs text-sky-700">
-                        Please complete your payment in the bank tab. This page will automatically update once confirmed.
+                        We're waiting for confirmation from the bank. Please complete your payment in the bank tab. This page will automatically update once confirmed.
                       </p>
                     </div>
                   ) : (
@@ -463,7 +472,7 @@ export const PaymentPage: React.FC = () => {
                         disabled={isSubmitting || isCancelling}
                         className="w-full rounded-md bg-primary text-white px-4 py-4 text-base font-bold shadow-md transition-colors hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       >
-                        {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
+                        {isSubmitting ? 'Processing...' : 'Continue to Payment'}
                       </button>
                       <button
                         type="button"
