@@ -327,8 +327,8 @@ export const PaymentPage: React.FC = () => {
                 <>
                   <div className="border-b border-border-subtle pb-6">
                     <p className="text-sm font-medium text-text-muted mb-1">Payment Status</p>
-                    <p className={`text-xl font-bold ${isTerminalCancelled ? 'text-slate-700' : 'text-rose-600'}`}>
-                      {isTerminalFailed ? 'PAYMENT FAILED' : isTerminalCancelled ? 'PAYMENT CANCELLED' : 'ORDER EXPIRED'}
+                    <p className={`text-xl font-bold ${isTerminalCancelled || isTerminalExpired ? 'text-slate-700' : 'text-rose-600'}`}>
+                      {isTerminalFailed ? 'PAYMENT FAILED' : isTerminalCancelled ? 'PAYMENT CANCELLED' : 'Not Completed'}
                     </p>
                   </div>
                   <div className="border-b border-border-subtle pb-6">
@@ -337,7 +337,7 @@ export const PaymentPage: React.FC = () => {
                   </div>
 
                   <div className="pt-4 text-center mt-4 border-t border-gray-100 pt-6">
-                    <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full ${isTerminalCancelled ? 'bg-slate-100' : 'bg-rose-100'}`}>
+                    <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full ${isTerminalCancelled || isTerminalExpired ? 'bg-slate-100' : 'bg-rose-100'}`}>
                       {isTerminalCancelled ? (
                         <svg className="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -347,29 +347,35 @@ export const PaymentPage: React.FC = () => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
                       ) : (
-                        <svg className="h-6 w-6 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       )}
                     </div>
                     <h3 className="text-xl font-bold text-slate-900 mb-2">
-                      {isTerminalFailed ? 'Payment Failed' : isTerminalCancelled ? 'Payment Cancelled' : 'Order Expired'}
+                      {isTerminalFailed ? 'Payment Failed' : isTerminalCancelled ? 'Payment Cancelled' : 'Reservation Ended'}
                     </h3>
-                    <p className="text-sm text-slate-600 mb-1">
-                      {isTerminalFailed
-                        ? 'Your payment was not completed.'
-                        : isTerminalCancelled
-                        ? 'You cancelled the order before payment.'
-                        : 'Your order has expired.'}
-                    </p>
-                    <p className="text-sm text-slate-600 mb-2">Stock hold has been released.</p>
+                    {isTerminalExpired ? (
+                      <p className="text-sm text-slate-600 mb-2">
+                        The reservation period for this order has ended, and the reserved items have been released.
+                      </p>
+                    ) : (
+                      <>
+                        <p className="text-sm text-slate-600 mb-1">
+                          {isTerminalFailed
+                            ? 'Your payment was not completed.'
+                            : 'You cancelled the order before payment.'}
+                        </p>
+                        <p className="text-sm text-slate-600 mb-2">Stock hold has been released.</p>
+                      </>
+                    )}
                     {isCartOrder && !isTerminalExpired ? (
                       <p className="text-sm font-semibold text-emerald-700 mb-6">
                         Your checkout items have been returned to your cart.
                       </p>
                     ) : isTerminalExpired ? (
                       <p className="text-sm text-slate-500 mb-6">
-                        The items were not returned to your cart. Please start a new order if you still wish to purchase them.
+                        If you'd still like to purchase these items, you can start a new order.
                       </p>
                     ) : (
                       <p className="text-sm text-slate-500 mb-6">
